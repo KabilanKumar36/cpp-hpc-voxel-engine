@@ -1,0 +1,41 @@
+# Prerequisites
+*.d
+*.obj
+*.exe
+*.pdb
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.sdf
+*.opensdf
+*.tlog
+
+# Visual Studio 2022 / 2026
+.vs/
+out/
+build/
+CMakeSettings.json
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.ninja
+
+# OS junk
+.DS_Store
+Thumbs.db
