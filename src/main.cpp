@@ -1,16 +1,71 @@
 #include <iostream>
-#define TEST 1
+#define TEST 0
+#define DEBUG 0
+
 #if TEST
 #include <core/MathUtils.h>
 #include <core/Ray.h>
+#include <core/Matrix.h>
+#include <core/camera.h>
 #else
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include <core/MathUtils.h>
+#include <core/Matrix.h>
+#include <core/camera.h>
+
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
 
+Core::Camera camera(Core::Vec3(0.0f, 0.0f, 3.0f));
+float lastX = SCREEN_WIDTH / 2.0f;
+float lastY = SCREEN_HEIGHT / 2.0f;
+bool bFirstMouse = true;
+
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+}
+
+void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
+	float xPos = static_cast<float>(xPosIn);
+	float yPos = static_cast<float>(yPosIn);
+
+	if (bFirstMouse)
+	{
+		lastX = xPos;
+		lastY = yPos;
+		bFirstMouse = false;
+	}
+
+	float xOffset = xPos - lastX;
+	float yOffset = lastY - yPos; //Inverse Direction of rotate bottom to top
+
+	xPos = lastX;
+	yPos = lastY;
+
+	camera.processMouseMovement(xOffset, yOffset);
+}
+
+void processInput(GLFWwindow* pWindow) {
+	if (glfwGetKey(pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(pWindow, true);
+
+	if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
+		camera.processKeyboard(0, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
+		camera.processKeyboard(1, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS)
+		camera.processKeyboard(2, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS)
+		camera.processKeyboard(3, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
+		camera.processKeyboard(4, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		camera.processKeyboard(5, deltaTime);
 }
 #endif
 
@@ -45,6 +100,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
 	GLFWwindow* pWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "HPC Voxel Engine", nullptr, nullptr);
 	if (pWindow == NULL)
 	{
@@ -53,7 +109,12 @@ int main() {
 		return -1;
 	}
 	glfwMakeContextCurrent(pWindow);
+
 	glfwSetFramebufferSizeCallback(pWindow, framebuffer_size_callback);
+	glfwSetCursorPosCallback(pWindow, mouseCallBack);
+
+	glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -61,11 +122,24 @@ int main() {
 	}
 	while (!glfwWindowShouldClose(pWindow))
 	{
-		if (glfwGetKey(pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-			glfwSetWindowShouldClose(pWindow, true);
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		processInput(pWindow);
 
 		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
+#if DEBUG
+		static float timer = 0.0f;
+		timer += deltaTime;
+		if (timer > 1.0f)
+		{
+			camera.position.print();
+			timer = 0.0f;
+		}
+#endif
+
 		glfwSwapBuffers(pWindow);
 		glfwPollEvents();
 	}
