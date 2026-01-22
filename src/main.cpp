@@ -1,3 +1,19 @@
+// ==========================================
+// TODO: NEXT SESSION (Camera Polish & Input)
+// ==========================================
+// 1. Tune Controls:
+//    - Lower Mouse SENSITIVITY (currently too fast)
+//    - Lower Movement SPEED (currently flies through objects)
+//
+// 2. Implement Zoom:
+//    - Add glfwScrollCallback
+//    - Map scroll offset to Camera.zoom (FOV)
+//    - Update Projection Matrix to use dynamic FOV
+//
+// 3. Implement Debug Features:
+//    - Add 'R' key binding to reset Camera Position to origin
+// ==========================================
+
 #include <iostream>
 #define TEST 0
 #define DEBUG 0
@@ -14,6 +30,10 @@
 #include <core/MathUtils.h>
 #include <core/Matrix.h>
 #include <core/camera.h>
+
+#include <renderer/Shader.h>
+#include <renderer/Buffer.h>
+#include <renderer/VertexArray.h>
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
@@ -120,6 +140,26 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+
+	glEnable(GL_DEPTH_TEST);
+
+	Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl"); 
+
+	float fVertices[] = {
+		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,
+		 0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
+	};
+
+	Renderer::VertexArray vao;
+	Renderer::VertexBuffer vbo(fVertices, sizeof(fVertices));
+
+	vao.linkAttribute(vbo, 0, 3, 3, 0);
+
+	lastFrame = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(pWindow))
 	{
 		float currentFrame = static_cast<float>(glfwGetTime());
@@ -129,7 +169,18 @@ int main() {
 		processInput(pWindow);
 
 		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		shader.use();
+
+		Core::Mat4 projection = Core::Mat4::perspective(45.0f, 
+			(float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1f, 100.0f);
+		Core::Mat4 view = camera.getViewMatrix();
+		Core::Mat4 viewProjection = projection * view;
+		shader.setMat4("uViewProjection", viewProjection);
+		vao.bind();
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 #if DEBUG
 		static float timer = 0.0f;
 		timer += deltaTime;
