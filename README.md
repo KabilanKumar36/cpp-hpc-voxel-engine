@@ -8,6 +8,8 @@
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed to explore computational geometry, hardware-accelerated rendering, and low-level memory management.
 
+![Day 02 Demo](assets/screenshots/demo_day_02.png)
+
 ## 🚀 Overview
 
 This project is a technical playground for implementing high-performance graphics concepts without relying on heavy game engines. The core focus is on:
@@ -28,6 +30,8 @@ This project is a technical playground for implementing high-performance graphic
 
 - [x] **Core Math Library:** Custom `Vec3` implementation with `constexpr` optimization.
 - [x] **Render Context:** Robust GLFW window handling and input polling.
+- [x] **Interactive Camera:** WASD movement, Mouse Look, and Zoom.
+- [x] **Asset Pipeline:** Texture loading (stb_image) and UV mapping.
 - [x] **Build System:** Self-contained CMake setup with automated dependency management.
 - [ ] **Ray Casting:** CPU-side ray-voxel intersection.
 - [ ] **Chunk Management:** Infinite terrain paging system.
