@@ -1,19 +1,20 @@
 // ==========================================
-// TODO: NEXT SESSION (Camera Polish & Input)
+// TODO: NEXT SESSION (The Chunk System)
 // ==========================================
-// 1. Tune Controls:
-//    - Lower Mouse SENSITIVITY (currently too fast)
-//    - Lower Movement SPEED (currently flies through objects)
+// 0. Fix the mouse sensitivity issue:
+//    - Fix slow movement by keyboard and faster movement by mouse
+// 
+// 1. Create Chunk Class:
+//    - Store 16x16x16 blocks (using a 3D array or flat vector)
+//    - Generate a single Mesh for the whole chunk
 //
-// 2. Implement Zoom:
-//    - Add glfwScrollCallback
-//    - Map scroll offset to Camera.zoom (FOV)
-//    - Update Projection Matrix to use dynamic FOV
+// 2. Mesh Generation:
+//    - Combine vertices of all blocks into one VBO
+//    - (Optimization) "Face Culling": Don't draw faces that are touching other blocks
 //
-// 3. Implement Debug Features:
-//    - Add 'R' key binding to reset Camera Position to origin
+// 3. Performance:
+//    - Draw 4096 blocks with just ONE glDrawArrays call
 // ==========================================
-
 #include <iostream>
 #define TEST 0
 #define DEBUG 0
@@ -34,6 +35,7 @@
 #include <renderer/Shader.h>
 #include <renderer/Buffer.h>
 #include <renderer/VertexArray.h>
+#include <renderer/Texture.h>
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
@@ -64,8 +66,8 @@ void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
 	float xOffset = xPos - lastX;
 	float yOffset = lastY - yPos; //Inverse Direction of rotate bottom to top
 
-	xPos = lastX;
-	yPos = lastY;
+	lastX = xPos;
+	lastY = yPos;
 
 	camera.processMouseMovement(xOffset, yOffset);
 }
@@ -86,7 +88,21 @@ void processInput(GLFWwindow* pWindow) {
 		camera.processKeyboard(4, deltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
 		camera.processKeyboard(5, deltaTime);
+	if (glfwGetKey(pWindow, GLFW_KEY_R) == GLFW_PRESS) //Resets cameta position
+	{
+		camera.position = Core::Vec3(0.0f, 0.0f, 3.0f);
+		camera.yaw = -90.0f;
+		camera.pitch = 0.0f;
+		camera.zoom = 45.0f;
+		camera.front = Core::Vec3(0.0f, 0.0f, -1.0f);
+		camera.updateCameraVectors();
+	}
 }
+
+void scroll_callback(GLFWwindow* pWindow, double dXOffset, double dYOffset) {
+	camera.processMouseScroll(static_cast<float> (dYOffset));
+}
+
 #endif
 
 int main() {
@@ -132,6 +148,7 @@ int main() {
 
 	glfwSetFramebufferSizeCallback(pWindow, framebuffer_size_callback);
 	glfwSetCursorPosCallback(pWindow, mouseCallBack);
+	glfwSetScrollCallback(pWindow, scroll_callback);
 
 	glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -145,6 +162,7 @@ int main() {
 
 	Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl"); 
 
+	/* for simple cube without textures
 	float fVertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
 		-0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
@@ -152,12 +170,59 @@ int main() {
 		 0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,
 		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f,
 		-0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
+	};*/
+	float fVertices[] = {
+		// positions          // texture coords
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
 	Renderer::VertexArray vao;
 	Renderer::VertexBuffer vbo(fVertices, sizeof(fVertices));
 
-	vao.linkAttribute(vbo, 0, 3, 3, 0);
+	vao.linkAttribute(vbo, 0, 3, 5, 0);
+	vao.linkAttribute(vbo, 1, 2, 5, 3);
+	Renderer::Texture texture("../assets/textures/container.jpg");
+	texture.bind(0);
 
 	lastFrame = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(pWindow))
@@ -173,7 +238,7 @@ int main() {
 
 		shader.use();
 
-		Core::Mat4 projection = Core::Mat4::perspective(45.0f, 
+		Core::Mat4 projection = Core::Mat4::perspective(camera.getZoom(),
 			(float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1f, 100.0f);
 		Core::Mat4 view = camera.getViewMatrix();
 		Core::Mat4 viewProjection = projection * view;

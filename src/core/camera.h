@@ -7,8 +7,8 @@ namespace Core {
 	constexpr float PI = 3.1415926535f;
 	constexpr float YAW = -90.0f;
 	constexpr float PITCH = 0.0f;
-	constexpr float SPEED = 1.0f;
-	constexpr float SENSITIVITY = 0.001f;
+	constexpr float SPEED = 0.1f;
+	constexpr float SENSITIVITY = 0.01f;
 	constexpr float ZOOM = 45.0f;
 	class Camera {
 	public:
@@ -21,7 +21,7 @@ namespace Core {
 		//Euler Angles
 		float yaw;
 		float pitch;
-
+		float zoom;
 
 		//Constructor
 		Camera(Vec3 startPos = Vec3(0.0f, 0.0f, 0.0f), Vec3 startUP = Vec3(0.0f, 1.0f, 0.0f))
@@ -70,12 +70,17 @@ namespace Core {
 			}
 			updateCameraVectors();
 		}
-	private:
 
-		float speed;
-		float sensitivity;
-		float zoom;
-
+		void processMouseScroll(float fYOffset) {
+			zoom -= fYOffset;
+			if (zoom < 1.0f)
+				zoom = 1.0f;
+			if (zoom > 90.0f)
+				zoom = 90.0f;
+		}
+		float getZoom() const {
+			return zoom;
+		}
 		void updateCameraVectors() {
 			Vec3 fwd;
 			fwd.x = std::cos(yaw * PI / 180.0f) * std::cos(pitch * PI / 180.0f);
@@ -85,5 +90,10 @@ namespace Core {
 			right = front.cross(worldUp).normalize();
 			up = right.cross(front).normalize();
 		}
+	private:
+
+		float speed;
+		float sensitivity;
+
 	};
 }
