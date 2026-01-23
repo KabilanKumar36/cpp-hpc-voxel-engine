@@ -16,6 +16,18 @@ namespace Core {
 		[[nodiscard]] constexpr Vec3 operator-(const Vec3& other) const noexcept {
 			return Vec3(x - other.x, y - other.y, z - other.z);
 		}
+		constexpr Vec3& operator+=(const Vec3& other) noexcept {
+			x += other.x;
+			y += other.y;
+			z += other.z;
+			return *this;
+		}
+		constexpr Vec3& operator-=(const Vec3& other) noexcept {
+			x -= other.x;
+			y -= other.y;
+			z -= other.z;
+			return *this;
+		}
 		[[nodiscard]] constexpr Vec3 operator*(float scalar) const noexcept {
 			return Vec3(x * scalar, y * scalar, z * scalar);
 		}

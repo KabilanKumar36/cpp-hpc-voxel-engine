@@ -1,9 +1,6 @@
 // ==========================================
 // TODO: NEXT SESSION (The Chunk System)
 // ==========================================
-// 0. Fix the mouse sensitivity issue:
-//    - Fix slow movement by keyboard and faster movement by mouse
-// 
 // 1. Create Chunk Class:
 //    - Store 16x16x16 blocks (using a 3D array or flat vector)
 //    - Generate a single Mesh for the whole chunk
@@ -53,6 +50,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
+	bool bIsLeftDown = glfwGetMouseButton(pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
+	bool bIsRightDown = glfwGetMouseButton(pWindow, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
+	if (!bIsLeftDown && !bIsRightDown)
+	{
+		bFirstMouse = true;
+		return;
+	}
 	float xPos = static_cast<float>(xPosIn);
 	float yPos = static_cast<float>(yPosIn);
 
@@ -68,8 +72,10 @@ void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
 
 	lastX = xPos;
 	lastY = yPos;
-
-	camera.processMouseMovement(xOffset, yOffset);
+	if(bIsLeftDown)
+		camera.processMouseMovement(xOffset, yOffset);
+	else if(bIsRightDown)
+		camera.processMousePan(xOffset, yOffset);
 }
 
 void processInput(GLFWwindow* pWindow) {
@@ -150,7 +156,8 @@ int main() {
 	glfwSetCursorPosCallback(pWindow, mouseCallBack);
 	glfwSetScrollCallback(pWindow, scroll_callback);
 
-	glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{

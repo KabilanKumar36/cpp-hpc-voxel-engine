@@ -7,8 +7,8 @@ namespace Core {
 	constexpr float PI = 3.1415926535f;
 	constexpr float YAW = -90.0f;
 	constexpr float PITCH = 0.0f;
-	constexpr float SPEED = 0.1f;
-	constexpr float SENSITIVITY = 0.01f;
+	constexpr float SPEED = 1.0f;
+	constexpr float SENSITIVITY = 0.03f;
 	constexpr float ZOOM = 45.0f;
 	class Camera {
 	public:
@@ -70,7 +70,17 @@ namespace Core {
 			}
 			updateCameraVectors();
 		}
+		void processMousePan(float fXOffset, float fYOffset) {
+			float fPanSpeed = 0.02f;
 
+			position -= right * (fXOffset * fPanSpeed);
+			position -= up * (fYOffset * fPanSpeed);
+#if DEBUG
+			// DEBUG: Print values to console
+			std::cout << "PanX: " << position.x << " | Yaw: " << yaw << std::endl;
+			std::cout << "PanY: " << position.y << " | Pitch: " << pitch << std::endl;
+#endif
+		}
 		void processMouseScroll(float fYOffset) {
 			zoom -= fYOffset;
 			if (zoom < 1.0f)
