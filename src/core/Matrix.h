@@ -102,5 +102,19 @@ namespace Core {
 
             return result;
         }
+        static Mat4 orthographic(float left, float right, 
+            float bottom, float top, float nearplane, float farplane) {
+            Mat4 result; // By default identity
+
+            result.elements[0 + 0 * 4] = 2.0f / (right - left);
+            result.elements[1 + 1 * 4] = 2.0f / (top - bottom);
+            result.elements[2 + 2 * 4] = -2.0f / (farplane - nearplane);
+
+            result.elements[0 + 3 * 4] = -(right + left) / (right - left);
+            result.elements[1 + 3 * 4] = -(top + bottom) / (top - bottom);
+            result.elements[2 + 3 * 4] = -(farplane + nearplane) / (farplane - nearplane);
+
+            return result;
+        }
     };
 }

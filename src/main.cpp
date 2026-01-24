@@ -45,9 +45,9 @@ Core::Vec3 cameraPos = Core::Vec3(8.0f, 8.0f, 48.0f); //0.0f, 0.0f, 3.0f for Sim
 Core::Camera camera(cameraPos);
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
-bool bFirstMouse = true;
-bool bEnableFaceCulling = false;
-
+bool bFirstMouse = true, bEnableFaceCulling = false, 
+bPerspective = true;
+float fOrthoSize = 10.0f;
 float fDeltaTime = 0.0f;
 float fLastFrame = 0.0f;
 
@@ -112,25 +112,34 @@ void processInput(GLFWwindow* pWindow) {
 }
 
 void scroll_callback(GLFWwindow* pWindow, double dXOffset, double dYOffset) {
+	if(bPerspective)
 	camera.processMouseScroll(static_cast<float> (dYOffset));
-}
-
-void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount) {
-	if (!pWindow)
-		return;
-	std::string strTitle = "";
-	if (bEnableFaceCulling)
-	{
-		strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFrameCount) +
-			"\tFace Culling Enabled (Press 'F' key to toogle)";
-	}
 	else
 	{
-		strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFrameCount) +
-			"\tFace Culling Disabled (Press 'F' key to toogle)";
+		fOrthoSize -= static_cast<float>(dYOffset);
+		if (fOrthoSize < 1.0f)
+			fOrthoSize = 1.0f;
+		if (fOrthoSize > 40.0f)
+			fOrthoSize = 40.0f;
 	}
-	glfwSetWindowTitle(pWindow, strTitle.c_str());
 }
+
+void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount, float fTimer) {
+	if (!pWindow)
+		return;
+	int iFPS = static_cast<int>(iFrameCount / fTimer);
+	std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
+	if (bEnableFaceCulling)
+		strTitle += "\tFace Culling Enabled (Press 'F' key to toogle)";
+	else
+		strTitle += "\tFace Culling Disabled (Press 'F' key to toogle)";
+		
+	if (bPerspective)
+		strTitle += "\tPerspective Projection (Press 'P' key to toggle)";
+	else
+		strTitle += "\tOrthographic Projection (Press 'P' key to toggle)";
+	glfwSetWindowTitle(pWindow, strTitle.c_str());
+	}
 
 #endif
 
@@ -267,9 +276,9 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
-	static bool sbFPressedLastTime = false;
+	static bool sbFPressedLastTime = false, sbPPressedLastTime = false;
 	static int iFrameCount = 0;
-	static float iTimer = 0.0f;
+	static float fTimer = 0.0f;
 	std::string strFaceCullMsg = "";
 	fLastFrame = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(pWindow))
@@ -280,7 +289,7 @@ int main() {
 
 		//For FPS Counter
 		iFrameCount++;
-		iTimer += fDeltaTime;
+		fTimer += fDeltaTime;
 
 		if (glfwGetKey(pWindow, GLFW_KEY_F) == GLFW_PRESS)
 		{
@@ -288,16 +297,28 @@ int main() {
 			{
 				bEnableFaceCulling = !bEnableFaceCulling;
 				sbFPressedLastTime = true;
-				updateTitleInfo(pWindow, iFrameCount);
+				updateTitleInfo(pWindow, iFrameCount, fTimer);
 			}
 		}
 		else
 			sbFPressedLastTime = false;
-		if (iTimer >= 1.0f)
+
+		if (glfwGetKey(pWindow, GLFW_KEY_P) == GLFW_PRESS)
 		{
-			updateTitleInfo(pWindow, iFrameCount);
+			if(!sbPPressedLastTime)
+			{
+				bPerspective = !bPerspective;
+				sbPPressedLastTime = true;
+				updateTitleInfo(pWindow, iFrameCount, fTimer);
+			}
+		}
+		else
+			sbPPressedLastTime = false;
+		if (fTimer >= 1.0f)
+		{
+			updateTitleInfo(pWindow, iFrameCount, fTimer);
 			iFrameCount = 0;
-			iTimer = 0.0f;
+			fTimer = 0.0f;
 		}
 
 		processInput(pWindow);
@@ -305,10 +326,24 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader.use();
-		Core::Mat4 projection = Core::Mat4::perspective(camera.getZoom(),
-			(float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1f, 100.0f);
+
+		Core::Mat4 projection;
+		float fAspectRatio = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
+		if(bPerspective)
+		{
+			projection = Core::Mat4::perspective(camera.getZoom(),
+			fAspectRatio, 0.1f, 100.0f);
+		}
+		else
+		{
+			float fHeight = fOrthoSize;
+			float fWidth = fOrthoSize * fAspectRatio;
+			projection = Core::Mat4::orthographic(
+				-fWidth, fWidth, -fHeight, fHeight, 0.1f, 100.0f);
+		}
 		Core::Mat4 view = camera.getViewMatrix();
 		Core::Mat4 viewProjection = projection * view;
+
 		shader.setMat4("uViewProjection", viewProjection);
 #if SAMPLE_SINGLE_CUBE_TEST
 		vao.bind();
@@ -323,11 +358,11 @@ int main() {
 		chunk.render();
 #endif
 #if DEBUG
-		iTimer += fDeltaTime;
-		if (iTimer > 1.0f)
+		fTimer += fDeltaTime;
+		if (fTimer > 1.0f)
 		{
 			camera.position.print();
-			iTimer = 0.0f;
+			fTimer = 0.0f;
 		}
 #endif
 

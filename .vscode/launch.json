@@ -1,0 +1,27 @@
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run Voxel Engine (Auto-Detect)",
+            "type": "cppdbg", 
+            "request": "launch",
+            // MAGIC LINE: This asks CMake where the executable is built
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            // We set CWD to the project root 'bin' folder so assets load correctly
+            "cwd": "${workspaceFolder}/bin/",
+            "environment": [],
+            // Do NOT use "console": "externalTerminal" (that is for MSVC only)
+            "externalConsole": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}

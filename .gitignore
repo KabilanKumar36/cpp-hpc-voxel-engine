@@ -1,41 +1,64 @@
-# Prerequisites
+# =========================
+# Compiled Binary & Objects
+# =========================
 *.d
 *.obj
+*.o
+*.inc
+*.x
+*.dll
 *.exe
-*.pdb
-*.user
-*.aps
-*.pch
-*.vspscc
-*_i.c
-*_p.c
-*.ncb
-*.suo
-*.tlb
-*.tlh
-*.bak
-*.cache
-*.ilk
-*.log
+*.a
 *.lib
+*.pdb
+*.ilk
+*.exp
+*.map
 *.sbr
-*.sdf
-*.opensdf
 *.tlog
+*.log
+*.idb
 
-# Visual Studio 2022 / 2026
-.vs/
-out/
+# =========================
+# CMake Build Artifacts
+# =========================
 build/
-CMakeSettings.json
-
-# CMake
+bin/
+lib/
+out/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.ninja
+CMakeSettings.json
 
-# OS junk
+# =========================
+# Visual Studio (IDE)
+# =========================
+.vs/
+*.user
+*.suo
+*.ipch
+*.aps
+*.vcxproj.user
+*.opensdf
+*.sdf
+*.ncb
+*.cache
+
+# =========================
+# Visual Studio Code
+# =========================
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+# ^ The "!" preserves shared team configurations (debugger setup)
+
+# =========================
+# OS Metadata
+# =========================
 .DS_Store
 Thumbs.db
