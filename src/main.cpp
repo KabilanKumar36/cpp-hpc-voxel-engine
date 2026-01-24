@@ -87,19 +87,38 @@ void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
 void processInput(GLFWwindow* pWindow) {
 	if (glfwGetKey(pWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(pWindow, true);
-
-	if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
-		camera.processKeyboard(0, fDeltaTime);
-	if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
-		camera.processKeyboard(1, fDeltaTime);
+	if (bPerspective) {
+		if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
+			camera.processKeyboard(0, fDeltaTime);
+		if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
+			camera.processKeyboard(1, fDeltaTime);
+		if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
+			camera.processKeyboard(4, fDeltaTime);
+		if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+			camera.processKeyboard(5, fDeltaTime);
+	}
+	else {
+		if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
+			camera.processKeyboard(4, fDeltaTime);
+		if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
+			camera.processKeyboard(5, fDeltaTime);
+		float fZoomSpeed = 10.0f * fDeltaTime;
+		if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			fOrthoSize -= fZoomSpeed; //Zoom In
+			if(fOrthoSize < 1.0f)
+				fOrthoSize = 1.0f;
+		}
+		if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
+			fOrthoSize += fZoomSpeed; //Zoom Out
+			if (fOrthoSize > 40.0f)
+				fOrthoSize = 40.0f;
+		}
+	}
+	
 	if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS)
 		camera.processKeyboard(2, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS)
 		camera.processKeyboard(3, fDeltaTime);
-	if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.processKeyboard(4, fDeltaTime);
-	if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.processKeyboard(5, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_R) == GLFW_PRESS) //Resets cameta position
 	{
 		camera.position = cameraPos;
