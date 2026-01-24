@@ -1,20 +1,23 @@
 // ==========================================
-// TODO: NEXT SESSION (The Chunk System)
+// TODO: NEXT SESSION (Infinite Terrain & Noise)
 // ==========================================
-// 1. Create Chunk Class:
-//    - Store 16x16x16 blocks (using a 3D array or flat vector)
-//    - Generate a single Mesh for the whole chunk
+// 1. Chunk Coordinates:
+//    - Update Chunk class to store its World Position (e.g., Chunk(0, 0), Chunk(1, 0))
+//    - Offset vertex positions based on chunk coordinates so they don't overlap.
 //
-// 2. Mesh Generation:
-//    - Combine vertices of all blocks into one VBO
-//    - (Optimization) "Face Culling": Don't draw faces that are touching other blocks
+// 2. The World Manager:
+//    - Create a `World` class to manage a std::vector or std::map of Chunks.
+//    - Render a 4x4 grid of chunks (65,536 blocks!).
 //
-// 3. Performance:
-//    - Draw 4096 blocks with just ONE glDrawArrays call
+// 3. Procedural Generation:
+//    - Integrate a Noise Library (FastNoiseLite or similar).
+//    - Replace flat/solid fill with heightmap-based terrain (Hills & Valleys).
 // ==========================================
 #include <iostream>
 #define TEST 0
 #define DEBUG 0
+#define BENCHMARK 0
+#define SAMPLE_SINGLE_CUBE_TEST 0
 
 #if TEST
 #include <core/MathUtils.h>
@@ -34,16 +37,19 @@
 #include <renderer/VertexArray.h>
 #include <renderer/Texture.h>
 
+#include <world/Chunk.h>
+
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
-
-Core::Camera camera(Core::Vec3(0.0f, 0.0f, 3.0f));
+Core::Vec3 cameraPos = Core::Vec3(8.0f, 8.0f, 48.0f); //0.0f, 0.0f, 3.0f for Simple cube test
+Core::Camera camera(cameraPos);
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
 bool bFirstMouse = true;
+bool bEnableFaceCulling = false;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+float fDeltaTime = 0.0f;
+float fLastFrame = 0.0f;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
@@ -83,20 +89,20 @@ void processInput(GLFWwindow* pWindow) {
 		glfwSetWindowShouldClose(pWindow, true);
 
 	if (glfwGetKey(pWindow, GLFW_KEY_W) == GLFW_PRESS)
-		camera.processKeyboard(0, deltaTime);
+		camera.processKeyboard(0, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_S) == GLFW_PRESS)
-		camera.processKeyboard(1, deltaTime);
+		camera.processKeyboard(1, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_A) == GLFW_PRESS)
-		camera.processKeyboard(2, deltaTime);
+		camera.processKeyboard(2, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_D) == GLFW_PRESS)
-		camera.processKeyboard(3, deltaTime);
+		camera.processKeyboard(3, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
-		camera.processKeyboard(4, deltaTime);
+		camera.processKeyboard(4, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-		camera.processKeyboard(5, deltaTime);
+		camera.processKeyboard(5, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_R) == GLFW_PRESS) //Resets cameta position
 	{
-		camera.position = Core::Vec3(0.0f, 0.0f, 3.0f);
+		camera.position = cameraPos;
 		camera.yaw = -90.0f;
 		camera.pitch = 0.0f;
 		camera.zoom = 45.0f;
@@ -107,6 +113,23 @@ void processInput(GLFWwindow* pWindow) {
 
 void scroll_callback(GLFWwindow* pWindow, double dXOffset, double dYOffset) {
 	camera.processMouseScroll(static_cast<float> (dYOffset));
+}
+
+void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount) {
+	if (!pWindow)
+		return;
+	std::string strTitle = "";
+	if (bEnableFaceCulling)
+	{
+		strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFrameCount) +
+			"\tFace Culling Enabled (Press 'F' key to toogle)";
+	}
+	else
+	{
+		strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFrameCount) +
+			"\tFace Culling Disabled (Press 'F' key to toogle)";
+	}
+	glfwSetWindowTitle(pWindow, strTitle.c_str());
 }
 
 #endif
@@ -151,7 +174,9 @@ int main() {
 		return -1;
 	}
 	glfwMakeContextCurrent(pWindow);
-
+#if BENCHMARK
+	glfwSwapInterval(0); // 0 = Unlock FPS (VSync OFF), 1 = Lock to 60 (VSync ON)
+#endif
 	glfwSetFramebufferSizeCallback(pWindow, framebuffer_size_callback);
 	glfwSetCursorPosCallback(pWindow, mouseCallBack);
 	glfwSetScrollCallback(pWindow, scroll_callback);
@@ -164,11 +189,14 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
+	const GLubyte* vendor = glGetString(GL_VENDOR);
+	const GLubyte* renderor = glGetString(GL_RENDERER);
+	std::cout << "GPU Renderer: " << vendor << std::endl;
+	std::cout << "Renderer: " << renderor << std::endl;
 	glEnable(GL_DEPTH_TEST);
 
 	Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl"); 
-
+	#if SAMPLE_SINGLE_CUBE_TEST
 	/* for simple cube without textures
 	float fVertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
@@ -228,38 +256,78 @@ int main() {
 
 	vao.linkAttribute(vbo, 0, 3, 5, 0);
 	vao.linkAttribute(vbo, 1, 2, 5, 3);
+#else
+	Chunk chunk;
+	chunk.updateMesh();
+#endif
+
 	Renderer::Texture texture("../assets/textures/container.jpg");
 	texture.bind(0);
 
-	lastFrame = static_cast<float>(glfwGetTime());
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	static bool sbFPressedLastTime = false;
+	static int iFrameCount = 0;
+	static float iTimer = 0.0f;
+	std::string strFaceCullMsg = "";
+	fLastFrame = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(pWindow))
 	{
-		float currentFrame = static_cast<float>(glfwGetTime());
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
+		float fCurrentFrame = static_cast<float>(glfwGetTime());
+		fDeltaTime = fCurrentFrame - fLastFrame;
+		fLastFrame = fCurrentFrame;
+
+		//For FPS Counter
+		iFrameCount++;
+		iTimer += fDeltaTime;
+
+		if (glfwGetKey(pWindow, GLFW_KEY_F) == GLFW_PRESS)
+		{
+			if(!sbFPressedLastTime)
+			{
+				bEnableFaceCulling = !bEnableFaceCulling;
+				sbFPressedLastTime = true;
+				updateTitleInfo(pWindow, iFrameCount);
+			}
+		}
+		else
+			sbFPressedLastTime = false;
+		if (iTimer >= 1.0f)
+		{
+			updateTitleInfo(pWindow, iFrameCount);
+			iFrameCount = 0;
+			iTimer = 0.0f;
+		}
 
 		processInput(pWindow);
 
 		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		shader.use();
-
 		Core::Mat4 projection = Core::Mat4::perspective(camera.getZoom(),
 			(float)SCREEN_WIDTH/(float)SCREEN_HEIGHT, 0.1f, 100.0f);
 		Core::Mat4 view = camera.getViewMatrix();
 		Core::Mat4 viewProjection = projection * view;
 		shader.setMat4("uViewProjection", viewProjection);
+#if SAMPLE_SINGLE_CUBE_TEST
 		vao.bind();
+		// for simple cube without textures
 		glDrawArrays(GL_TRIANGLES, 0, 36);
-
+#else
+		if (chunk.getFaceCulling() != bEnableFaceCulling)
+		{
+			chunk.setFaceCulling(bEnableFaceCulling);
+			chunk.updateMesh();
+		}
+		chunk.render();
+#endif
 #if DEBUG
-		static float timer = 0.0f;
-		timer += deltaTime;
-		if (timer > 1.0f)
+		iTimer += fDeltaTime;
+		if (iTimer > 1.0f)
 		{
 			camera.position.print();
-			timer = 0.0f;
+			iTimer = 0.0f;
 		}
 #endif
 

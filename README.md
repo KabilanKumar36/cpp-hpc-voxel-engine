@@ -32,10 +32,13 @@ This project is a technical playground for implementing high-performance graphic
 - [x] **Render Context:** Robust GLFW window handling and input polling.
 - [x] **Interactive Camera:** WASD movement, Mouse Look, and Zoom.
 - [x] **Asset Pipeline:** Texture loading (stb_image) and UV mapping.
+- [x] **Chunk System:** 16x16x16 Voxel Mesh Generation.
+- [x] **Optimization:** Greedy Face Culling (occlusion culling) for rendering efficiency.
 - [x] **Build System:** Self-contained CMake setup with automated dependency management.
-- [ ] **Ray Casting:** CPU-side ray-voxel intersection.
-- [ ] **Chunk Management:** Infinite terrain paging system.
-- [ ] **GPU Acceleration:** Compute shaders for procedural terrain generation.
+- [ ] **Terrain Generation:** Infinite terrain using Perlin/Simplex noise.
+- [ ] **Ray Casting:** CPU-side ray-voxel intersection (Block breaking/placing).
+- [ ] **Chunk Management:** Infinite terrain paging and multithreaded loading.
+- [ ] **GPU Acceleration:** Compute shaders for voxel data generation.
 
 ## 📦 Build Instructions
 
@@ -74,7 +77,8 @@ This project is a technical playground for implementing high-performance graphic
 ```text
 src/
 ├── core/       # Math (Vec3, Ray), Memory, and Base Types
-├── renderer/   # OpenGL wrappers (Shader, Buffer, Texture)
+├── renderer/   # OpenGL wrappers (Shader, Buffer, Texture, VAO)
+├── world/      # Voxel Data (Chunk, Mesh Generation)
 └── app/        # Window management and Main Loop
 external/       # Vendored dependencies (GLAD)
 
