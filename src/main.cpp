@@ -1,30 +1,29 @@
-// ==========================================
-// TODO: NEXT SESSION (Infinite Terrain & Noise)
-// ==========================================
-// 1. Chunk Coordinates:
-//    - Update Chunk class to store its World Position (e.g., Chunk(0, 0), Chunk(1, 0))
-//    - Offset vertex positions based on chunk coordinates so they don't overlap.
-//
-// 2. The World Manager:
-//    - Create a `World` class to manage a std::vector or std::map of Chunks.
-//    - Render a 4x4 grid of chunks (65,536 blocks!).
-//
-// 3. Procedural Generation:
-//    - Integrate a Noise Library (FastNoiseLite or similar).
-//    - Replace flat/solid fill with heightmap-based terrain (Hills & Valleys).
-// ==========================================
-#include <iostream>
-#define TEST 0
-#define DEBUG 0
-#define BENCHMARK 0
-#define SAMPLE_SINGLE_CUBE_TEST 0
+/*
+TODO: NEXT SESSION - TEXTURE MAPPING & BIOMES
 
-#if TEST
-#include <core/MathUtils.h>
-#include <core/Ray.h>
-#include <core/Matrix.h>
-#include <core/camera.h>
-#else
+1. ASSETS:
+   - [x] Download 'texture_atlas.png' and save to assets folder. (DONE)
+
+2. CHUNK.H:
+   - [ ] Update addBlockFace signature to accept block ID:
+		 void addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType);
+
+3. CHUNK.CPP (generateMesh):
+   - [ ] Implement Biome Logic:
+		 - Calculate Height using noise.
+		 - Assign IDs to m_iBlocks[] based on Y level (1=Grass, 2=Dirt, 3=Stone).
+   - [ ] Update Mesh Loop:
+		 - Retrieve block ID: int iType = m_iBlocks[index];
+		 - Pass iType to addBlockFace(...)
+
+4. CHUNK.CPP (addBlockFace):
+   - [ ] Implement UV Mapping Logic:
+		 - Calculate UVs (u0, v0, u1, v1) based on iBlockType (Grass=0,0, Dirt=2,0, Stone=1,0).
+   - [ ] Update m_vec_fVertices.insert(...) to use these dynamic UVs instead of 0.0/1.0.
+*/
+#include <iostream>
+#define BENCHMARK 0
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -41,7 +40,7 @@
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
-Core::Vec3 cameraPos = Core::Vec3(8.0f, 8.0f, 48.0f); //0.0f, 0.0f, 3.0f for Simple cube test
+Core::Vec3 cameraPos = Core::Vec3(100.0f, 40.0f, 140.0f);
 Core::Camera camera(cameraPos);
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
@@ -123,7 +122,7 @@ void processInput(GLFWwindow* pWindow) {
 	{
 		camera.position = cameraPos;
 		camera.yaw = -90.0f;
-		camera.pitch = 0.0f;
+		camera.pitch = -30.0f;
 		camera.zoom = 45.0f;
 		camera.front = Core::Vec3(0.0f, 0.0f, -1.0f);
 		camera.updateCameraVectors();
@@ -160,40 +159,13 @@ void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount, float fTimer) {
 	glfwSetWindowTitle(pWindow, strTitle.c_str());
 	}
 
-#endif
-
 int main() {
-#if TEST
-	std::cout << "Running in TEST mode" << std::endl;
-	Core::Vec3 v1(1.0f, 2.0f, 3.0f);
-	Core::Vec3 v2(4.0f, 5.0f, 6.0f);
-	Core::Vec3 v3 = v1 + v2;
-	Core::Vec3 v4 = v1.cross(v2);
-	float dotProduct = v1.dot(v2);
-	Core::Vec3 v5 = v1.normalize();
-	std::cout << "v1 + v2 = " << v3 << std::endl;
-	std::cout << "v1 x v2 = " << v4 << std::endl;
-	std::cout << "v1 . v2 = " << dotProduct << std::endl;
-	std::cout << "Normalized v1 = " << v5 << std::endl;
 
-	Core::Vec3 forward(0.0f, 0.0f, -1.0f);
-	Core::Vec3 up(0.0f, 1.0f, 0.0f);
-
-	Core::Vec3 right = forward.cross(up).normalize();
-	std::cout << "Right vector: " << right << std::endl;
-
-	float alignment = forward.dot(up);
-	std::cout << "Alignment between forward and up: " << alignment << std::endl;
-	Core::Vec3 origin = Core::Vec3(0.0f, 0.0f, 0.0f);
-	Core::Ray ray(origin, Core::Vec3(1.0f, 2.0f, 3.0f));
-	Core::Vec3 pointAtT = ray.at(2.0f);
-	std::cout << "Point along ray at t=2: " << pointAtT << std::endl;
-#else
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	GLFWwindow* pWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "HPC Voxel Engine", nullptr, nullptr);
 	if (pWindow == NULL)
 	{
@@ -221,80 +193,26 @@ int main() {
 	const GLubyte* renderor = glGetString(GL_RENDERER);
 	std::cout << "GPU Renderer: " << vendor << std::endl;
 	std::cout << "Renderer: " << renderor << std::endl;
-	glEnable(GL_DEPTH_TEST);
 
 	Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl"); 
-	#if SAMPLE_SINGLE_CUBE_TEST
-	/* for simple cube without textures
-	float fVertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-		-0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
-		-0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,
-		 0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,
-		-0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f,
-		-0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
-	};*/
-	float fVertices[] = {
-		// positions          // texture coords
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+	std::vector<Chunk> chunks;
+	int iRenderDistance = 8;
+	for (int iX = -iRenderDistance; iX < iRenderDistance; iX++)
+	{
+		for (int iZ = -iRenderDistance; iZ < iRenderDistance; iZ++)
+		{
+			chunks.emplace_back(iX, iZ);
+		}
+	}
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
-	};
-
-	Renderer::VertexArray vao;
-	Renderer::VertexBuffer vbo(fVertices, sizeof(fVertices));
-
-	vao.linkAttribute(vbo, 0, 3, 5, 0);
-	vao.linkAttribute(vbo, 1, 2, 5, 3);
-#else
-	Chunk chunk;
-	chunk.updateMesh();
-#endif
-
-	Renderer::Texture texture("../assets/textures/container.jpg");
+	//Renderer::Texture texture("../assets/textures/container.jpg");
+	Renderer::Texture texture("../assets/textures/texture_atlas.jpg");
 	texture.bind(0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW);
 	static bool sbFPressedLastTime = false, sbPPressedLastTime = false;
 	static int iFrameCount = 0;
 	static float fTimer = 0.0f;
@@ -302,6 +220,9 @@ int main() {
 	fLastFrame = static_cast<float>(glfwGetTime());
 	while (!glfwWindowShouldClose(pWindow))
 	{
+		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		float fCurrentFrame = static_cast<float>(glfwGetTime());
 		fDeltaTime = fCurrentFrame - fLastFrame;
 		fLastFrame = fCurrentFrame;
@@ -342,8 +263,6 @@ int main() {
 
 		processInput(pWindow);
 
-		glClearColor(0.2f, 0.3f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader.use();
 
 		Core::Mat4 projection;
@@ -358,37 +277,19 @@ int main() {
 			float fHeight = fOrthoSize;
 			float fWidth = fOrthoSize * fAspectRatio;
 			projection = Core::Mat4::orthographic(
-				-fWidth, fWidth, -fHeight, fHeight, 0.1f, 100.0f);
+				-fWidth, fWidth, -fHeight, fHeight, -100.0f, 100.0f);
 		}
 		Core::Mat4 view = camera.getViewMatrix();
 		Core::Mat4 viewProjection = projection * view;
 
 		shader.setMat4("uViewProjection", viewProjection);
-#if SAMPLE_SINGLE_CUBE_TEST
-		vao.bind();
-		// for simple cube without textures
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-#else
-		if (chunk.getFaceCulling() != bEnableFaceCulling)
+		for (auto& chunk : chunks)
 		{
-			chunk.setFaceCulling(bEnableFaceCulling);
-			chunk.updateMesh();
+			chunk.render();
 		}
-		chunk.render();
-#endif
-#if DEBUG
-		fTimer += fDeltaTime;
-		if (fTimer > 1.0f)
-		{
-			camera.position.print();
-			fTimer = 0.0f;
-		}
-#endif
-
 		glfwSwapBuffers(pWindow);
 		glfwPollEvents();
 	}
 	glfwTerminate();
-#endif
 	return 0;
 }

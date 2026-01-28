@@ -62,3 +62,6 @@ CMakeSettings.json
 # =========================
 .DS_Store
 Thumbs.db
+
+# Temporary artifacts
+enc_temp_folder/
