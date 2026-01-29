@@ -82,6 +82,25 @@ This project is a technical playground for implementing high-performance graphic
     ./bin/Release/VoxelEngine.exe
     ```
 
+## 🧪 Testing
+
+The project uses **GoogleTest** for unit testing. The build system automatically fetches the dependency and compiles the test suite.
+
+### Running Tests
+1.  **Configure & Build:**
+    ```bash
+    cmake -B build
+    cmake --build build
+    ```
+2.  **Run the Test Executable:**
+    ```bash
+    ./build/bin/unit_tests.exe
+    ```
+
+**Current Test Coverage:**
+* **OpenGL Environment:** Automated invisible window creation for context-dependent tests.
+* **Chunk Logic:** Verification of mesh generation and buffer sizing.
+
 ## 📂 Project Structure
 
 ```text

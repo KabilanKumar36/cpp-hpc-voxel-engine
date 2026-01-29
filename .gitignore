@@ -65,3 +65,6 @@ Thumbs.db
 
 # Temporary artifacts
 enc_temp_folder/
+
+# Dependencies Cache (from CMake FetchContent)
+external_cache/
