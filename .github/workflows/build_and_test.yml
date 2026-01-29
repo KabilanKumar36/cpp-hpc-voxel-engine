@@ -1,0 +1,28 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [main, feature/*]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Dependencies (Linux)
+        run: |
+           sudo apt-get update
+           sudo apt-get install -y libgl1-mesa-dev xorg-dev
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build ---config Release
+
+      - name: Run Tests
+        run: cd build && ./bin/unit_tests

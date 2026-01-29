@@ -81,7 +81,10 @@ target_link_libraries(VoxelEngine PRIVATE VoxelCore)
 # --------------------------------------------------------
 enable_testing()
 
-add_executable(unit_tests tests/test_main.cpp)
+add_executable(unit_tests 
+    tests/test_main.cpp
+    tests/test_physics.cpp
+)
 
 # Link the VoxelCore library (which contains Chunk.cpp) and GTest
 target_link_libraries(unit_tests 
