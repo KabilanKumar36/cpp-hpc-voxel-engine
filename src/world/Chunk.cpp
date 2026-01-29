@@ -1,6 +1,7 @@
 #include "Chunk.h"
 #include <iostream>
 #define FACE_CULLING 1
+#define flatIndexOf3DLayer(x, y, z) (x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE))
 Chunk::Chunk() {
 	m_iChunkX = 0;
 	m_iChunkZ = 0;
@@ -85,7 +86,7 @@ void Chunk::updateBuffers() {
 	std::cout << "Chunk Mesh Updated: " << m_vec_fVertices.size() / 5 << " vertices." << std::endl;
 }
 //*********************************************************************
-void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
+void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType) {
 	unsigned int iStartIndex = m_vec_fVertices.size() / 5;
 	float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
 	float fY = static_cast<float>(iY);
@@ -95,6 +96,29 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 	if (iY == 0 && iX == 0 && iZ == 0) {
 		std::cout << "Chunk [" << m_iChunkX << "," << m_iChunkZ << "] WorldX: " << fX << std::endl;
 	}*/
+
+	int iAtlasCol = 0, iAtlasRow = 0;
+	if (iBlockType == 1)//Grass
+	{
+		if (iDir == Direction::UP) { iAtlasCol = 0; iAtlasRow = 0; }
+		if (iDir == Direction::DOWN) { iAtlasCol = 2; iAtlasRow = 0; }
+		else { iAtlasCol = 3; iAtlasRow = 0; }
+	}
+	else if (iBlockType == 2) //Dirt
+	{
+		iAtlasCol = 2; iAtlasRow = 0;
+	}
+	else if (iBlockType == 3) //Stone
+	{
+		iAtlasCol = 1; iAtlasRow = 0;
+	}
+	float fSlotSize = 1.0f / 16.0f;
+	float u0 = iAtlasCol * fSlotSize;
+	float v1 = iAtlasRow * fSlotSize;
+	float u1 = u0 + fSlotSize;
+	float v0 = v1 + fSlotSize;
+
+
 	switch (iDir)
 	{
 	case Direction::FRONT: // Z+ Face
@@ -102,10 +126,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Origin: Bottom-Left (x, y)
 		// Winding: Right (+x) -> Up (+y) -> Left (-x)
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX,		fY,		fZ + 1, 0.0f, 0.0f, // 0: Bottom-Left
-			fX + 1, fY,		fZ + 1, 1.0f, 0.0f, // 1: Bottom-Right
-			fX + 1, fY + 1, fZ + 1, 1.0f, 1.0f, // 2: Top-Right
-			fX,		fY + 1, fZ + 1, 0.0f, 1.0f, // 3: Top-Left
+			fX,		fY,		fZ + 1, u0, v0, // 0: Bottom-Left
+			fX + 1, fY,		fZ + 1, u1, v0, // 1: Bottom-Right
+			fX + 1, fY + 1, fZ + 1, u1, v1, // 2: Top-Right
+			fX,		fY + 1, fZ + 1, u0, v1, // 3: Top-Left
 			});
 	}break;
 
@@ -114,10 +138,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Origin: Bottom-Right (x, y) if looking from back, but (x,y) in World Coords
 		// Winding: Up (+y) -> Right (+x) -> Down (-y)
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX,		fY,		fZ,		0.0f, 0.0f, // 0: Bottom-Right (from back view)
-			fX,		fY + 1,	fZ,		1.0f, 0.0f, // 1: Top-Right
-			fX + 1, fY + 1, fZ,		1.0f, 1.0f, // 2: Top-Left
-			fX + 1,	fY,		fZ,		0.0f, 1.0f, // 3: Bottom-Left
+			fX,		fY,		fZ,		u0, v0, // 0: Bottom-Right (from back view)
+			fX,		fY + 1,	fZ,		u0, v1, // 1: Top-Right
+			fX + 1, fY + 1, fZ,		u1, v1, // 2: Top-Left
+			fX + 1,	fY,		fZ,		u1, v0, // 3: Bottom-Left
 			});
 	}break;
 
@@ -126,10 +150,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Origin: Bottom-Front (y, z)
 		// Winding: Up (+y) -> Back (+z) -> Down (-y)
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX + 1,	fY,		fZ,		0.0f, 0.0f, // 0: Bottom-Front
-			fX + 1,	fY + 1,	fZ,		1.0f, 0.0f, // 1: Top-Front
-			fX + 1, fY + 1, fZ + 1, 1.0f, 1.0f, // 2: Top-Back
-			fX + 1,	fY,		fZ + 1, 0.0f, 1.0f, // 3: Bottom-Back
+			fX + 1,	fY,		fZ,		u0, v0, // 0: Bottom-Front
+			fX + 1,	fY + 1,	fZ,		u0, v1, // 1: Top-Front
+			fX + 1, fY + 1, fZ + 1, u1, v1, // 2: Top-Back
+			fX + 1,	fY,		fZ + 1, u1, v0, // 3: Bottom-Back
 			});
 	}break;
 
@@ -138,10 +162,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Origin: Bottom-Back (y, z)
 		// Winding: Back (+z) -> Up (+y) -> Front (-z)
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX,		fY,		fZ,		0.0f, 0.0f, // 0: Bottom-Back
-			fX,		fY,		fZ + 1,	1.0f, 0.0f, // 1: Bottom-Front
-			fX,		fY + 1, fZ + 1, 1.0f, 1.0f, // 2: Top-Front
-			fX,		fY + 1,	fZ,		0.0f, 1.0f, // 3: Top-Back
+			fX,		fY,		fZ,		u0, v0, // 0: Bottom-Back
+			fX,		fY,		fZ + 1,	u1, v0, // 1: Bottom-Front
+			fX,		fY + 1, fZ + 1, u1, v1, // 2: Top-Front
+			fX,		fY + 1,	fZ,		u0, v1, // 3: Top-Back
 			});
 	}break;
 
@@ -150,10 +174,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Origin: Top-Left-Front (x, z)
 		// Winding: Back (+z) -> Right (+x) -> Front (-z)
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX,		fY + 1,	fZ,		0.0f, 0.0f, // 0: Back-Left
-			fX,		fY + 1,	fZ + 1,	1.0f, 0.0f, // 1: Front-Left
-			fX + 1,	fY + 1, fZ + 1, 1.0f, 1.0f, // 2: Front-Right
-			fX + 1,	fY + 1,	fZ,		0.0f, 1.0f, // 3: Back-Right
+			fX,		fY + 1,	fZ,		u0, v1, // 0: Back-Left
+			fX,		fY + 1,	fZ + 1,	u0, v0, // 1: Front-Left
+			fX + 1,	fY + 1, fZ + 1, u1, v0, // 2: Front-Right
+			fX + 1,	fY + 1,	fZ,		u1, v1, // 3: Back-Right
 			});
 	}break;
 
@@ -163,10 +187,10 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir) {
 		// Winding: Right (+x) -> Front (+z) -> Left (-x)
 		// FIX: Corrected typo from previous code snippet
 		m_vec_fVertices.insert(m_vec_fVertices.end(), {
-			fX,		fY,	fZ,			0.0f, 0.0f, // 0: Back-Left
-			fX + 1,	fY,	fZ,			1.0f, 0.0f, // 1: Back-Right
-			fX + 1,	fY, fZ + 1,		1.0f, 1.0f, // 2: Front-Right
-			fX,		fY,	fZ + 1,		0.0f, 1.0f, // 3: Front-Left
+			fX,		fY,	fZ,			u0, v1, // 0: Back-Left
+			fX + 1,	fY,	fZ,			u1, v1, // 1: Back-Right
+			fX + 1,	fY, fZ + 1,		u1, v0, // 2: Front-Right
+			fX,		fY,	fZ + 1,		u0, v0, // 3: Front-Left
 			});
 	}break;
 	default: break;
@@ -199,18 +223,19 @@ void Chunk::generateMesh() {
 			int iHeight = static_cast<int>((fNoiseVal + 1.0f) * 10.0f);
 			if (iHeight < 0) iHeight = 0;
 			if (iHeight >= CHUNK_HEIGHT) iHeight = CHUNK_HEIGHT - 1;
+			iHeightData[iX][iZ] = iHeight;
 
-			for (size_t iY = 0; iY <= CHUNK_HEIGHT; iY++)
+			for (int iY = 0; iY <= iHeight; iY++)
 			{
+				int iIndex = flatIndexOf3DLayer(iX, iY, iZ); /*iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);*/
+				
 				int iBlockType = 0;
 				if (iY == iHeight) iBlockType = 1;				//Grass
 				else if (iY > iHeight - 3) iBlockType = 2;		//Dirt
 				else iBlockType = 3;							//Stone
-
-				int iIndex = iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);
+				
 				m_iBlocks[iIndex] = iBlockType;
 			}
-			iHeightData[iX][iZ] = iHeight;
 		}
 	}
 
@@ -220,20 +245,24 @@ void Chunk::generateMesh() {
 		{
 			for (size_t iY = 0; iY <= iHeightData[iX][iZ]; iY++)
 			{
+				int iIndex = flatIndexOf3DLayer(iX, iY, iZ); /*iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);*/
+				int iBlockType = m_iBlocks[iIndex];
+				if (iBlockType == 0)
+					continue;
 				if (iY == iHeightData[iX][iZ])
-					addBlockFace(iX, iY, iZ, Direction::UP);
+					addBlockFace(iX, iY, iZ, Direction::UP, iBlockType);
 				if (iY == 0)
-					addBlockFace(iX, iY, iZ, Direction::DOWN);
+					addBlockFace(iX, iY, iZ, Direction::DOWN, iBlockType);
 
-				if (iX == CHUNK_SIZE - 1 || iHeightData[iX + 1][iZ] < iY)
-					addBlockFace(iX, iY, iZ, Direction::RIGHT);
-				if (iX == 0 || iHeightData[iX - 1][iZ] < iY)
-					addBlockFace(iX, iY, iZ, Direction::LEFT);
+				if (iX == CHUNK_SIZE - 1 || m_iBlocks[flatIndexOf3DLayer(iX + 1, iY, iZ)] == 0)
+					addBlockFace(iX, iY, iZ, Direction::RIGHT, iBlockType);
+				if (iX == 0 || m_iBlocks[flatIndexOf3DLayer(iX - 1, iY, iZ)] == 0)
+					addBlockFace(iX, iY, iZ, Direction::LEFT, iBlockType);
 
-				if (iZ == CHUNK_SIZE - 1 || iHeightData[iX][iZ + 1] < iY)
-					addBlockFace(iX, iY, iZ, Direction::FRONT);
-				if (iZ == 0 || iHeightData[iX][iZ - 1] < iY)
-					addBlockFace(iX, iY, iZ, Direction::BACK);
+				if (iZ == CHUNK_SIZE - 1 || m_iBlocks[flatIndexOf3DLayer(iX, iY, iZ + 1)] == 0)
+					addBlockFace(iX, iY, iZ, Direction::FRONT, iBlockType);
+				if (iZ == 0 || m_iBlocks[flatIndexOf3DLayer(iX, iY, iZ - 1)] == 0)
+					addBlockFace(iX, iY, iZ, Direction::BACK, iBlockType);
 			}
 		}
 	}

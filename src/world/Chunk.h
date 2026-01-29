@@ -51,7 +51,7 @@ private:
 	Renderer::IndexBuffer* m_pIBO;
 
 	void updateBuffers();
-	void addBlockFace(int iX, int iY, int iZ, Direction iDir);
+	void addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType);
 	void generateMesh();
 
 };

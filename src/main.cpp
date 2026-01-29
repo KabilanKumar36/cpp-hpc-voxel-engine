@@ -1,25 +1,22 @@
 /*
-TODO: NEXT SESSION - TEXTURE MAPPING & BIOMES
+TODO: DAY 04 - PHYSICS & INTERACTION
 
-1. ASSETS:
-   - [x] Download 'texture_atlas.png' and save to assets folder. (DONE)
+1. PLAYER PHYSICS:
+   - [ ] Create a `Player` class (wrapping the Camera).
+   - [ ] Implement AABB (Axis-Aligned Bounding Box) for collision detection.
+   - [ ] Add Gravity: Player falls if no block is beneath.
+   - [ ] Add Jumping: Press Space to jump (only if on ground).
+   - [ ] Implement Collision Resolution: Prevent walking through walls.
 
-2. CHUNK.H:
-   - [ ] Update addBlockFace signature to accept block ID:
-		 void addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType);
+2. BLOCK INTERACTION (RAYCASTING):
+   - [ ] Implement Raycasting (DDA Algorithm) to determine which block the camera is aiming at.
+   - [ ] Add "Highlight Wireframe" for the selected block.
+   - [ ] Left Click: Destroy Block (Set ID to 0 -> Regenerate Chunk Mesh).
+   - [ ] Right Click: Place Block (Set ID to 1/2/3 -> Regenerate Chunk Mesh).
 
-3. CHUNK.CPP (generateMesh):
-   - [ ] Implement Biome Logic:
-		 - Calculate Height using noise.
-		 - Assign IDs to m_iBlocks[] based on Y level (1=Grass, 2=Dirt, 3=Stone).
-   - [ ] Update Mesh Loop:
-		 - Retrieve block ID: int iType = m_iBlocks[index];
-		 - Pass iType to addBlockFace(...)
-
-4. CHUNK.CPP (addBlockFace):
-   - [ ] Implement UV Mapping Logic:
-		 - Calculate UVs (u0, v0, u1, v1) based on iBlockType (Grass=0,0, Dirt=2,0, Stone=1,0).
-   - [ ] Update m_vec_fVertices.insert(...) to use these dynamic UVs instead of 0.0/1.0.
+3. OPTIMIZATIONS (Optional):
+   - [ ] Frustum Culling: Don't render chunks behind the player.
+   - [ ] Texture Atlas mipmaps: Fix "shimmering" on distant blocks.
 */
 #include <iostream>
 #define BENCHMARK 0
@@ -206,7 +203,7 @@ int main() {
 	}
 
 	//Renderer::Texture texture("../assets/textures/container.jpg");
-	Renderer::Texture texture("../assets/textures/texture_atlas.jpg");
+	Renderer::Texture texture("../assets/textures/texture_atlas.png");
 	texture.bind(0);
 
 	glEnable(GL_DEPTH_TEST);
