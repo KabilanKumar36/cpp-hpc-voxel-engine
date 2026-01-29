@@ -19,7 +19,7 @@ namespace Renderer {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-			stbi_set_flip_vertically_on_load(true);
+			stbi_set_flip_vertically_on_load(false);
 
 			unsigned char* cData = stbi_load(cPath, &width, &height, &nrChannels, 0);
 			if (cData) {
@@ -31,6 +31,8 @@ namespace Renderer {
 			}
 			else {
 				std::cout << "ERROR::TEXTURE::FAILED_TO_LOAD_PATH" << std::endl;
+				unsigned char debugColor[] = { 255, 0, 255, 255 }; // Bright Pink
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, debugColor);
 			}
 			stbi_image_free(cData);
 		}

@@ -25,9 +25,9 @@ namespace Renderer {
 			int iNumComponents, int iStride, int iOffset) {
 			bind();
 			vbo.bind();
+			glEnableVertexAttribArray(iLayoutIndex);
 			glVertexAttribPointer(iLayoutIndex, iNumComponents, GL_FLOAT, GL_FALSE,
 				iStride * sizeof(float), (void*)(iOffset * sizeof(float)));
-			glEnableVertexAttribArray(iLayoutIndex);
 			vbo.unbind();
 		}
 	};
