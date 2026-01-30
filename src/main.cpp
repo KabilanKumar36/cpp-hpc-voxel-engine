@@ -1,24 +1,36 @@
-/*
-TODO: DAY 04 - PHYSICS & INTERACTION
+﻿/*
+ ==================================================================================
+   TODO: DAY 05 - PHYSICS INTEGRATION & INTERACTION SYSTEM
+   Goal: Connect the Physics Backend to the Rendering Frontend + Add Gameplay.
+ ==================================================================================
 
-1. PLAYER PHYSICS:
-   - [ ] Create a `Player` class (wrapping the Camera).
-   - [ ] Implement AABB (Axis-Aligned Bounding Box) for collision detection.
-   - [ ] Add Gravity: Player falls if no block is beneath.
-   - [ ] Add Jumping: Press Space to jump (only if on ground).
-   - [ ] Implement Collision Resolution: Prevent walking through walls.
+ 1. PHYSICS INTEGRATION (The "Body" & "Eyes" Merge)
+	[ ] Remove "Spectator Mode" WASD logic (direct position modification).
+	[ ] Hook Input: Map WASD to 'Player.m_ObjVelocity.x/z'.
+	[ ] Hook Camera: In the render loop, set 'Camera.Position = Player.m_ObjPos'.
+	[ ] Enable Gravity: Ensure 'PhysicsSystem::Update' is called every frame.
+	[ ] Implement Jumping: Map SPACE to Velocity.y (Check 'IsGrounded' flag).
 
-2. BLOCK INTERACTION (RAYCASTING):
-   - [ ] Implement Raycasting (DDA Algorithm) to determine which block the camera is aiming at.
-   - [ ] Add "Highlight Wireframe" for the selected block.
-   - [ ] Left Click: Destroy Block (Set ID to 0 -> Regenerate Chunk Mesh).
-   - [ ] Right Click: Place Block (Set ID to 1/2/3 -> Regenerate Chunk Mesh).
+ 2. RAYCASTING (Block Selection)
+	[ ] Implement DDA Algorithm (Digital Differential Analyzer) for fast traversal.
+	[ ] Create 'Raycast(origin, direction, range)' function.
+	[ ] Visual Debug: Draw a wireframe cube around the "Targeted Voxel".
 
-3. OPTIMIZATIONS (Optional):
-   - [ ] Frustum Culling: Don't render chunks behind the player.
-   - [ ] Texture Atlas mipmaps: Fix "shimmering" on distant blocks.
+ 3. VOXEL INTERACTION (The "Minecraft" Mechanics)
+	[ ] Left Click: Get Target Voxel -> Set ID = 0 (Air) -> Trigger Mesh Rebuild.
+	[ ] Right Click: Get "Previous" Voxel (Face Normal) -> Set ID = 1 -> Trigger Mesh Rebuild.
+	[ ] Optimization: Only rebuild the specific Chunk that was modified.
+
+ 4. POLISH & MODES
+	[ ] Add "Toggle Mode" (F1): Switch between "Physics Walk" and "Free Cam Fly".
+	[ ] Verify "Sliding": Ensure player slides against walls (X/Z separation check).
+
+ ==================================================================================
 */
 #include <iostream>
+#include <vector>
+#include "PhysicsSystem.h"
+#include "core/AABB.h"
 #define BENCHMARK 0
 
 #include <glad/glad.h>
@@ -157,7 +169,7 @@ void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount, float fTimer) {
 	}
 
 int main() {
-
+#if DEBUG
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -288,5 +300,39 @@ int main() {
 		glfwPollEvents();
 	}
 	glfwTerminate();
+#endif
+	PhysicsSystem physicsSystem;
+	std::vector<AABB> objStaticWorld;
+	objStaticWorld.emplace_back(
+		Core::Vec3(-10.0f, -2.0f, -10.0f),
+		Core::Vec3(10.0f, -1.0f, 10.0f));
+
+	RigidBody playerBody;
+	playerBody.m_ObjPos = Core::Vec3(0.0f, 5.0f, 0.0f);
+	playerBody.m_ObjVelocity = Core::Vec3(0.0f, 0.0f, 0.0f);
+	playerBody.m_ObjSize = Core::Vec3(0.5f, 0.5f, 0.5f);
+
+	std::cout << "--- STARTING PHYSICS SIMULATION ---\n";
+	std::cout << "Target: Player should land at Y = -0.5 (Center of 1.0 unit box)\n\n";
+
+	float fDelTime = 1.0f / 60.0f;
+	for (size_t iFrame = 0; iFrame < 100.0f; iFrame++)
+	{
+		physicsSystem.Update(playerBody, fDelTime, objStaticWorld);
+		if (iFrame % 5)
+		{
+			std::cout << "Frame" << iFrame << " | " << "Pos Y" << playerBody.m_ObjPos.y;
+			std::cout << " | Vel Y" << playerBody.m_ObjVelocity.y << "\n";
+		}
+	}
+
+	std::cout << "\n--- END SIMULATION ---\n";
+	if (playerBody.m_ObjPos.y >= -0.51f && playerBody.m_ObjPos.y <= -0.49f) {
+		std::cout << "✅ SUCCESS: Player landed correctly on the voxel surface.\n";
+	}
+	else {
+		std::cout << "❌ FAILURE: Player ignored collision or stopped wrong.\n";
+	}
+
 	return 0;
 }
