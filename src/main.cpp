@@ -169,7 +169,6 @@ void updateTitleInfo(GLFWwindow *pWindow, int iFrameCount, float fTimer) {
 	}
 
 int main() {
-#if DEBUG
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -300,39 +299,6 @@ int main() {
 		glfwPollEvents();
 	}
 	glfwTerminate();
-#endif
-	PhysicsSystem physicsSystem;
-	std::vector<AABB> objStaticWorld;
-	objStaticWorld.emplace_back(
-		Core::Vec3(-10.0f, -2.0f, -10.0f),
-		Core::Vec3(10.0f, -1.0f, 10.0f));
-
-	RigidBody playerBody;
-	playerBody.m_ObjPos = Core::Vec3(0.0f, 5.0f, 0.0f);
-	playerBody.m_ObjVelocity = Core::Vec3(0.0f, 0.0f, 0.0f);
-	playerBody.m_ObjSize = Core::Vec3(0.5f, 0.5f, 0.5f);
-
-	std::cout << "--- STARTING PHYSICS SIMULATION ---\n";
-	std::cout << "Target: Player should land at Y = -0.5 (Center of 1.0 unit box)\n\n";
-
-	float fDelTime = 1.0f / 60.0f;
-	for (size_t iFrame = 0; iFrame < 100.0f; iFrame++)
-	{
-		physicsSystem.Update(playerBody, fDelTime, objStaticWorld);
-		if (iFrame % 5)
-		{
-			std::cout << "Frame" << iFrame << " | " << "Pos Y" << playerBody.m_ObjPos.y;
-			std::cout << " | Vel Y" << playerBody.m_ObjVelocity.y << "\n";
-		}
-	}
-
-	std::cout << "\n--- END SIMULATION ---\n";
-	if (playerBody.m_ObjPos.y >= -0.51f && playerBody.m_ObjPos.y <= -0.49f) {
-		std::cout << "✅ SUCCESS: Player landed correctly on the voxel surface.\n";
-	}
-	else {
-		std::cout << "❌ FAILURE: Player ignored collision or stopped wrong.\n";
-	}
 
 	return 0;
 }
