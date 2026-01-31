@@ -1,24 +1,6 @@
 #include "Chunk.h"
 #include <iostream>
-#define FACE_CULLING 1
-#define flatIndexOf3DLayer(x, y, z) (x + (y * CHUNK_SIZE) + (z * CHUNK_SIZE * CHUNK_SIZE))
-Chunk::Chunk() {
-	m_iChunkX = 0;
-	m_iChunkZ = 0;
-		// Initialize blocks with random data (for testing)
-	for (int i = 0; i < CHUNK_VOL; ++i)
-	{
-		m_iBlocks[i] = (i % 2 == 0) ? 1 : 0; //1; //for solid block check
-	}
-	Init();
-}
-//*********************************************************************
-void Chunk::Init(){
-	m_pVAO = new Renderer::VertexArray();
-	m_pVBO = NULL;
-	m_pIBO = NULL;
-	m_bEnableFaceCulling = false;
-}
+#include <cstring>
 //*********************************************************************
 Chunk::~Chunk() {
 	if (m_pVAO) delete m_pVAO;
@@ -26,16 +8,17 @@ Chunk::~Chunk() {
 	if (m_pIBO) delete m_pIBO;
 }
 //*********************************************************************
-Chunk::Chunk(Chunk&& other) noexcept : m_bEnableFaceCulling(other.m_bEnableFaceCulling),
-m_iChunkX(other.m_iChunkX), m_iChunkZ(other.m_iChunkZ), m_pVAO(other.m_pVAO), m_pVBO(other.m_pVBO),
-m_pIBO(other.m_pIBO), m_vec_fVertices(std::move(other.m_vec_fVertices)), 
-m_vec_uiIndices(std::move(other.m_vec_uiIndices))
+Chunk::Chunk(Chunk&& other) noexcept : 
+m_vec_fVertices(std::move(other.m_vec_fVertices)), 
+m_vec_uiIndices(std::move(other.m_vec_uiIndices)), m_pVAO(other.m_pVAO), 
+m_pVBO(other.m_pVBO), m_pIBO(other.m_pIBO), m_iChunkX(other.m_iChunkX), 
+m_iChunkZ(other.m_iChunkZ), m_bEnableFaceCulling(other.m_bEnableFaceCulling)
 {
-	m_pVAO = NULL;
-	m_pVBO = NULL;
-	m_pIBO = NULL;
+	m_pVAO = nullptr;
+	m_pVBO = nullptr;
+	m_pIBO = nullptr;
 
-	std::memcpy(m_iBlocks, other.m_iBlocks, CHUNK_VOL);
+	std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
 
 }
 //*********************************************************************
@@ -43,29 +26,33 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept
 {
 	if (this != &other)
 	{
-		delete m_pVAO;
-		delete m_pVBO;
-		delete m_pIBO;
+		m_vec_fVertices = std::move(other.m_vec_fVertices);
+		m_vec_uiIndices = std::move(other.m_vec_uiIndices);
+
+		if(m_pVAO) delete m_pVAO;
+		if(m_pVBO) delete m_pVBO;
+		if(m_pIBO) delete m_pIBO;
 
 		m_pVAO = other.m_pVAO;
 		m_pVBO = other.m_pVBO;
 		m_pIBO = other.m_pIBO;
 
-		other.m_pVAO = NULL;
-		other.m_pVBO = NULL;
-		other.m_pIBO = NULL;
+		other.m_pVAO = nullptr;
+		other.m_pVBO = nullptr;
+		other.m_pIBO = nullptr;
 
-		m_vec_fVertices = std::move(other.m_vec_fVertices);
-		m_vec_uiIndices = std::move(other.m_vec_uiIndices);
-		std::memcpy(m_iBlocks, other.m_iBlocks, CHUNK_VOL);
+		m_iChunkX = other.m_iChunkX;
+		m_iChunkZ = other.m_iChunkZ;
+
+		std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
 	}
 	return *this;
 }
 //*********************************************************************
 void Chunk::updateBuffers() {
 
-	if (m_pVBO) { delete m_pVBO; m_pVBO = NULL; }
-	if (m_pIBO) { delete m_pIBO; m_pIBO = NULL; }
+	if (m_pVBO) { delete m_pVBO; m_pVBO = nullptr; }
+	if (m_pIBO) { delete m_pIBO; m_pIBO = nullptr; }
 	if (m_vec_fVertices.size())
 		m_pVBO = new Renderer::VertexBuffer(m_vec_fVertices.data(),
 			m_vec_fVertices.size() * sizeof(float));
@@ -78,9 +65,9 @@ void Chunk::updateBuffers() {
 	{
 		m_pVAO->linkAttribute(*m_pVBO, 0, 3, 5, 0);
 		m_pVAO->linkAttribute(*m_pVBO, 1, 2, 5, 3);
-		if (m_pIBO) m_pIBO->bind();
-		if (m_pVAO) m_pVAO->unbind();
-		if (m_pIBO) m_pIBO->unbind();
+		if (m_pIBO) m_pIBO->Bind();
+		if (m_pVAO) m_pVAO->Unbind();
+		if (m_pIBO) m_pIBO->Unbind();
 	}
 
 	std::cout << "Chunk Mesh Updated: " << m_vec_fVertices.size() / 5 << " vertices." << std::endl;
@@ -97,16 +84,32 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
 		std::cout << "Chunk [" << m_iChunkX << "," << m_iChunkZ << "] WorldX: " << fX << std::endl;
 	}*/
 
-	int iAtlasCol = 0, iAtlasRow = 0;
+	int iAtlasCol = 10, iAtlasRow = 8;
 	if (iBlockType == 1)//Grass
 	{
-		if (iDir == Direction::UP) { iAtlasCol = 0; iAtlasRow = 0; }
-		if (iDir == Direction::DOWN) { iAtlasCol = 2; iAtlasRow = 0; }
-		else { iAtlasCol = 3; iAtlasRow = 0; }
+		if (iDir == Direction::UP)//Grass
+		{
+			 iAtlasCol = 2; iAtlasRow = 9; 
+		}
+		else if (iDir == Direction::DOWN) //Stone
+		{
+			iAtlasCol = 1; iAtlasRow = 0;
+		}
+		else //Grass + Dirt
+		{
+			iAtlasCol = 3; iAtlasRow = 0;
+		}
 	}
 	else if (iBlockType == 2) //Dirt
 	{
-		iAtlasCol = 2; iAtlasRow = 0;
+		if (iDir == Direction::DOWN) //Stone
+		{
+			iAtlasCol = 1; iAtlasRow = 0;
+		}
+		else //Dirt
+		{
+			iAtlasCol = 2; iAtlasRow = 0;
+		}
 	}
 	else if (iBlockType == 3) //Stone
 	{
@@ -212,9 +215,9 @@ void Chunk::generateMesh() {
 	m_vec_fVertices.clear();
 	m_vec_uiIndices.clear();
 	int iHeightData[CHUNK_SIZE][CHUNK_SIZE];
-	for (size_t iX = 0; iX < CHUNK_SIZE; iX++)
+	for (int iX = 0; iX < CHUNK_SIZE; iX++)
 	{
-		for (size_t iZ = 0; iZ < CHUNK_SIZE; iZ++)
+		for (int iZ = 0; iZ < CHUNK_SIZE; iZ++)
 		{
 			int iWorldX = (m_iChunkX * CHUNK_SIZE) + iX;
 			int iWorldZ = (m_iChunkZ * CHUNK_SIZE) + iZ;
@@ -227,25 +230,24 @@ void Chunk::generateMesh() {
 
 			for (int iY = 0; iY <= iHeight; iY++)
 			{
-				int iIndex = flatIndexOf3DLayer(iX, iY, iZ); /*iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);*/
+				int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
 				
-				int iBlockType = 0;
+				int iBlockType = 3;								//Stone
 				if (iY == iHeight) iBlockType = 1;				//Grass
-				else if (iY > iHeight - 3) iBlockType = 2;		//Dirt
-				else iBlockType = 3;							//Stone
+				else if (iY > iHeight - 3) iBlockType = 2;		//Dirt							
 				
 				m_iBlocks[iIndex] = iBlockType;
 			}
 		}
 	}
 
-	for (size_t iX = 0; iX < CHUNK_SIZE; iX++)
+	for (int iX = 0; iX < CHUNK_SIZE; iX++)
 	{
-		for (size_t iZ = 0; iZ < CHUNK_SIZE; iZ++)
+		for (int iZ = 0; iZ < CHUNK_SIZE; iZ++)
 		{
-			for (size_t iY = 0; iY <= iHeightData[iX][iZ]; iY++)
+			for (int iY = 0; iY <= iHeightData[iX][iZ]; iY++)
 			{
-				int iIndex = flatIndexOf3DLayer(iX, iY, iZ); /*iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);*/
+				int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
 				int iBlockType = m_iBlocks[iIndex];
 				if (iBlockType == 0)
 					continue;
@@ -254,14 +256,14 @@ void Chunk::generateMesh() {
 				if (iY == 0)
 					addBlockFace(iX, iY, iZ, Direction::DOWN, iBlockType);
 
-				if (iX == CHUNK_SIZE - 1 || m_iBlocks[flatIndexOf3DLayer(iX + 1, iY, iZ)] == 0)
+				if (iX == CHUNK_SIZE - 1 || m_iBlocks[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::RIGHT, iBlockType);
-				if (iX == 0 || m_iBlocks[flatIndexOf3DLayer(iX - 1, iY, iZ)] == 0)
+				if (iX == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX - 1, iY, iZ)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::LEFT, iBlockType);
 
-				if (iZ == CHUNK_SIZE - 1 || m_iBlocks[flatIndexOf3DLayer(iX, iY, iZ + 1)] == 0)
+				if (iZ == CHUNK_SIZE - 1 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY, iZ + 1)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::FRONT, iBlockType);
-				if (iZ == 0 || m_iBlocks[flatIndexOf3DLayer(iX, iY, iZ - 1)] == 0)
+				if (iZ == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY, iZ - 1)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::BACK, iBlockType);
 			}
 		}
@@ -269,12 +271,12 @@ void Chunk::generateMesh() {
 	updateBuffers();
 }
 //*********************************************************************
-void Chunk::render() {
+void Chunk::Render() {
 	if (m_pVAO && m_pVBO && m_pIBO)
 	{
-		m_pVAO->bind();
+		m_pVAO->Bind();
 		glDrawElements(GL_TRIANGLES, m_pIBO->m_uiCount, GL_UNSIGNED_INT, 0);
-		m_pVAO->unbind();
+		m_pVAO->Unbind();
 	}
 }
 //*********************************************************************

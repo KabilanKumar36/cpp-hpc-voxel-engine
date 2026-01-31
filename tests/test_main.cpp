@@ -40,8 +40,8 @@ public:
 };
 TEST(ChunkTest, InitialCoordinates) {
 	Chunk chunk(5, -3);
-	EXPECT_EQ(chunk.m_iChunkX, 5);
-	EXPECT_EQ(chunk.m_iChunkZ, -3);
+	EXPECT_EQ(chunk.GetChunkX(), 5);
+	EXPECT_EQ(chunk.GetChunkZ(), -3);
 }
 
 TEST(ChunkTest, ConstantsCheck) {

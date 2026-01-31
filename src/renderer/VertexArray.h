@@ -14,21 +14,21 @@ namespace Renderer {
 			glDeleteVertexArrays(1, &ID);
 		}
 
-		void bind() const {
+		void Bind() const {
 			glBindVertexArray(ID);
 		}
-		void unbind() const {
+		void Unbind() const {
 			glBindVertexArray(0);
 		}
 
 		void linkAttribute(const VertexBuffer &vbo, unsigned int iLayoutIndex,
 			int iNumComponents, int iStride, int iOffset) {
-			bind();
-			vbo.bind();
+			Bind();
+			vbo.Bind();
 			glEnableVertexAttribArray(iLayoutIndex);
 			glVertexAttribPointer(iLayoutIndex, iNumComponents, GL_FLOAT, GL_FALSE,
 				iStride * sizeof(float), (void*)(iOffset * sizeof(float)));
-			vbo.unbind();
+			vbo.Unbind();
 		}
 	};
 }

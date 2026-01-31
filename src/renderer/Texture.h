@@ -37,7 +37,7 @@ namespace Renderer {
 			stbi_image_free(cData);
 		}
 
-		void bind(unsigned int iSlot) {
+		void Bind(unsigned int iSlot) {
 			glActiveTexture(GL_TEXTURE0 + iSlot);
 			glBindTexture(GL_TEXTURE_2D, ID);
 		}

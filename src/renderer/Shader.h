@@ -44,12 +44,12 @@ namespace Renderer {
 
 			unsigned int uiVertex, uiFragment;
 			uiVertex = glCreateShader(GL_VERTEX_SHADER);
-			glShaderSource(uiVertex, 1, &cVertexShaderCode, NULL);
+			glShaderSource(uiVertex, 1, &cVertexShaderCode, nullptr);
 			glCompileShader(uiVertex);
 			checkCompileErrors(uiVertex, "VERTEX");
 
 			uiFragment = glCreateShader(GL_FRAGMENT_SHADER);
-			glShaderSource(uiFragment, 1, &cFragmentShaderCode, NULL);
+			glShaderSource(uiFragment, 1, &cFragmentShaderCode, nullptr);
 			glCompileShader(uiFragment);
 			checkCompileErrors(uiFragment, "FRAGMENT");
 
@@ -77,7 +77,7 @@ namespace Renderer {
 			if (strType != "PROGRAM") {
 				glGetShaderiv(uiShader, GL_COMPILE_STATUS, &iSuccess);
 				if (!iSuccess) {
-					glGetShaderInfoLog(uiShader, 1024, NULL, cInfoLog);
+					glGetShaderInfoLog(uiShader, 1024, nullptr, cInfoLog);
 					std::cout << "ERROR::SHADER::COMPILATION_ERROR\n" << cInfoLog;
 					std::cout << "-----------------------------------------------------------------------";
 				}
@@ -85,7 +85,7 @@ namespace Renderer {
 			else {
 				glGetProgramiv(uiShader, GL_LINK_STATUS, &iSuccess);
 				if (!iSuccess) {
-					glGetShaderInfoLog(uiShader, 1024, NULL, cInfoLog);
+					glGetShaderInfoLog(uiShader, 1024, nullptr, cInfoLog);
 					std::cout << "ERROR::PROGRAM::LINKING_ERROR\n" << cInfoLog;
 					std::cout << "-----------------------------------------------------------------------";
 				}

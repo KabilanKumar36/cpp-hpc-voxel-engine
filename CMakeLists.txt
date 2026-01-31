@@ -61,7 +61,7 @@ FetchContent_MakeAvailable(googletest)
 # --------------------------------------------------------
 # Gather all source files EXCEPT main.cpp. 
 # This allows us to share the engine code between the Game and the Tests.
-file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$") 
 
 add_library(VoxelCore STATIC ${ENGINE_SOURCES})
@@ -95,19 +95,20 @@ target_link_libraries(unit_tests
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
-
-#locate sources
-#file(GLOB_RECURSE SOURCES "src/*.cpp")
-#Executables
-#add_executable(VoxelEngine ${SOURCES})
-#include headers
-#target_include_directories(VoxelEngine PRIVATE src)
-
-#target_link_libraries(VoxelEngine 
-#PRIVATE
-#glfw
-#glad)
-
-#Add Subdirectories
-#add_subdirectory(external)
-#add_subdirectory(src)
+if(MSVC)
+    # Windows (Visual Studio)
+    target_compile_options(VoxelCore PUBLIC
+        /W4       # Warning Level 4 (High)
+        /WX       # Treat Warnings as Errors
+        /permissive- # Enforce strict standards conformance
+        /D_CRT_SECURE_NO_WARNINGS # Optional: Silence C-style safety warnings if needed
+    )
+else()
+    # Linux / macOS (GCC / Clang)
+    target_compile_options(VoxelCore PUBLIC
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Werror   # The specific flag that fails build on warning
+    )
+endif()

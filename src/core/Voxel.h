@@ -1,4 +1,5 @@
 #include <cstdlib>
+#include <cstdint>
 
 class Voxel {
 	uint8_t  m_uiId;

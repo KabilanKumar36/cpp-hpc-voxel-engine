@@ -15,10 +15,10 @@ namespace Renderer {
 			glDeleteBuffers(1, &ID);
 		}
 
-		void bind() const {
+		void Bind() const {
 			glBindBuffer(GL_ARRAY_BUFFER, ID);
 		}
-		void unbind() const {
+		void Unbind() const {
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
 	};

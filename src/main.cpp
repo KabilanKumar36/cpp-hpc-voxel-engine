@@ -29,8 +29,8 @@
 */
 #include <iostream>
 #include <vector>
-#include "PhysicsSystem.h"
-#include "core/AABB.h"
+#include "physics/PhysicsSystem.h"
+#include "physics/AABB.h"
 #define BENCHMARK 0
 
 #include <glad/glad.h>
@@ -59,7 +59,7 @@ float fOrthoSize = 10.0f;
 float fDeltaTime = 0.0f;
 float fLastFrame = 0.0f;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void framebuffer_size_callback([[maybe_unused]]GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
@@ -129,18 +129,17 @@ void processInput(GLFWwindow* pWindow) {
 		camera.processKeyboard(3, fDeltaTime);
 	if (glfwGetKey(pWindow, GLFW_KEY_R) == GLFW_PRESS) //Resets cameta position
 	{
-		camera.position = cameraPos;
-		camera.yaw = -90.0f;
-		camera.pitch = -30.0f;
-		camera.zoom = 45.0f;
-		camera.front = Core::Vec3(0.0f, 0.0f, -1.0f);
-		camera.updateCameraVectors();
+		camera.SetCameraPosition(cameraPos);
+		camera.SetCameraZoom(45.0f);
+		camera.SetCameraFront(Core::Vec3(0.0f, 0.0f, -1.0f));
+		camera.SetCameraYawPitch(-90.0f, -30.0f);
+		camera.UpdateCameraVectors();
 	}
 }
 
-void scroll_callback(GLFWwindow* pWindow, double dXOffset, double dYOffset) {
+void scroll_callback([[maybe_unused]]GLFWwindow* pWindow, [[maybe_unused]]double dXOffset, double dYOffset) {
 	if(bPerspective)
-	camera.processMouseScroll(static_cast<float> (dYOffset));
+	camera.ProcessMouseScroll(static_cast<float> (dYOffset));
 	else
 	{
 		fOrthoSize -= static_cast<float>(dYOffset);
@@ -175,7 +174,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_DEPTH_BITS, 24);
 	GLFWwindow* pWindow = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "HPC Voxel Engine", nullptr, nullptr);
-	if (pWindow == NULL)
+	if (pWindow == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
@@ -215,7 +214,7 @@ int main() {
 
 	//Renderer::Texture texture("../assets/textures/container.jpg");
 	Renderer::Texture texture("../assets/textures/texture_atlas.png");
-	texture.bind(0);
+	texture.Bind(0);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -277,7 +276,7 @@ int main() {
 		float fAspectRatio = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
 		if(bPerspective)
 		{
-			projection = Core::Mat4::perspective(camera.getZoom(),
+			projection = Core::Mat4::perspective(camera.GetZoom(),
 			fAspectRatio, 0.1f, 100.0f);
 		}
 		else
@@ -293,7 +292,7 @@ int main() {
 		shader.setMat4("uViewProjection", viewProjection);
 		for (auto& chunk : chunks)
 		{
-			chunk.render();
+			chunk.Render();
 		}
 		glfwSwapBuffers(pWindow);
 		glfwPollEvents();

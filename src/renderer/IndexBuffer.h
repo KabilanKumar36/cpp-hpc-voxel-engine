@@ -17,10 +17,10 @@ namespace Renderer {
 		~IndexBuffer() {
 			glDeleteBuffers(1, &ID);
 		}
-		void bind() {
+		void Bind() {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
 		}
-		void unbind() {
+		void Unbind() {
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 
