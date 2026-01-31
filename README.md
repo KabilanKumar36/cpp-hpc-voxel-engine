@@ -4,7 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![OpenGL](https://img.shields.io/badge/OpenGL-4.6-red.svg)
-![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/cmake.yml/badge.svg)
+![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/build_and_test.yml/badge.svg)
 
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed to explore computational geometry, hardware-accelerated rendering, and low-level memory management.
