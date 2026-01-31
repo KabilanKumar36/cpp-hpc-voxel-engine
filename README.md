@@ -4,6 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![OpenGL](https://img.shields.io/badge/OpenGL-4.6-red.svg)
+![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/cmake.yml/badge.svg)
 
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed to explore computational geometry, hardware-accelerated rendering, and low-level memory management.
@@ -17,15 +18,17 @@ This project is a technical playground for implementing high-performance graphic
 * **Custom Math Library** (SIMD-ready vectors and matrices).
 * **Modern OpenGL (4.6)** utilizing Compute Shaders for voxel generation.
 * **Zero-dependency architecture** (managing memory and resources manually).
+* **Strict Compliance:** Warning-free codebase enforced by CI/CD (`/WX` on MSVC, `-Werror` on GCC).
 
 ## 🛠️ Tech Stack
 
 * **Language:** C++20 (Concepts, Modules, constexpr math)
 * **Graphics API:** OpenGL 4.6 (Core Profile)
-* **Build System:** CMake 3.23+
-* **Windowing:** GLFW (fetched via CMake)
+* **Build System:** CMake 3.23+ (FetchContent for dependencies)
+* **Windowing:** GLFW 3.4
 * **Loader:** GLAD
 * **Assets/Math:** stb_image (Textures), FastNoiseLite (Procedural Generation)
+* **Testing:** GoogleTest
 
 ## ✨ Key Features (Current & Planned)
 
@@ -37,13 +40,21 @@ This project is a technical playground for implementing high-performance graphic
 - [x] **Procedural Terrain:** Infinite terrain generation using `FastNoiseLite` (OpenSimplex2).
 - [x] **Biome System:** Height-based block assignment (Grass, Dirt, Stone).
 - [x] **Texture Atlas:** Efficient single-texture rendering with dynamic UV mapping (256x256 grid).
+- [x] **Smart Texturing:**
+    - Dynamic Face Assignment: Correctly renders Grass Top, Dirt Bottom, and Side transitions.
+    - "Cave Ceiling" Logic: Dirt blocks appearing as Stone when viewed from below.
 - [x] **Optimization:** Greedy Face Culling (occlusion culling) for rendering efficiency.
 - [x] **Build System:** Self-contained CMake setup with automated dependency management.
+- [x] **Physics Engine:**
+    - AABB (Axis-Aligned Bounding Box) Collision Detection.
+    - Voxel-aware terrain collision (direct chunk lookup).
+    - Gravity and Velocity resolution.
+- [x] **CI/CD Pipeline:** Automated Linux builds and Unit Testing via GitHub Actions.
 
-### 🚧 In Progress (Day 04 Roadmap)
-- [ ] **Player Physics:** AABB Collision detection and Gravity.
-- [ ] **Ray Casting:** DDA Algorithm for block selection.
+### 🚧 In Progress (Day 05 Roadmap)
+- [ ] **Ray Casting:** DDA (Digital Differential Analyzer) Algorithm for precise block selection.
 - [ ] **Interaction:** Block breaking and placing mechanics.
+- [ ] **Debug Visualization:** Wireframe highlighting of targeted blocks.
 
 ### 📅 Planned
 - [ ] **Infinite World:** Dynamic chunk paging and multithreaded generation.
@@ -98,6 +109,7 @@ The project uses **GoogleTest** for unit testing. The build system automatically
     ```
 
 **Current Test Coverage:**
+* **Physics Logic:** AABB intersection and construction assertions.
 * **OpenGL Environment:** Automated invisible window creation for context-dependent tests.
 * **Chunk Logic:** Verification of mesh generation and buffer sizing.
 
@@ -105,11 +117,13 @@ The project uses **GoogleTest** for unit testing. The build system automatically
 
 ```text
 src/
-├── core/       # Math (Vec3, Ray, FastNoiseLite), Memory, and Base Types
+├── core/       # Math (Vec3, Matrix, FastNoiseLite), Memory, and Base Types
+├── physics/    # Physics Engine (AABB, PhysicsSystem, RigidBody)
 ├── renderer/   # OpenGL wrappers (Shader, Buffer, Texture, VAO)
 ├── world/      # Voxel Data (Chunk, Mesh Generation, Biome Logic)
-└── app/        # Window management and Main Loop
+└── main.cpp    # Entry point, Window management, and Game Loop
 external/       # Vendored dependencies (GLAD)
 assets/         # Shaders and Textures (Texture Atlas)
+tests/          # Unit Tests (Physics, Core, Rendering)
 📜 License
 Distributed under the MIT License. See LICENSE for more information.
