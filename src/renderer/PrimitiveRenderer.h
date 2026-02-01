@@ -1,3 +1,5 @@
+#pragma once
+
 #include <vector>
 #include "../core/Matrix.h"
 #include "Shader.h"
@@ -5,10 +7,10 @@
 #include "Buffer.h"
 
 namespace Renderer {
-    class DebugRenderer {
+    class PrimitiveRenderer {
     public:
         static void Init() {
-            m_pDebugShader = new Shader("../assets/shaders/vertex_SimpleDebug.glsl", "../assets/shaders/fragment_SimpleDebug.glsl");
+            m_pPrimitiveShader = new Shader("../assets/shaders/vertex_SimpleDebug.glsl", "../assets/shaders/fragment_SimpleDebug.glsl");
             std::vector<float> cubeVertices = {
                 0, 0, 0,    1, 0, 0,           1, 0, 0,    1, 0, 1,          1, 0, 1,   0, 0, 1,        0, 0, 1,    0, 0, 0,
                 0, 1, 0,    1, 1, 0,           1, 1, 0,    1, 1, 1,          1, 1, 1,   0, 1, 1,        0, 1, 1,    0, 1, 0,
@@ -18,23 +20,29 @@ namespace Renderer {
             m_pCubeVBO = new VertexBuffer(cubeVertices.data(), cubeVertices.size() * sizeof(float));
             m_pCubeVAO->linkAttribute(*m_pCubeVBO, 0, 3, 0, 0);
             m_pCubeVAO->Unbind();
+            
+            float fLineVertices[] = {0, 0, 0,     0, 0, 0};
+            m_pLineVBO = new VertexBuffer(fLineVertices, sizeof(fLineVertices));
+            m_pLineVAO = new VertexArray();
+            m_pLineVAO->linkAttribute(*m_pLineVBO, 0, 3, 0, 0);
         }
         static void Shutdown() {
-            if(m_pDebugShader) { delete m_pDebugShader; m_pDebugShader = nullptr; }
+            if(m_pPrimitiveShader) { delete m_pPrimitiveShader; m_pPrimitiveShader = nullptr; }
             if(m_pCubeVAO) { delete m_pCubeVAO; m_pCubeVAO = nullptr; }
             if(m_pCubeVBO) { delete m_pCubeVBO; m_pCubeVBO = nullptr; }
             if(m_pLineVAO) { delete m_pLineVAO; m_pLineVAO = nullptr; }
             if(m_pLineVBO) { delete m_pLineVBO; m_pLineVBO = nullptr; }
         }
-        static void DrawCube(const Core::Vec3& position, const Core::Vec3& size, const Core::Vec3& color, const Core::Mat4& viewProjMatrix) {
-            if(!m_pDebugShader)
+        static void DrawCube(const Core::Vec3& position, const Core::Vec3& size, 
+            const Core::Vec3& color, const Core::Mat4& viewProjMatrix) {
+            if(!m_pPrimitiveShader)
                 return;
-            m_pDebugShader->use();
+            m_pPrimitiveShader->use();
             Core::Mat4 objModel  = Core::Mat4::Translation(position) * Core::Mat4::Scale(size.x, size.y, size.z);
 
             Core::Mat4 ObjMVP = viewProjMatrix * objModel;
-            m_pDebugShader->setMat4("uViewProjection", ObjMVP);
-            m_pDebugShader->setVec3("colorVal", color);
+            m_pPrimitiveShader->setMat4("uViewProjection", ObjMVP);
+            m_pPrimitiveShader->setVec3("colorVal", color);
 
             m_pCubeVAO->Bind();
             glLineWidth(2.5f);
@@ -42,24 +50,24 @@ namespace Renderer {
             glLineWidth(1.0f);
             m_pCubeVAO->Unbind();
         }
-        static void DrawLine(const Core::Vec3& objVecStart, const Core::Vec3& objVecEnd, const Core::Vec3& color, const Core::Mat4& viewProjMatrix) {
-            if(!m_pDebugShader)
+        static void DrawLine(const Core::Vec3& objVecStart, const Core::Vec3& objVecEnd, 
+            const Core::Vec3& color, const Core::Mat4& viewProjMatrix) {
+            if(!m_pPrimitiveShader)
                 return;
-            m_pDebugShader->use();
+            m_pPrimitiveShader->use();
 
-            float lineVertices[] = {
+            float fLineVertices[] = {
                 objVecStart.x, objVecStart.y, objVecStart.z,
                 objVecEnd.x, objVecEnd.y, objVecEnd.z
             };
 
-            m_pLineVBO = new VertexBuffer(lineVertices, sizeof(lineVertices));
-            m_pLineVAO = new VertexArray();
-            m_pLineVAO->linkAttribute(*m_pLineVBO, 0, 3, 0, 0);
-
+            m_pLineVBO->Bind();
+            glBufferData(GL_ARRAY_BUFFER, sizeof(fLineVertices), fLineVertices, GL_DYNAMIC_DRAW);
+            m_pLineVBO->Unbind();
             Core::Mat4 objModel;
             Core::Mat4 ObjMVP = viewProjMatrix * objModel;
-            m_pDebugShader->setMat4("uViewProjection", ObjMVP);
-            m_pDebugShader->setVec3("colorVal", color);
+            m_pPrimitiveShader->setMat4("uViewProjection", ObjMVP);
+            m_pPrimitiveShader->setVec3("colorVal", color);
 
             m_pLineVAO->Bind();
             glLineWidth(2.0f);
@@ -68,7 +76,7 @@ namespace Renderer {
             m_pLineVAO->Unbind();
         }
     private:
-    inline static Shader* m_pDebugShader = nullptr;
+    inline static Shader* m_pPrimitiveShader = nullptr;
     inline static Renderer::VertexArray* m_pCubeVAO = nullptr;
     inline static Renderer:: VertexBuffer* m_pCubeVBO = nullptr;
 

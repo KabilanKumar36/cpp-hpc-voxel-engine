@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include "../core/Matrix.h"
+#include <assert.h>
 
 namespace Renderer {
 	class Shader {

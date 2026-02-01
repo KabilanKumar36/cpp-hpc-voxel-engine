@@ -274,7 +274,7 @@ void Chunk::GenerateMesh() {
 	updateBuffers();
 }
 //*********************************************************************
-void Chunk::Render() {
+void Chunk::Render() const {
 	if (m_pVAO && m_pVBO && m_pIBO)
 	{
 		m_pVAO->Bind();

@@ -38,7 +38,7 @@ public:
 	[[nodiscard]] int GetChunkZ() const { return m_iChunkZ; }
 	[[nodiscard]] bool GetFaceCulling() const { return m_bEnableFaceCulling;  }
 
-	void Render();
+	void Render() const;
 	void SetFaceCulling(bool bOpt) { m_bEnableFaceCulling = bOpt;  }
 	[[nodiscard]] inline int GetFlatIndexOf3DLayer(int iX, int iY, int iZ) const {
 		return iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);}

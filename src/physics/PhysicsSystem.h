@@ -1,3 +1,5 @@
+#pragma once
+
 #include "AABB.h"
 #include "../core/Ray.h"
 #include "../world/Chunk.h"
