@@ -211,10 +211,9 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
 	m_vec_uiIndices.push_back(iStartIndex + 0);
 }
 //*********************************************************************
-void Chunk::generateMesh() {
-	m_vec_fVertices.clear();
-	m_vec_uiIndices.clear();
-	int iHeightData[CHUNK_SIZE][CHUNK_SIZE];
+void Chunk::updateHeightData(){
+	noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+	noise.SetFrequency(0.04f);
 	for (int iX = 0; iX < CHUNK_SIZE; iX++)
 	{
 		for (int iZ = 0; iZ < CHUNK_SIZE; iZ++)
@@ -226,7 +225,7 @@ void Chunk::generateMesh() {
 			int iHeight = static_cast<int>((fNoiseVal + 1.0f) * 10.0f);
 			if (iHeight < 0) iHeight = 0;
 			if (iHeight >= CHUNK_HEIGHT) iHeight = CHUNK_HEIGHT - 1;
-			iHeightData[iX][iZ] = iHeight;
+			m_iHeightData[iX][iZ] = iHeight;
 
 			for (int iY = 0; iY <= iHeight; iY++)
 			{
@@ -240,20 +239,24 @@ void Chunk::generateMesh() {
 			}
 		}
 	}
-
+}
+//*********************************************************************
+void Chunk::GenerateMesh() {
+	m_vec_fVertices.clear();
+	m_vec_uiIndices.clear();
 	for (int iX = 0; iX < CHUNK_SIZE; iX++)
 	{
 		for (int iZ = 0; iZ < CHUNK_SIZE; iZ++)
 		{
-			for (int iY = 0; iY <= iHeightData[iX][iZ]; iY++)
+			for (int iY = 0; iY <= m_iHeightData[iX][iZ]; iY++)
 			{
 				int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
 				int iBlockType = m_iBlocks[iIndex];
 				if (iBlockType == 0)
 					continue;
-				if (iY == iHeightData[iX][iZ])
+				if (iY == m_iHeightData[iX][iZ] || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY + 1, iZ)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::UP, iBlockType);
-				if (iY == 0)
+				if (iY == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY - 1, iZ)] == 0)
 					addBlockFace(iX, iY, iZ, Direction::DOWN, iBlockType);
 
 				if (iX == CHUNK_SIZE - 1 || m_iBlocks[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] == 0)

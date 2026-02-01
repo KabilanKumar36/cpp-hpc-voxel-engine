@@ -104,7 +104,7 @@ namespace Core {
         }
         static Mat4 orthographic(float left, float right, 
             float bottom, float top, float nearplane, float farplane) {
-            Mat4 result; // By default identity
+            Mat4 result;
 
             result.elements[0 + 0 * 4] = 2.0f / (right - left);
             result.elements[1 + 1 * 4] = 2.0f / (top - bottom);
@@ -114,6 +114,22 @@ namespace Core {
             result.elements[1 + 3 * 4] = -(top + bottom) / (top - bottom);
             result.elements[2 + 3 * 4] = -(farplane + nearplane) / (farplane - nearplane);
 
+            return result;
+        }
+
+        static Mat4 Translation(const Vec3& translation) {
+            Mat4 result;
+            result.elements[0 + 3 * 4] = translation.x;
+            result.elements[1 + 3 * 4] = translation.y;
+            result.elements[2 + 3 * 4] = translation.z;
+            return result;
+        }
+
+        static Mat4 Scale(float scaleX, float scaleY, float scaleZ) {
+            Mat4 result;
+            result.elements[0 + 0 * 4] = scaleX;
+            result.elements[1 + 1 * 4] = scaleY;
+            result.elements[2 + 2 * 4] = scaleZ;
             return result;
         }
     };

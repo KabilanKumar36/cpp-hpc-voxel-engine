@@ -36,7 +36,9 @@ namespace Renderer {
 				strFragmentCode = strstrmFragment.str();
 			}
 			catch (std::ifstream::failure &e) {
-				std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ" << e.what() << std::endl;
+				std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ\n" << e.what() << std::endl;
+				assert(false && "Shader File Not Found!");
+				exit(-1);
 			}
 
 			const char* cVertexShaderCode = strVertexCode.c_str();
@@ -69,6 +71,10 @@ namespace Renderer {
 
 		void setMat4(const std::string &name, const Core::Mat4 &mat) const {
 			glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, mat.elements);
+		}
+
+		void setVec3(const std::string &name, const Core::Vec3 &vec) const {
+			glUniform3f(glGetUniformLocation(ID, name.c_str()), vec.x, vec.y, vec.z);
 		}
 	private:
 		void checkCompileErrors(unsigned int uiShader, std::string strType) {

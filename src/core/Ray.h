@@ -3,17 +3,17 @@
 
 namespace Core {
     struct Ray {
-        Vec3 origin;
-        Vec3 direction;
+        Vec3 m_objPtOrigin;
+        Vec3 m_objDirection;
 
         // Constructor
         Ray(const Vec3& orig, const Vec3& dir) 
-            : origin(orig), direction(dir.normalize()) 
+            : m_objPtOrigin(orig), m_objDirection(dir.normalize()) 
 		{
 		}
 
         [[nodiscard]] Vec3 at(float t) const noexcept {
-            return origin + direction * t;
+            return m_objPtOrigin + (m_objDirection * t);
 		}
     };
 }

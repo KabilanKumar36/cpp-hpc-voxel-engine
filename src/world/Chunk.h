@@ -24,9 +24,8 @@ public:
 	Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ){
 		m_pVAO = new Renderer::VertexArray();
 		m_bEnableFaceCulling = false;
-		noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
-		noise.SetFrequency(0.04f);
-		generateMesh();
+		updateHeightData();
+		GenerateMesh();
 	}
 	~Chunk();
 	Chunk(const Chunk&) = delete;
@@ -55,6 +54,19 @@ public:
 				return 0;
 		return m_iBlocks[iIndex];
 	}
+	void SetBlockAt(int iX, int iY, int iZ, uint8_t uiBlockType) {
+		if (iX < 0 || iX >= CHUNK_SIZE ||
+			iY < 0 || iY >= CHUNK_HEIGHT ||
+			iZ < 0 || iZ >= CHUNK_SIZE)
+		{
+			return;
+		}
+		int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+		if(iIndex < 0 || iIndex >= CHUNK_VOL)
+			return;
+		m_iBlocks[iIndex] = uiBlockType;
+	}
+	void GenerateMesh();
 private:
 	std::vector<float> m_vec_fVertices;
 	std::vector<unsigned int> m_vec_uiIndices;
@@ -64,14 +76,13 @@ private:
 	Renderer::IndexBuffer* m_pIBO = nullptr;
 
 	FastNoiseLite noise{};
+	int m_iHeightData[CHUNK_SIZE][CHUNK_SIZE];
 	int m_iChunkX = 0, m_iChunkZ = 0;
-
 	uint8_t m_iBlocks[CHUNK_VOL]{0};
 
 	bool m_bEnableFaceCulling = false;
-
+	void updateHeightData();
 	void updateBuffers();
 	void addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType);
-	void generateMesh();
 
 };

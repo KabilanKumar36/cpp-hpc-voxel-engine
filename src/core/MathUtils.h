@@ -46,6 +46,14 @@ namespace Core {
 			if (len < 1e-5f) return Vec3(0.0f, 0.0f, 0.0f);
 			return Vec3(x / len, y / len, z / len);
 		}
+		[[nodiscard]] float SquaredDistanceFromPoint(const Core::Vec3& other) const {
+			Vec3 diff = *this - other;
+			return diff.squaredLength();
+		}
+		[[nodiscard]] float DistanceFromPoint(const Core::Vec3& other) const {
+			Vec3 diff = *this - other;
+			return diff.length();
+		}
 
 		// Dot and Cross Product
 		[[nodiscard]] constexpr float dot(const Vec3& other) const noexcept {

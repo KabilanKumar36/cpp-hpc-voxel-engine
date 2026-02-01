@@ -1,6 +1,9 @@
 #include "AABB.h"
+#include "../core/Ray.h"
+#include "../world/Chunk.h"
 #include <vector>
 #include <iostream>
+#include <algorithm>
 
 struct RigidBody {
 public:
@@ -13,9 +16,16 @@ public:
 	}
 
 };
-
+struct RayHit{
+	Core::Vec3 m_objHitPoint;
+	Core::Vec3 m_objNormal;
+	float m_fDistance;
+	int m_iBlocKX, m_iBlocKY, m_iBlocKZ;
+	bool m_bHit;
+};
 class PhysicsSystem {
 public:
+
 	void Update(RigidBody &objBody, float fDelTime, const std::vector<AABB>& vec_objObstacles) {
 		const float fGravity = -9.81f;
 		objBody.m_ObjVelocity.y += fGravity * fDelTime;
@@ -60,6 +70,100 @@ public:
 				return true;
 		}
 		return false;
+	}
+
+	//DDA Algorithm for Ray Casting in Voxel Grid
+	static RayHit RayCast(const Core::Ray &objRay, float fMaxDistance, const std::vector<Chunk>& vec_objChunks) {
+		RayHit hitResult;
+		hitResult.m_bHit = false;
+		hitResult.m_fDistance = fMaxDistance;
+
+		float fX = objRay.m_objPtOrigin.x;
+		float fY = objRay.m_objPtOrigin.y;
+		float fZ = objRay.m_objPtOrigin.z;
+
+		int iMapX = static_cast<int>(floor(fX));
+		int iMapY = static_cast<int>(floor(fY));
+		int iMapZ = static_cast<int>(floor(fZ));
+
+		int iStepX = (objRay.m_objDirection.x < 0) ? -1 : 1;
+		int iStepY = (objRay.m_objDirection.y < 0) ? -1 : 1;
+		int iStepZ = (objRay.m_objDirection.z < 0) ? -1 : 1;
+
+		float fDeltaX = (objRay.m_objDirection.x == 0) ?
+		 std::numeric_limits<float>::max() : std::abs(1.0f / objRay.m_objDirection.x);
+		float fDeltaY = (objRay.m_objDirection.y == 0) ?
+		 std::numeric_limits<float>::max() : std::abs(1.0f / objRay.m_objDirection.y);
+		float fDeltaZ = (objRay.m_objDirection.z == 0) ?
+		 std::numeric_limits<float>::max() : std::abs(1.0f / objRay.m_objDirection.z);
+
+		float fSideDistX = (iStepX < 0) ?
+		 (fX - static_cast<float>(iMapX)) * fDeltaX : (static_cast<float>(iMapX + 1) - fX) * fDeltaX;
+		float fSideDistY = (iStepY < 0) ? 
+		(fY - static_cast<float>(iMapY)) * fDeltaY : (static_cast<float>(iMapY + 1) - fY) * fDeltaY;
+		float fSideDistZ = (iStepZ < 0) ?
+		 (fZ - static_cast<float>(iMapZ)) * fDeltaZ : (static_cast<float>(iMapZ + 1) - fZ) * fDeltaZ;
+
+		while(true)
+		{
+			int iChunkX = static_cast<int>(floor(static_cast<float>(iMapX) / CHUNK_SIZE));
+			int iChunkZ = static_cast<int>(floor(static_cast<float>(iMapZ) / CHUNK_SIZE));
+			for (const auto& chunk : vec_objChunks) {
+				if (chunk.GetChunkX() != iChunkX || chunk.GetChunkZ() != iChunkZ)
+					continue;
+				uint8_t uiBlockType = chunk.GetBlockAt(
+					iMapX - iChunkX * CHUNK_SIZE, 
+					iMapY, 
+					iMapZ - iChunkZ * CHUNK_SIZE);
+
+				if (!uiBlockType)
+					break; //Air Block, continue ray marching
+
+				hitResult.m_bHit = true;
+				if(hitResult.m_objHitPoint.x != 0) 
+					hitResult.m_fDistance = fSideDistX - fDeltaX;
+				else if(hitResult.m_objHitPoint.y != 0) 
+					hitResult.m_fDistance = fSideDistY - fDeltaY;
+				else
+					hitResult.m_fDistance = fSideDistZ - fDeltaZ;
+
+				hitResult.m_objHitPoint = objRay.at(hitResult.m_fDistance);
+				hitResult.m_iBlocKX = iMapX;
+				hitResult.m_iBlocKY = iMapY;
+				hitResult.m_iBlocKZ = iMapZ;
+
+				return hitResult;
+			}
+			float fCurrentDistance = std::min({fSideDistX, fSideDistY, fSideDistZ});
+			if (fCurrentDistance > fMaxDistance)
+				break;
+
+			if (fSideDistX < fSideDistY) {
+				if (fSideDistX < fSideDistZ) {
+					iMapX += iStepX;
+					fSideDistX += fDeltaX;
+					hitResult.m_objNormal = Core::Vec3(-iStepX, 0.0f, 0.0f);
+				}
+				else {
+					iMapZ += iStepZ;
+					fSideDistZ += fDeltaZ;
+					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, -iStepZ);
+				}
+			}
+			else {
+				if (fSideDistY < fSideDistZ) {
+					iMapY += iStepY;
+					fSideDistY += fDeltaY;
+					hitResult.m_objNormal = Core::Vec3(0.0f, -iStepY, 0.0f);
+				}
+				else {
+					iMapZ += iStepZ;
+					fSideDistZ += fDeltaZ;
+					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, -iStepZ);
+				}
+			}
+		}
+		return hitResult;
 	}
 
 };

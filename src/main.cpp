@@ -1,29 +1,36 @@
 ﻿/*
  ==================================================================================
-   TODO: DAY 05 - PHYSICS INTEGRATION & INTERACTION SYSTEM
-   Goal: Connect the Physics Backend to the Rendering Frontend + Add Gameplay.
+   TODO: DAY 06 - PHYSICS INTEGRATION & PLAYER MOVEMENT
+   Goal: Attach the Camera to the Physics System (Stop Flying, Start Walking).
  ==================================================================================
 
- 1. PHYSICS INTEGRATION (The "Body" & "Eyes" Merge)
-	[ ] Remove "Spectator Mode" WASD logic (direct position modification).
-	[ ] Hook Input: Map WASD to 'Player.m_ObjVelocity.x/z'.
-	[ ] Hook Camera: In the render loop, set 'Camera.Position = Player.m_ObjPos'.
-	[ ] Enable Gravity: Ensure 'PhysicsSystem::Update' is called every frame.
-	[ ] Implement Jumping: Map SPACE to Velocity.y (Check 'IsGrounded' flag).
+ 1. VOXEL INTERACTION (COMPLETED)
+    [x] Raycast Visualizer: Debug line with offset (gun barrel view).
+    [x] Destruction: Ctrl + Left Click -> Raycast -> Set Block 0 -> Rebuild Mesh.
+    [x] Logic Fix: Moved 'updateHeightData' to constructor to prevent terrain reset on update.
+    [x] Render Fix: Updated 'GenerateMesh' neighbor checks to render holes/caves correctly.
 
- 2. RAYCASTING (Block Selection)
-	[ ] Implement DDA Algorithm (Digital Differential Analyzer) for fast traversal.
-	[ ] Create 'Raycast(origin, direction, range)' function.
-	[ ] Visual Debug: Draw a wireframe cube around the "Targeted Voxel".
+ 2. PHYSICS BACKEND (READY)
+    [x] AABB Struct: Min/Max bounds defined.
+    [x] Collision Logic: 'PhysicsSystem::CheckCollision(A, B)' is implemented.
+    [x] DDA Raycast: Implemented fast voxel traversal algorithm.
+    [x] Gravity Pull: 'Velocity.y -= 9.8f * dt' logic is implemented in backend.
 
- 3. VOXEL INTERACTION (The "Minecraft" Mechanics)
-	[ ] Left Click: Get Target Voxel -> Set ID = 0 (Air) -> Trigger Mesh Rebuild.
-	[ ] Right Click: Get "Previous" Voxel (Face Normal) -> Set ID = 1 -> Trigger Mesh Rebuild.
-	[ ] Optimization: Only rebuild the specific Chunk that was modified.
+ 3. PLAYER CONTROLLER (NEXT SESSION)
+    [ ] Disable "Free Fly": Stop direct Camera pos updates in 'processInput'.
+    [ ] Movement Vector: Map WASD to 'Player.Velocity.x' and 'Player.Velocity.z'.
+    [ ] Apply Gravity: Call 'PhysicsSystem::Update' every frame to pull player down.
+    [ ] Collision Resolution:
+        - Use 'CheckCollision' to detect player vs world.
+        - If colliding below: Set 'IsGrounded = true' and stop falling.
+        - If colliding side: Slide or stop X/Z movement.
+    [ ] Jump Mechanic:
+        - Input: SPACE key.
+        - Condition: Only if 'IsGrounded' is true.
+        - Action: 'Velocity.y = JumpForce'.
 
- 4. POLISH & MODES
-	[ ] Add "Toggle Mode" (F1): Switch between "Physics Walk" and "Free Cam Fly".
-	[ ] Verify "Sliding": Ensure player slides against walls (X/Z separation check).
+ 4. POLISH
+    [ ] Toggle Mode (F1): Switch between "Walking" and "Flying" states.
 
  ==================================================================================
 */
@@ -44,12 +51,13 @@
 #include <renderer/Buffer.h>
 #include <renderer/VertexArray.h>
 #include <renderer/Texture.h>
+#include <renderer/DebugRenderer.h>
 
 #include <world/Chunk.h>
 
 const unsigned int SCREEN_WIDTH = 1280;
 const unsigned int SCREEN_HEIGHT = 720;
-Core::Vec3 cameraPos = Core::Vec3(100.0f, 40.0f, 140.0f);
+Core::Vec3 cameraPos = Core::Vec3(100.0f, 20.0f, 140.0f);
 Core::Camera camera(cameraPos);
 float lastX = SCREEN_WIDTH / 2.0f;
 float lastY = SCREEN_HEIGHT / 2.0f;
@@ -64,6 +72,8 @@ void framebuffer_size_callback([[maybe_unused]]GLFWwindow* window, int width, in
 }
 
 void mouseCallBack(GLFWwindow* pWindow, double xPosIn, double yPosIn) {
+	/*if (glfwGetKey(pWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(pWindow, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+		return;*/
 	bool bIsLeftDown = glfwGetMouseButton(pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
 	bool bIsRightDown = glfwGetMouseButton(pWindow, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
 	if (!bIsLeftDown && !bIsRightDown)
@@ -196,6 +206,8 @@ int main() {
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
+	Renderer::DebugRenderer::Init();
+
 	const GLubyte* vendor = glGetString(GL_VENDOR);
 	const GLubyte* renderor = glGetString(GL_RENDERER);
 	std::cout << "GPU Renderer: " << vendor << std::endl;
@@ -204,6 +216,8 @@ int main() {
 	Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl"); 
 	std::vector<Chunk> chunks;
 	int iRenderDistance = 8;
+	int iTotalChunks = (iRenderDistance * 2) * (iRenderDistance * 2);
+	chunks.reserve(iTotalChunks + 10);
 	for (int iX = -iRenderDistance; iX < iRenderDistance; iX++)
 	{
 		for (int iZ = -iRenderDistance; iZ < iRenderDistance; iZ++)
@@ -220,7 +234,7 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW);
-	static bool sbFPressedLastTime = false, sbPPressedLastTime = false;
+	static bool sbFPressedLastTime = false, sbPPressedLastTime = false, sbLMBClikedFirstTime = true;
 	static int iFrameCount = 0;
 	static float fTimer = 0.0f;
 	std::string strFaceCullMsg = "";
@@ -286,7 +300,7 @@ int main() {
 			projection = Core::Mat4::orthographic(
 				-fWidth, fWidth, -fHeight, fHeight, -100.0f, 100.0f);
 		}
-		Core::Mat4 view = camera.getViewMatrix();
+		Core::Mat4 view = camera.GetViewMatrix();
 		Core::Mat4 viewProjection = projection * view;
 
 		shader.setMat4("uViewProjection", viewProjection);
@@ -294,10 +308,90 @@ int main() {
 		{
 			chunk.Render();
 		}
+		glDisable(GL_DEPTH_TEST);
+		//Draw GCS
+		Renderer::DebugRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),Core::Vec3(50.0f, 0.0f, 0.0f),
+		Core::Vec3(1.0f, 0.0f, 0.0f),viewProjection);
+		Renderer::DebugRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),Core::Vec3(0.0f, 50.0f, 0.0f),
+		Core::Vec3(0.0f, 1.0f, 0.0f),viewProjection);
+		Renderer::DebugRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),Core::Vec3(0.0f, 0.0f, 50.0f),
+		Core::Vec3(0.0f, 0.0f, 1.0f),viewProjection);
+		//Test Cube
+		/*Renderer::DebugRenderer::DrawCube(
+			Core::Vec3(0.0f, 0.0f, 0.0f),
+			Core::Vec3(20.0f, 20.0f, 20.0f), 
+			Core::Vec3(1.0f, 0.0f, 1.0f), viewProjection);*/
+
+		glDisable(GL_DEPTH_TEST);
+		if (glfwGetKey(pWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS || glfwGetKey(pWindow, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+		{
+			float fMaxDistance = 60.0f;
+			Core::Ray objRay(camera.GetCameraPosition(), camera.GetFront());
+			
+			//Draw Ray
+			Core::Vec3 objUp = camera.GetUp();
+			Core::Vec3 objRight = camera.GetFront().cross(objUp).normalize();
+			Core::Vec3 objRayStart = objRay.m_objPtOrigin - objUp * 0.1f + objRight * 0.2f;
+			Core::Vec3 objRayEnd = objRay.at(fMaxDistance);
+			Renderer::DebugRenderer::DrawLine(objRayStart, objRayEnd, Core::Vec3(1.0f, 1.0f, 0.0f), viewProjection);
+			
+			RayHit objRayHit = PhysicsSystem::RayCast(objRay, fMaxDistance, chunks);
+			if(objRayHit.m_bHit)
+			{
+				Core::Vec3 objBlockPos(
+					static_cast<float>(objRayHit.m_iBlocKX), 
+					static_cast<float>(objRayHit.m_iBlocKY), 
+					static_cast<float>(objRayHit.m_iBlocKZ));
+	#if DEBUG
+					std::cout << "Ray : " 
+						<< "X: " << objRay.m_objPtOrigin.x << ", "
+						<< "Y: " << objRay.m_objPtOrigin.y << ", "
+						<< "Z: " << objRay.m_objPtOrigin.z << ", " 
+						<< objRay.m_objDirection.x << ", " 
+						<< objRay.m_objDirection.y << ", " 
+						<< objRay.m_objDirection.z << std::endl;
+
+						std::cout << "Ray Hit! Block: " 
+						<< "X: " << objRayHit.m_objHitPoint.x << ", "
+						<< "Y: " << objRayHit.m_objHitPoint.y << ", "
+						<< "Z: " << objRayHit.m_objHitPoint.z << ", " 
+						<< objRayHit.m_fDistance << ", " 
+						<< objRayHit.m_iBlocKX << ", " 
+						<< objRayHit.m_iBlocKY << ", " 
+						<< objRayHit.m_iBlocKZ << std::endl;
+	#endif
+				Renderer::DebugRenderer::DrawCube(objBlockPos, Core::Vec3(1.005f, 1.005f, 1.005f), 
+				Core::Vec3(1.0f, 0.0f, 1.0f), viewProjection);
+			}
+			if(glfwGetMouseButton(pWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
+			{
+				if(sbLMBClikedFirstTime && objRayHit.m_bHit)
+				{
+					int iTargetBlockX = static_cast<int>(floor(static_cast<float>(objRayHit.m_iBlocKX) / CHUNK_SIZE));
+					int iTargetBlockZ = static_cast<int>(floor(static_cast<float>(objRayHit.m_iBlocKZ) / CHUNK_SIZE));
+					for(auto & chunk : chunks)
+					{
+						if (chunk.GetChunkX() == iTargetBlockX && chunk.GetChunkZ() == iTargetBlockZ)
+						{
+							int iLocalX = objRayHit.m_iBlocKX - (iTargetBlockX * CHUNK_SIZE);
+							int iLocalZ = objRayHit.m_iBlocKZ - (iTargetBlockZ * CHUNK_SIZE);
+							chunk.SetBlockAt(iLocalX, objRayHit.m_iBlocKY, iLocalZ, 0);
+							chunk.GenerateMesh();
+							chunk.Render();
+						}
+					}
+					sbLMBClikedFirstTime = false;
+				}
+			}
+			else
+				sbLMBClikedFirstTime = true;
+		}
+		glEnable(GL_DEPTH_TEST);
+
 		glfwSwapBuffers(pWindow);
 		glfwPollEvents();
 	}
 	glfwTerminate();
-
+	Renderer::DebugRenderer::Shutdown();
 	return 0;
 }

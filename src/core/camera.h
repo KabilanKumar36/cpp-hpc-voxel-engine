@@ -19,8 +19,18 @@ namespace Core {
 			UpdateCameraVectors();
 		}
 
-		Mat4 getViewMatrix() {
+		Mat4 GetViewMatrix() {
 			return Mat4::lookAt(m_objPtPosition, m_objPtPosition + m_objVecFront, m_objVecUp);
+		}
+
+		Vec3 GetUp() const {
+			return m_objVecUp;
+		}
+		Vec3 GetFront() const {
+			return m_objVecFront;
+		}
+		Vec3 GetCameraPosition() const {
+			return m_objPtPosition;
 		}
 
 		void processKeyboard(int iDirection, float fdeltaTime)
