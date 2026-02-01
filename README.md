@@ -9,14 +9,16 @@
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed to explore computational geometry, hardware-accelerated rendering, and low-level memory management.
 
-![Day 03 Demo](assets/screenshots/demo_day_03.png)
+![Day 05 Demo](assets/screenshots/demo_day_05.png)
 
 ## 🚀 Overview
 
 This project is a technical playground for implementing high-performance graphics concepts without relying on heavy game engines. The core focus is on:
-* **Data-Oriented Design** for cache efficiency.
+* **Data-Oriented Design** for cache efficiency and high-throughput vertex processing.
 * **Custom Math Library** (SIMD-ready vectors and matrices).
-* **Modern OpenGL (4.6)** utilizing Compute Shaders for voxel generation.
+* **Systems Hardening:** Zero-warning codebase enforced via `/WX` (MSVC) and `-Werror` (GCC/Clang).
+* **Modern OpenGL (4.6):** Utilizing Compute Shaders and optimized buffer streaming for voxel generation.
+* **Memory Management:** Leveraging C++20 features and RAII/Move Semantics for deterministic resource lifecycles.
 * **Zero-dependency architecture** (managing memory and resources manually).
 * **Strict Compliance:** Warning-free codebase enforced by CI/CD (`/WX` on MSVC, `-Werror` on GCC).
 
@@ -24,16 +26,17 @@ This project is a technical playground for implementing high-performance graphic
 
 * **Language:** C++20 (Concepts, Modules, constexpr math)
 * **Graphics API:** OpenGL 4.6 (Core Profile)
-* **Build System:** CMake 3.23+ (FetchContent for dependencies)
+* **Build System:** CMake 3.23+ (FetchContent for zero-manual-install setup)
 * **Windowing:** GLFW 3.4
 * **Loader:** GLAD
 * **Assets/Math:** stb_image (Textures), FastNoiseLite (Procedural Generation)
-* **Testing:** GoogleTest
+* **Testing:** GoogleTest for physics and math verification.
 
 ## ✨ Key Features (Current & Planned)
 
 ### ✅ Completed
-- [x] **Core Math Library:** Custom `Vec3` implementation with `constexpr` optimization.
+- [x] **Core Math Library:** Custom `Vec3` implementation with `constexpr` and SIMD-ready optimization.
+- [x] **Optimization (Greedy Face Culling)**: Efficient geometry generation reducing draw calls and vertex count by up to 90%.
 - [x] **Render Context:** Robust GLFW window handling and input polling.
 - [x] **Interactive Camera:** WASD movement, Mouse Look, and Zoom.
 - [x] **Chunk System:** 16x16x16 Voxel Mesh Generation.
@@ -50,16 +53,20 @@ This project is a technical playground for implementing high-performance graphic
     - Voxel-aware terrain collision (direct chunk lookup).
     - Gravity and Velocity resolution.
 - [x] **CI/CD Pipeline:** Automated Linux builds and Unit Testing via GitHub Actions.
+- [x] **Ray Casting:** DDA (Digital Differential Analyzer) Algorithm for precise block selection.
+- [x] **Interaction:** Block breaking and placing mechanics.
+- [x] **Debug Visualization:** Wireframe highlighting of targeted blocks.
 
 ### 🚧 In Progress (Day 05 Roadmap)
-- [ ] **Ray Casting:** DDA (Digital Differential Analyzer) Algorithm for precise block selection.
-- [ ] **Interaction:** Block breaking and placing mechanics.
-- [ ] **Debug Visualization:** Wireframe highlighting of targeted blocks.
+- [ ] **Kinematic Player Controller:** Transitioning from "Spectator Mode" to a physics-bound entity.
+- [ ] **AABB Collision Resolution:** Three-pass (X, Y, Z) solver for stable interaction with voxel terrain.
+- [ ] **Gravity & Jump Impulse:** Implementation of constant acceleration and grounded state logic.
 
 ### 📅 Planned
 - [ ] **Infinite World:** Dynamic chunk paging and multithreaded generation.
 - [ ] **Lighting Engine:** Ambient Occlusion (AO) and Day/Night cycle.
 - [ ] **Water Simulation:** Transparent rendering pass.
+- [ ] **Frustum Culling:** CPU-side culling to optimize GPU workload for large view distances.
 
 ## 📦 Build Instructions
 
@@ -117,13 +124,14 @@ The project uses **GoogleTest** for unit testing. The build system automatically
 
 ```text
 src/
-├── core/       # Math (Vec3, Matrix, FastNoiseLite), Memory, and Base Types
-├── physics/    # Physics Engine (AABB, PhysicsSystem, RigidBody)
-├── renderer/   # OpenGL wrappers (Shader, Buffer, Texture, VAO)
-├── world/      # Voxel Data (Chunk, Mesh Generation, Biome Logic)
-└── main.cpp    # Entry point, Window management, and Game Loop
-external/       # Vendored dependencies (GLAD)
-assets/         # Shaders and Textures (Texture Atlas)
-tests/          # Unit Tests (Physics, Core, Rendering)
+├── core/           # Math (Vec3, Matrix), Memory Management, and Base Types
+├── physics/        # Physics Engine (AABB, PhysicsSystem, KinematicBody)
+├── renderer/       # OpenGL 4.6 Wrappers (Shader, Buffer, Texture, VAO)
+├── world/          # Voxel Logic (Chunk, Mesh Generation, Biome System)
+├── vendor/         # Third-party single-header libraries (stb_image, etc.)
+└── main.cpp        # Entry point and Application Loop
+assets/             # Graphics resources (Shaders, Texture Atlas)
+external/           # Heavy dependencies managed via CMake FetchContent (GLFW, GLAD)
+tests/              # GoogleTest suite (Physics, Math, and Render verification)
 📜 License
 Distributed under the MIT License. See LICENSE for more information.
