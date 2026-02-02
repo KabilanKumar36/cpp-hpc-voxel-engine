@@ -2,8 +2,10 @@
 #include <vector>
 #define BENCHMARK 0
 
-#include <GLFW/glfw3.h>
+// clang-format off
 #include <glad/glad.h>
+#include <GLFW/glfw3.h>
+// clang-format on
 
 #include <core/MathUtils.h>
 #include <core/Matrix.h>
