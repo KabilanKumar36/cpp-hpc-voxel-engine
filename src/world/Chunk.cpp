@@ -55,7 +55,7 @@ void Chunk::updateBuffers() {
 	if (m_pIBO) { delete m_pIBO; m_pIBO = nullptr; }
 	if (m_vec_fVertices.size())
 		m_pVBO = new Renderer::VertexBuffer(m_vec_fVertices.data(),
-			m_vec_fVertices.size() * sizeof(float));
+			static_cast<unsigned int>(m_vec_fVertices.size()) * sizeof(float));
 	if (m_vec_uiIndices.size())
 	{
 		m_pIBO = new Renderer::IndexBuffer(m_vec_uiIndices.data(),
@@ -74,7 +74,7 @@ void Chunk::updateBuffers() {
 }
 //*********************************************************************
 void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType) {
-	unsigned int iStartIndex = m_vec_fVertices.size() / 5;
+	unsigned int iStartIndex = static_cast<unsigned int>(m_vec_fVertices.size()) / 5;
 	float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
 	float fY = static_cast<float>(iY);
 	float fZ = static_cast<float>(iZ) + (CHUNK_SIZE * m_iChunkZ);
@@ -231,7 +231,7 @@ void Chunk::updateHeightData(){
 			{
 				int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
 				
-				int iBlockType = 3;								//Stone
+				uint8_t iBlockType = 3;								//Stone
 				if (iY == iHeight) iBlockType = 1;				//Grass
 				else if (iY > iHeight - 3) iBlockType = 2;		//Dirt							
 				

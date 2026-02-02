@@ -17,7 +17,7 @@ namespace Renderer {
                 0, 0, 0,    0, 1, 0 ,          1, 0, 0,    1, 1, 0,          1, 0, 1,   1, 1, 1,        0, 0, 1,    0, 1, 1,
             };
             m_pCubeVAO = new VertexArray();
-            m_pCubeVBO = new VertexBuffer(cubeVertices.data(), cubeVertices.size() * sizeof(float));
+            m_pCubeVBO = new VertexBuffer(cubeVertices.data(), static_cast<unsigned int>(cubeVertices.size()) * sizeof(float));
             m_pCubeVAO->linkAttribute(*m_pCubeVBO, 0, 3, 0, 0);
             m_pCubeVAO->Unbind();
             

@@ -22,7 +22,7 @@ struct RayHit{
 	Core::Vec3 m_objHitPoint;
 	Core::Vec3 m_objNormal;
 	float m_fDistance;
-	int m_iBlocKX, m_iBlocKY, m_iBlocKZ;
+	uint8_t m_iBlocKX, m_iBlocKY, m_iBlocKZ;
 	bool m_bHit;
 };
 class PhysicsSystem {
@@ -130,9 +130,9 @@ public:
 					hitResult.m_fDistance = fSideDistZ - fDeltaZ;
 
 				hitResult.m_objHitPoint = objRay.at(hitResult.m_fDistance);
-				hitResult.m_iBlocKX = iMapX;
-				hitResult.m_iBlocKY = iMapY;
-				hitResult.m_iBlocKZ = iMapZ;
+				hitResult.m_iBlocKX = static_cast<uint8_t>(iMapX);
+				hitResult.m_iBlocKY = static_cast<uint8_t>(iMapY);
+				hitResult.m_iBlocKZ = static_cast<uint8_t>(iMapZ);
 
 				return hitResult;
 			}
@@ -144,24 +144,28 @@ public:
 				if (fSideDistX < fSideDistZ) {
 					iMapX += iStepX;
 					fSideDistX += fDeltaX;
-					hitResult.m_objNormal = Core::Vec3(-iStepX, 0.0f, 0.0f);
+					hitResult.m_objNormal = Core::Vec3(
+						(-1.0f * static_cast<float>(iStepX)), 0.0f, 0.0f);
 				}
 				else {
 					iMapZ += iStepZ;
 					fSideDistZ += fDeltaZ;
-					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, -iStepZ);
+					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, 
+						(-1.0f * static_cast<float>(iStepZ)));
 				}
 			}
 			else {
 				if (fSideDistY < fSideDistZ) {
 					iMapY += iStepY;
 					fSideDistY += fDeltaY;
-					hitResult.m_objNormal = Core::Vec3(0.0f, -iStepY, 0.0f);
+					hitResult.m_objNormal = Core::Vec3(0.0f, 
+						(-1.0f * static_cast<float>(iStepY)), 0.0f);
 				}
 				else {
 					iMapZ += iStepZ;
 					fSideDistZ += fDeltaZ;
-					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, -iStepZ);
+					hitResult.m_objNormal = Core::Vec3(0.0f, 0.0f, 
+						(-1.0f * static_cast<float>(iStepZ)));
 				}
 			}
 		}

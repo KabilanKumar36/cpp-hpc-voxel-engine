@@ -1,40 +1,4 @@
-﻿/*
- ==================================================================================
-   TODO: DAY 06 - PHYSICS INTEGRATION & PLAYER MOVEMENT
-   Goal: Attach the Camera to the Physics System (Stop Flying, Start Walking).
- ==================================================================================
-
- 1. VOXEL INTERACTION (COMPLETED)
-    [x] Raycast Visualizer: Debug line with offset (gun barrel view).
-    [x] Destruction: Ctrl + Left Click -> Raycast -> Set Block 0 -> Rebuild Mesh.
-    [x] Logic Fix: Moved 'updateHeightData' to constructor to prevent terrain reset on update.
-    [x] Render Fix: Updated 'GenerateMesh' neighbor checks to render holes/caves correctly.
-
- 2. PHYSICS BACKEND (READY)
-    [x] AABB Struct: Min/Max bounds defined.
-    [x] Collision Logic: 'PhysicsSystem::CheckCollision(A, B)' is implemented.
-    [x] DDA Raycast: Implemented fast voxel traversal algorithm.
-    [x] Gravity Pull: 'Velocity.y -= 9.8f * dt' logic is implemented in backend.
-
- 3. PLAYER CONTROLLER (NEXT SESSION)
-    [ ] Disable "Free Fly": Stop direct Camera pos updates in 'processInput'.
-    [ ] Movement Vector: Map WASD to 'Player.Velocity.x' and 'Player.Velocity.z'.
-    [ ] Apply Gravity: Call 'PhysicsSystem::Update' every frame to pull player down.
-    [ ] Collision Resolution:
-        - Use 'CheckCollision' to detect player vs world.
-        - If colliding below: Set 'IsGrounded = true' and stop falling.
-        - If colliding side: Slide or stop X/Z movement.
-    [ ] Jump Mechanic:
-        - Input: SPACE key.
-        - Condition: Only if 'IsGrounded' is true.
-        - Action: 'Velocity.y = JumpForce'.
-
- 4. POLISH
-    [ ] Toggle Mode (F1): Switch between "Walking" and "Flying" states.
-
- ==================================================================================
-*/
-#include <iostream>
+﻿#include <iostream>
 #include <vector>
 #define BENCHMARK 0
 
