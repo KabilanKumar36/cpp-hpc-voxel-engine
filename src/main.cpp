@@ -93,14 +93,14 @@ int main() {
         InputManager::GetInstance().Update();
         glfwPollEvents();
         App::InputHandler::ProcessInput(pWindow, fDeltaTime);
-        
+
         Core::Mat4 viewProjection = App::InputHandler::GetViewProjectionMatrix();
         Renderer::WorldRenderer::DrawChunks(chunks, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
         App::InputHandler::processFirePreviewAndFire(chunks, viewProjection);
 
         glfwSwapBuffers(pWindow);
-        //glfwPollEvents();
+        // glfwPollEvents();
     }
     Renderer::PrimitiveRenderer::Shutdown();
     glfwTerminate();

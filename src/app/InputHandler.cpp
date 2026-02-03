@@ -1,7 +1,7 @@
 #include "InputHandler.h"
-#include "InputManager.h"
 #include "../physics/PhysicsSystem.h"
 #include "../renderer/PrimitiveRenderer.h"
+#include "InputManager.h"
 
 namespace App {
 const unsigned int InputHandler::SCREEN_WIDTH = 1280;
@@ -23,7 +23,7 @@ Core::Camera InputHandler::m_objCamera(m_objCameraPos);
 
 //*********************************************************************
 void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
-    InputManager &inputs = InputManager::GetInstance();
+    InputManager& inputs = InputManager::GetInstance();
     if (inputs.IsKeyPressed(GLFW_KEY_ESCAPE))
         glfwSetWindowShouldClose(pWindow, true);
     if (inputs.IsKeyJustPressed(GLFW_KEY_P)) {
@@ -87,8 +87,7 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
             if (mouseDelta.x != 0.0f || mouseDelta.y != 0.0f) {
                 m_objCamera.processMouseMovement(mouseDelta.x, mouseDelta.y);
             }
-        }
-        else if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        } else if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             if (mouseDelta.x != 0.0f || mouseDelta.y != 0.0f) {
                 m_objCamera.processMousePan(mouseDelta.x, mouseDelta.y);
             }
@@ -106,15 +105,13 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
         m_objCamera.processKeyboard(2, m_fDeltaTime);
     if (inputs.IsKeyPressed(GLFW_KEY_D))
         m_objCamera.processKeyboard(3, m_fDeltaTime);
-
 }
 //*********************************************************************
 void InputHandler::processFirePreviewAndFire(std::vector<Chunk>& chunks,
                                              const Core::Mat4& viewProjection) {
-    InputManager &inputs = InputManager::GetInstance();
+    InputManager& inputs = InputManager::GetInstance();
     glDisable(GL_DEPTH_TEST);
-    if (inputs.IsKeyPressed(GLFW_KEY_LEFT_CONTROL) ||
-        inputs.IsKeyPressed(GLFW_KEY_RIGHT_CONTROL)) {
+    if (inputs.IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || inputs.IsKeyPressed(GLFW_KEY_RIGHT_CONTROL)) {
         float fMaxDistance = 60.0f;
         Core::Ray objRay(App::InputHandler::GetCamera().GetCameraPosition(),
                          App::InputHandler::GetCamera().GetFront());

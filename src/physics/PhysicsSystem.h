@@ -18,11 +18,11 @@ public:
     }
 };
 struct RayHit {
-    Core::Vec3 m_objHitPoint;
-    Core::Vec3 m_objNormal;
-    float m_fDistance;
-    uint8_t m_iBlocKX, m_iBlocKY, m_iBlocKZ;
-    bool m_bHit;
+    Core::Vec3 m_objHitPoint{};
+    Core::Vec3 m_objNormal{};
+    float m_fDistance{0.0f};
+    uint8_t m_iBlocKX{0}, m_iBlocKY{0}, m_iBlocKZ{0};
+    bool m_bHit{false};
 };
 class PhysicsSystem {
 public:

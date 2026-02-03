@@ -1,13 +1,15 @@
 #pragma once
 
+// clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+// clang-format on
 
 #include "core/MathUtils.h"
 
 class InputManager {
 public:
-    static InputManager& GetInstance() { 
+    static InputManager &GetInstance() {
         static InputManager objInstance;
         return objInstance;
     }
@@ -19,17 +21,22 @@ public:
     bool IsKeyJustPressed(int iKey) const;
 
     bool IsMouseButtonPressed(int iKey) const;
-    Core::Vec3 GetMousePosition() const { return m_objMousePosition; } 
-    Core::Vec3 GetMouseDelta() const { return m_objMouseDelta; } 
+    Core::Vec3 GetMousePosition() const { return m_objMousePosition; }
+    Core::Vec3 GetMouseDelta() const { return m_objMouseDelta; }
     double GetScroll() const { return m_dScrollY; }
 
 private:
     InputManager() = default;
-    
-    static void KeyCallback(GLFWwindow *pWindow, int iKey, 
-        [[maybe_unused]] int iScanCode, int iAction, [[maybe_unused]] int iMods);
-    static void MouseButtonCallback(GLFWwindow *pWindow, int iKey, 
-       int iAction, [[maybe_unused]] int iMods);
+
+    static void KeyCallback(GLFWwindow *pWindow,
+                            int iKey,
+                            [[maybe_unused]] int iScanCode,
+                            int iAction,
+                            [[maybe_unused]] int iMods);
+    static void MouseButtonCallback(GLFWwindow *pWindow,
+                                    int iKey,
+                                    int iAction,
+                                    [[maybe_unused]] int iMods);
     static void MousePosCallback(GLFWwindow *pWindow, double dXPos, double dYPos);
     static void ScrollCallback(GLFWwindow *pWindow, double dXOffset, double dYOffset);
 
