@@ -16,6 +16,7 @@
 
 #include <world/Chunk.h>
 #include "app/InputHandler.h"
+#include "app/InputManager.h"
 #include "renderer/WorldRenderer.h"
 
 int main() {
@@ -44,10 +45,8 @@ int main() {
         return -1;
     }
 
-    App::InputHandler::Init(pWindow);
-    // glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
+    InputManager::GetInstance().Init(pWindow);
+    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     const GLubyte* vendor = glGetString(GL_VENDOR);
     const GLubyte* renderor = glGetString(GL_RENDERER);
     std::cout << "GPU Renderer: " << vendor << std::endl;
@@ -59,7 +58,7 @@ int main() {
     std::vector<Chunk> chunks;
     int iRenderDistance = 8;
     int iTotalChunks = (iRenderDistance * 2) * (iRenderDistance * 2);
-    chunks.reserve(iTotalChunks + 10);
+    chunks.reserve(static_cast<size_t>(iTotalChunks) + 10);
     for (int iX = -iRenderDistance; iX < iRenderDistance; iX++) {
         for (int iZ = -iRenderDistance; iZ < iRenderDistance; iZ++) {
             chunks.emplace_back(iX, iZ);
@@ -90,15 +89,18 @@ int main() {
             App::InputHandler::UpdateTitleInfo(pWindow);
             App::InputHandler::ResetCounters();
         }
-        App::InputHandler::ProcessInput(pWindow, fDeltaTime);
 
+        InputManager::GetInstance().Update();
+        glfwPollEvents();
+        App::InputHandler::ProcessInput(pWindow, fDeltaTime);
+        
         Core::Mat4 viewProjection = App::InputHandler::GetViewProjectionMatrix();
         Renderer::WorldRenderer::DrawChunks(chunks, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
-        App::InputHandler::processFirePreviewAndFire(pWindow, chunks, viewProjection);
+        App::InputHandler::processFirePreviewAndFire(chunks, viewProjection);
 
         glfwSwapBuffers(pWindow);
-        glfwPollEvents();
+        //glfwPollEvents();
     }
     Renderer::PrimitiveRenderer::Shutdown();
     glfwTerminate();

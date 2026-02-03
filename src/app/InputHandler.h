@@ -8,14 +8,9 @@
 namespace App {
 class InputHandler {
 public:
-    static void Init(GLFWwindow* pWindow);
     static void ProcessInput(GLFWwindow* pWindow, float fDeltaTime);
-    static void ScrollCallback(GLFWwindow* pWindow, double dXOffset, double dYOffset);
-    static void MouseCallback(GLFWwindow* pWindow, double xPosIn, double yPosIn);
-    static void FramebufferSizeCallback(GLFWwindow* window, int width, int height);
     static void UpdateTitleInfo(GLFWwindow* pWindow);
-    static void processFirePreviewAndFire(GLFWwindow* pWindow,
-                                          std::vector<Chunk>& chunks,
+    static void processFirePreviewAndFire(std::vector<Chunk>& chunks,
                                           const Core::Mat4& viewProjection);
     static float GetLastX() { return m_fLastX; }
     static void SetLastX(float fValue) { m_fLastX = fValue; }
