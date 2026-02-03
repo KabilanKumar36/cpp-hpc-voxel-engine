@@ -129,6 +129,7 @@ void InputHandler::processFirePreviewAndFire(std::vector<Chunk>& chunks,
             Core::Vec3 objBlockPos(static_cast<float>(objRayHit.m_iBlocKX),
                                    static_cast<float>(objRayHit.m_iBlocKY),
                                    static_cast<float>(objRayHit.m_iBlocKZ));
+// clang-format off
 #if DEBUG
             std::cout << "Ray : "
                       << "X: " << objRay.m_objPtOrigin.x << ", "
@@ -143,6 +144,7 @@ void InputHandler::processFirePreviewAndFire(std::vector<Chunk>& chunks,
                       << objRayHit.m_iBlocKX << ", " << objRayHit.m_iBlocKY << ", "
                       << objRayHit.m_iBlocKZ << std::endl;
 #endif
+// clang-format on
             Renderer::PrimitiveRenderer::DrawCube(objBlockPos,
                                                   Core::Vec3(1.005f, 1.005f, 1.005f),
                                                   Core::Vec3(1.0f, 0.0f, 1.0f),
