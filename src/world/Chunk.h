@@ -41,25 +41,22 @@ public:
     void Render() const;
     void SetFaceCulling(bool bOpt) { m_bEnableFaceCulling = bOpt; }
     [[nodiscard]] inline int GetFlatIndexOf3DLayer(int iX, int iY, int iZ) const {
-        return iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);
-    }
-    uint8_t GetBlockAt(int iX, int iY, int iZ) const {
         if (iX < 0 || iX >= CHUNK_SIZE || iY < 0 || iY >= CHUNK_HEIGHT || iZ < 0 ||
             iZ >= CHUNK_SIZE) {
-            return 0;
+            return -1;
         }
+
+        return iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT);
+    }
+    uint8_t GetBlockAt(int iX, int iY, int iZ) const {
         int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-        if (iIndex < 0 || iIndex >= CHUNK_VOL)
+        if (iIndex == -1)
             return 0;
         return m_iBlocks[iIndex];
     }
     void SetBlockAt(int iX, int iY, int iZ, uint8_t uiBlockType) {
-        if (iX < 0 || iX >= CHUNK_SIZE || iY < 0 || iY >= CHUNK_HEIGHT || iZ < 0 ||
-            iZ >= CHUNK_SIZE) {
-            return;
-        }
         int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-        if (iIndex < 0 || iIndex >= CHUNK_VOL)
+        if (iIndex == -1)
             return;
         m_iBlocks[iIndex] = uiBlockType;
     }

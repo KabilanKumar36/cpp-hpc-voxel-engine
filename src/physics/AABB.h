@@ -3,10 +3,10 @@
 #include "../core/Matrix.h"
 
 class AABB {
+public:
     Core::Vec3 m_objMinPt;
     Core::Vec3 m_objMaxPt;
 
-public:
     AABB(const Core::Vec3& ObjMinPt, const Core::Vec3& ObjMaxPt)
         : m_objMinPt(ObjMinPt), m_objMaxPt(ObjMaxPt) {
         assert(m_objMinPt.x <= m_objMaxPt.x && "Min. x must be less than or equal to Max. x");
@@ -27,4 +27,10 @@ public:
     }
 
     Core::Vec3 GetCenter() const { return (m_objMinPt + m_objMaxPt) * 0.5f; }
+
+    void Translate(const Core::Vec3& offset) {
+        m_objMinPt += offset;
+        m_objMaxPt += offset;
+    }
+    Core::Vec3 GetHalfExtents() const { return (m_objMaxPt - m_objMinPt) * 0.5f; }
 };

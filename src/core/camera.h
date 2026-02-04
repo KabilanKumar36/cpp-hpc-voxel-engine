@@ -24,6 +24,7 @@ public:
 
     Vec3 GetUp() const { return m_objVecUp; }
     Vec3 GetFront() const { return m_objVecFront; }
+    Vec3 GetRight() const { return m_objVecRight; }
     Vec3 GetCameraPosition() const { return m_objPtPosition; }
 
     void processKeyboard(int iDirection, float fdeltaTime) {

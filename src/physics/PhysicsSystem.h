@@ -26,46 +26,82 @@ struct RayHit {
 };
 class PhysicsSystem {
 public:
-    void Update(RigidBody& objBody, float fDelTime, const std::vector<AABB>& vec_objObstacles) {
-        const float fGravity = -9.81f;
-        objBody.m_ObjVelocity.y += fGravity * fDelTime;
+    static void Update(RigidBody& objRigidBody,
+                       float fDeltaTime,
+                       const std::vector<Chunk>& chunks) {
+        const float fGravity = -20.0f;
+        const float fFriction = 10.0f;
 
-        if (objBody.m_ObjVelocity.x != 0.0f) {
-            Core::Vec3 newPos = objBody.m_ObjPos;
-            newPos.x += objBody.m_ObjVelocity.x * fDelTime;
-            if (!CheckCollision(objBody.GetAABB(newPos), vec_objObstacles)) {
-                objBody.m_ObjPos.x = newPos.x;
-            } else {
-                objBody.m_ObjVelocity.x = 0.0f;
-            }
+        objRigidBody.m_ObjVelocity.x =
+            Lerp(objRigidBody.m_ObjVelocity.x, 0.0f, fFriction * fDeltaTime);
+        objRigidBody.m_ObjVelocity.y += fGravity * fDeltaTime;
+        objRigidBody.m_ObjVelocity.z =
+            Lerp(objRigidBody.m_ObjVelocity.z, 0.0f, fFriction * fDeltaTime);
+
+        if (objRigidBody.m_ObjVelocity.x != 0.0f) {
+            Core::Vec3 newPos = objRigidBody.m_ObjPos;
+            newPos.x += objRigidBody.m_ObjVelocity.x * fDeltaTime;
+            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+                objRigidBody.m_ObjVelocity.x = 0.0f;
+            } else
+                objRigidBody.m_ObjPos.x = newPos.x;
         }
 
-        if (objBody.m_ObjVelocity.y != 0.0f) {
-            Core::Vec3 newPos = objBody.m_ObjPos;
-            newPos.y += objBody.m_ObjVelocity.y * fDelTime;
-            if (!CheckCollision(objBody.GetAABB(newPos), vec_objObstacles)) {
-                objBody.m_ObjPos.y = newPos.y;
-            } else {
-                objBody.m_ObjVelocity.y = 0.0f;
-            }
+        if (objRigidBody.m_ObjVelocity.y != 0.0f) {
+            Core::Vec3 newPos = objRigidBody.m_ObjPos;
+            newPos.y += objRigidBody.m_ObjVelocity.y * fDeltaTime;
+            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+                objRigidBody.m_ObjVelocity.y = 0.0f;
+            } else
+                objRigidBody.m_ObjPos.y = newPos.y;
         }
 
-        if (objBody.m_ObjVelocity.z != 0.0f) {
-            Core::Vec3 newPos = objBody.m_ObjPos;
-            newPos.z += objBody.m_ObjVelocity.z * fDelTime;
-            if (!CheckCollision(objBody.GetAABB(newPos), vec_objObstacles)) {
-                objBody.m_ObjPos.z = newPos.z;
-            } else {
-                objBody.m_ObjVelocity.z = 0.0f;
-            }
+        if (objRigidBody.m_ObjVelocity.z != 0.0f) {
+            Core::Vec3 newPos = objRigidBody.m_ObjPos;
+            newPos.z += objRigidBody.m_ObjVelocity.z * fDeltaTime;
+            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+                objRigidBody.m_ObjVelocity.z = 0.0f;
+            } else
+                objRigidBody.m_ObjPos.z = newPos.z;
         }
     }
-    bool CheckCollision(const AABB& objAABB, const std::vector<AABB>& vec_objObstacles) {
-        for (const auto& obstacle : vec_objObstacles) {
-            if (objAABB.CheckCollision(obstacle))
-                return true;
+
+    // Simple Linear Interpolation for friction
+    static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
+
+    static bool CheckCollision(const AABB& objAABB, const std::vector<Chunk>& chunks) {
+        int iMinX = static_cast<int>(floor(objAABB.m_objMinPt.x));
+        int iMinY = static_cast<int>(floor(objAABB.m_objMinPt.y));
+        int iMinZ = static_cast<int>(floor(objAABB.m_objMinPt.z));
+        int iMaxX = static_cast<int>(floor(objAABB.m_objMaxPt.x));
+        int iMaxY = static_cast<int>(floor(objAABB.m_objMaxPt.y));
+        int iMaxZ = static_cast<int>(floor(objAABB.m_objMaxPt.z));
+
+        for (int iZ = iMinZ; iZ <= iMaxZ; iZ++) {
+            for (int iY = iMinY; iY <= iMaxY; iY++) {
+                for (int iX = iMinX; iX <= iMaxX; iX++) {
+                    if (GetBlockAt(iX, iY, iZ, chunks) != 0) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
+    }
+
+    static uint8_t GetBlockAt(int iX, int iY, int iZ, const std::vector<Chunk>& chunks) {
+        int iChunkX = static_cast<int>(floor(static_cast<float>(iX) / CHUNK_SIZE));
+        int iChunkZ = static_cast<int>(floor(static_cast<float>(iZ) / CHUNK_SIZE));
+
+        for (const auto& chunk : chunks) {
+            if (chunk.GetChunkX() != iChunkX || chunk.GetChunkZ() != iChunkZ)
+                continue;
+            int iLocalX = iX - (iChunkX * CHUNK_SIZE);
+            int iLocalZ = iZ - (iChunkZ * CHUNK_SIZE);
+
+            return chunk.GetBlockAt(iLocalX, iY, iLocalZ);
+        }
+        return 0;
     }
 
     // DDA Algorithm for Ray Casting in Voxel Grid
@@ -94,7 +130,6 @@ public:
                                                        : std::abs(1.0f / objRay.m_objDirection.y);
         float fDeltaZ = (objRay.m_objDirection.z == 0) ? std::numeric_limits<float>::max()
                                                        : std::abs(1.0f / objRay.m_objDirection.z);
-
         float fSideDistX = (iStepX < 0) ? (fX - static_cast<float>(iMapX)) * fDeltaX
                                         : (static_cast<float>(iMapX + 1) - fX) * fDeltaX;
         float fSideDistY = (iStepY < 0) ? (fY - static_cast<float>(iMapY)) * fDeltaY
@@ -102,22 +137,14 @@ public:
         float fSideDistZ = (iStepZ < 0) ? (fZ - static_cast<float>(iMapZ)) * fDeltaZ
                                         : (static_cast<float>(iMapZ + 1) - fZ) * fDeltaZ;
 
+        int iLastAxis = 0;  // 0=X, 1=Y, 2=Z
         while (true) {
-            int iChunkX = static_cast<int>(floor(static_cast<float>(iMapX) / CHUNK_SIZE));
-            int iChunkZ = static_cast<int>(floor(static_cast<float>(iMapZ) / CHUNK_SIZE));
-            for (const auto& chunk : vec_objChunks) {
-                if (chunk.GetChunkX() != iChunkX || chunk.GetChunkZ() != iChunkZ)
-                    continue;
-                uint8_t uiBlockType = chunk.GetBlockAt(
-                    iMapX - iChunkX * CHUNK_SIZE, iMapY, iMapZ - iChunkZ * CHUNK_SIZE);
-
-                if (!uiBlockType)
-                    break;  // Air Block, continue ray marching
-
+            uint8_t uiBlockType = GetBlockAt(iMapX, iMapY, iMapZ, vec_objChunks);
+            if (uiBlockType != 0) {
                 hitResult.m_bHit = true;
-                if (hitResult.m_objHitPoint.x != 0)
+                if (iLastAxis == 0)
                     hitResult.m_fDistance = fSideDistX - fDeltaX;
-                else if (hitResult.m_objHitPoint.y != 0)
+                else if (iLastAxis == 1)
                     hitResult.m_fDistance = fSideDistY - fDeltaY;
                 else
                     hitResult.m_fDistance = fSideDistZ - fDeltaZ;
@@ -139,11 +166,13 @@ public:
                     fSideDistX += fDeltaX;
                     hitResult.m_objNormal =
                         Core::Vec3((-1.0f * static_cast<float>(iStepX)), 0.0f, 0.0f);
+                    iLastAxis = 0;
                 } else {
                     iMapZ += iStepZ;
                     fSideDistZ += fDeltaZ;
                     hitResult.m_objNormal =
                         Core::Vec3(0.0f, 0.0f, (-1.0f * static_cast<float>(iStepZ)));
+                    iLastAxis = 2;
                 }
             } else {
                 if (fSideDistY < fSideDistZ) {
@@ -151,11 +180,13 @@ public:
                     fSideDistY += fDeltaY;
                     hitResult.m_objNormal =
                         Core::Vec3(0.0f, (-1.0f * static_cast<float>(iStepY)), 0.0f);
+                    iLastAxis = 1;
                 } else {
                     iMapZ += iStepZ;
                     fSideDistZ += fDeltaZ;
                     hitResult.m_objNormal =
                         Core::Vec3(0.0f, 0.0f, (-1.0f * static_cast<float>(iStepZ)));
+                    iLastAxis = 2;
                 }
             }
         }
