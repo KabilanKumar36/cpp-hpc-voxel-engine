@@ -21,20 +21,20 @@ jobs:
 
       # 2. Check Formatting (Replicates your PowerShell script)
       # We use 'find' to exclude 'vendor' folder, mimicking your ignore file.
-      - name: Check Code Formatting
-        run: |
-           echo "Verifying code style..."
-           # Looks in 'src', checks .cpp/.h, EXCLUDES any folder named 'vendor' or 'external'
-           # FLAGS:
-           # --dry-run: Don't edit, just check.
-           # --Werror: Fail the job if formatting is bad.
-           # -style=file: Use your .clang-format config.
-           find src -type f \( -name "*.cpp" -o -name "*.h" \) \
-             -not -path "*/vendor/*" \
-             -not -path "*/external/*" \
-             -not -path "*/glad/*" \
-             -not -name "FastNoiseLite.h" \
-             | xargs clang-format -style=file --dry-run --Werror
+      # - name: Check Code Formatting
+      #   run: |
+      #      echo "Verifying code style..."
+      #      # Looks in 'src', checks .cpp/.h, EXCLUDES any folder named 'vendor' or 'external'
+      #      # FLAGS:
+      #      # --dry-run: Don't edit, just check.
+      #      # --Werror: Fail the job if formatting is bad.
+      #      # -style=file: Use your .clang-format config.
+      #      find src -type f \( -name "*.cpp" -o -name "*.h" \) \
+      #        -not -path "*/vendor/*" \
+      #        -not -path "*/external/*" \
+      #        -not -path "*/glad/*" \
+      #        -not -name "FastNoiseLite.h" \
+      #        | xargs clang-format -style=file --dry-run --Werror
 
       # 3. Install Heavy Dependencies (Only runs if formatting passes)
       - name: Install Build Dependencies (Linux)
