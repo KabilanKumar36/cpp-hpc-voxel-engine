@@ -249,7 +249,8 @@ void Chunk::updateHeightData() {
 
             for (int iY = 0; iY <= iHeight; iY++) {
                 int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-
+                if (iIndex == 1)
+                    continue;
                 uint8_t iBlockType = 3;  // Stone
                 if (iY == iHeight)
                     iBlockType = 1;  // Grass
@@ -269,23 +270,28 @@ void Chunk::GenerateMesh() {
         for (int iZ = 0; iZ < CHUNK_SIZE; iZ++) {
             for (int iY = 0; iY <= m_iHeightData[iX][iZ]; iY++) {
                 int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+                if (iIndex == -1)
+                    continue;
                 int iBlockType = m_iBlocks[iIndex];
                 if (iBlockType == 0)
                     continue;
-                if (iY == m_iHeightData[iX][iZ] ||
-                    m_iBlocks[GetFlatIndexOf3DLayer(iX, iY + 1, iZ)] == 0)
+
+                if (iY == m_iHeightData[iX][iZ] || GetBlockAt(iX, iY + 1, iZ) == 0)
                     addBlockFace(iX, iY, iZ, Direction::UP, iBlockType);
-                if (iY == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY - 1, iZ)] == 0)
+
+                if (iY == 0 || GetBlockAt(iX, iY - 1, iZ) == 0)
                     addBlockFace(iX, iY, iZ, Direction::DOWN, iBlockType);
 
-                if (iX == CHUNK_SIZE - 1 || m_iBlocks[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] == 0)
+                if (iX == CHUNK_SIZE - 1 || GetBlockAt(iX + 1, iY, iZ) == 0)
                     addBlockFace(iX, iY, iZ, Direction::RIGHT, iBlockType);
-                if (iX == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX - 1, iY, iZ)] == 0)
+
+                if (iX == 0 || GetBlockAt(iX - 1, iY, iZ) == 0)
                     addBlockFace(iX, iY, iZ, Direction::LEFT, iBlockType);
 
-                if (iZ == CHUNK_SIZE - 1 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY, iZ + 1)] == 0)
+                if (iZ == CHUNK_SIZE - 1 || GetBlockAt(iX, iY, iZ + 1) == 0)
                     addBlockFace(iX, iY, iZ, Direction::FRONT, iBlockType);
-                if (iZ == 0 || m_iBlocks[GetFlatIndexOf3DLayer(iX, iY, iZ - 1)] == 0)
+
+                if (iZ == 0 || GetBlockAt(iX, iY, iZ - 1) == 0)
                     addBlockFace(iX, iY, iZ, Direction::BACK, iBlockType);
             }
         }

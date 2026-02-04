@@ -16,7 +16,7 @@ public:
     void ProcessMouseMovement(float fOffset, float fYOffset, bool bConstraintPitch = true);
 
     Core::Camera& GetCamera() { return m_objCamera; }
-    Core::Vec3 GetPosition() { return m_objRigidBody.m_ObjPos; }
+    Core::Vec3 GetPosition() const { return m_objRigidBody.m_ObjPos; }
 
 private:
     Core::Camera m_objCamera;

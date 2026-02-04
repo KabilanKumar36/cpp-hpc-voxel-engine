@@ -20,6 +20,7 @@ public:
     bool IsKeyPressed(int iKey) const;
     bool IsKeyJustPressed(int iKey) const;
 
+    static void FrameBufferSizeCallback(GLFWwindow *window, int width, int height);
     bool IsMouseButtonPressed(int iKey) const;
     Core::Vec3 GetMousePosition() const { return m_objMousePosition; }
     Core::Vec3 GetMouseDelta() const { return m_objMouseDelta; }

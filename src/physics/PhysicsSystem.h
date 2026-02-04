@@ -21,7 +21,7 @@ struct RayHit {
     Core::Vec3 m_objHitPoint{};
     Core::Vec3 m_objNormal{};
     float m_fDistance{0.0f};
-    uint8_t m_iBlocKX{0}, m_iBlocKY{0}, m_iBlocKZ{0};
+    int m_iBlocKX{0}, m_iBlocKY{0}, m_iBlocKZ{0};
     bool m_bHit{false};
 };
 class PhysicsSystem {
@@ -150,9 +150,9 @@ public:
                     hitResult.m_fDistance = fSideDistZ - fDeltaZ;
 
                 hitResult.m_objHitPoint = objRay.at(hitResult.m_fDistance);
-                hitResult.m_iBlocKX = static_cast<uint8_t>(iMapX);
-                hitResult.m_iBlocKY = static_cast<uint8_t>(iMapY);
-                hitResult.m_iBlocKZ = static_cast<uint8_t>(iMapZ);
+                hitResult.m_iBlocKX = iMapX;
+                hitResult.m_iBlocKY = iMapY;
+                hitResult.m_iBlocKZ = iMapZ;
 
                 return hitResult;
             }

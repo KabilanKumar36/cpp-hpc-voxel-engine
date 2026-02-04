@@ -10,8 +10,15 @@ void InputManager::Init(GLFWwindow *pWindow) {
     glfwSetMouseButtonCallback(pWindow, MouseButtonCallback);
     glfwSetCursorPosCallback(pWindow, MousePosCallback);
     glfwSetScrollCallback(pWindow, ScrollCallback);
+    glfwSetFramebufferSizeCallback(pWindow, FrameBufferSizeCallback);
 
     m_bFirstMouse = true;
+}
+//*********************************************************************
+void InputManager::FrameBufferSizeCallback([[maybe_unused]] GLFWwindow *window,
+                                           int width,
+                                           int height) {
+    glViewport(0, 0, width, height);
 }
 //*********************************************************************
 void InputManager::Update() {
