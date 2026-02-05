@@ -11,7 +11,7 @@ InputHandler::InputHandler(const Core::Vec3& objStartPos) : m_objCameraPos(objSt
 }
 //*********************************************************************
 void InputHandler::UpdatePlayerPhysics(float fDeltaTime, const std::vector<Chunk>& chunks) {
-    if (m_pPlayer) {
+    if (m_pPlayer && m_bPerspective) {
         m_pPlayer->Update(fDeltaTime, chunks);
     }
 }
@@ -128,22 +128,7 @@ void InputHandler::processFirePreviewAndFire(std::vector<Chunk>& chunks,
             Core::Vec3 objBlockPos(static_cast<float>(objRayHit.m_iBlocKX),
                                    static_cast<float>(objRayHit.m_iBlocKY),
                                    static_cast<float>(objRayHit.m_iBlocKZ));
-            // clang-format off
-#if DEBUG
-            std::cout << "Ray : "
-                      << "X: " << objRay.m_objPtOrigin.x << ", "
-                      << "Y: " << objRay.m_objPtOrigin.y << ", "
-                      << "Z: " << objRay.m_objPtOrigin.z << ", " << objRay.m_objDirection.x << ", "
-                      << objRay.m_objDirection.y << ", " << objRay.m_objDirection.z << std::endl;
 
-            std::cout << "Ray Hit! Block: "
-                      << "X: " << objRayHit.m_objHitPoint.x << ", "
-                      << "Y: " << objRayHit.m_objHitPoint.y << ", "
-                      << "Z: " << objRayHit.m_objHitPoint.z << ", " << objRayHit.m_fDistance << ", "
-                      << objRayHit.m_iBlocKX << ", " << objRayHit.m_iBlocKY << ", "
-                      << objRayHit.m_iBlocKZ << std::endl;
-#endif
-            // clang-format on
             Renderer::PrimitiveRenderer::DrawCube(objBlockPos,
                                                   Core::Vec3(1.005f, 1.005f, 1.005f),
                                                   Core::Vec3(1.0f, 0.0f, 1.0f),

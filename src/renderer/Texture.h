@@ -36,7 +36,7 @@ public:
         stbi_image_free(cData);
     }
 
-    void Bind(unsigned int iSlot) {
+    void Bind(unsigned int iSlot) const {
         glActiveTexture(GL_TEXTURE0 + iSlot);
         glBindTexture(GL_TEXTURE_2D, ID);
     }

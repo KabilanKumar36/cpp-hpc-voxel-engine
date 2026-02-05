@@ -61,11 +61,6 @@ public:
 
         m_objPtPosition -= m_objVecRight * (fXOffset * fPanSpeed);
         m_objPtPosition -= m_objVecUp * (fYOffset * fPanSpeed);
-#if DEBUG
-        // DEBUG: Print values to console
-        std::cout << "PanX: " << m_objPtPosition.x << " | Yaw: " << m_fYaw << std::endl;
-        std::cout << "PanY: " << m_objPtPosition.y << " | Pitch: " << m_fPitch << std::endl;
-#endif
     }
     void ProcessMouseScroll(float fYOffset) {
         m_fZoom -= fYOffset;

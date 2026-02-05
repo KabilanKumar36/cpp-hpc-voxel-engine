@@ -30,8 +30,8 @@ public:
     static inline void DrawChunks(const std::vector<Chunk> &chunks,
                                   Renderer::Shader &shader,
                                   const Core::Mat4 &objViewProjection) {
-        shader.use();
-        shader.setMat4("uViewProjection", objViewProjection);
+        shader.Use();
+        shader.SetMat4("uViewProjection", objViewProjection);
         for (auto &chunk : chunks) {
             chunk.Render();
         }

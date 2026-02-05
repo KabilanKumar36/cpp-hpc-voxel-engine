@@ -15,8 +15,8 @@ public:
             GL_ELEMENT_ARRAY_BUFFER, m_uiCount * sizeof(unsigned int), data, GL_STATIC_DRAW);
     }
     ~IndexBuffer() { glDeleteBuffers(1, &ID); }
-    void Bind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
-    void Unbind() { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
+    void Bind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
+    void Unbind() const { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); }
 
     IndexBuffer(const IndexBuffer&) = delete;
     IndexBuffer& operator=(const IndexBuffer&) = delete;

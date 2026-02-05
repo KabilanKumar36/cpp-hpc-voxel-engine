@@ -82,8 +82,6 @@ void Chunk::updateBuffers() {
         if (m_pIBO)
             m_pIBO->Unbind();
     }
-
-    std::cout << "Chunk Mesh Updated: " << m_vec_fVertices.size() / 5 << " vertices." << std::endl;
 }
 //*********************************************************************
 void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType) {
@@ -91,11 +89,6 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
     float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
     float fY = static_cast<float>(iY);
     float fZ = static_cast<float>(iZ) + (CHUNK_SIZE * m_iChunkZ);
-
-    /* DEBUG PRINT : Check if this actually prints different numbers!
-    if (iY == 0 && iX == 0 && iZ == 0) {
-        std::cout << "Chunk [" << m_iChunkX << "," << m_iChunkZ << "] WorldX: " << fX << std::endl;
-    }*/
 
     int iAtlasCol = 10, iAtlasRow = 8;
     if (iBlockType == 1)  // Grass

@@ -56,13 +56,13 @@ public:
                          const Core::Mat4& viewProjMatrix) {
         if (!m_pPrimitiveShader)
             return;
-        m_pPrimitiveShader->use();
+        m_pPrimitiveShader->Use();
         Core::Mat4 objModel =
             Core::Mat4::Translation(position) * Core::Mat4::Scale(size.x, size.y, size.z);
 
         Core::Mat4 ObjMVP = viewProjMatrix * objModel;
-        m_pPrimitiveShader->setMat4("uViewProjection", ObjMVP);
-        m_pPrimitiveShader->setVec3("colorVal", color);
+        m_pPrimitiveShader->SetMat4("uViewProjection", ObjMVP);
+        m_pPrimitiveShader->SetVec3("colorVal", color);
 
         m_pCubeVAO->Bind();
         glLineWidth(2.5f);
@@ -76,7 +76,7 @@ public:
                          const Core::Mat4& viewProjMatrix) {
         if (!m_pPrimitiveShader)
             return;
-        m_pPrimitiveShader->use();
+        m_pPrimitiveShader->Use();
 
         float fLineVertices[] = {
             objVecStart.x, objVecStart.y, objVecStart.z, objVecEnd.x, objVecEnd.y, objVecEnd.z};
@@ -86,8 +86,8 @@ public:
         m_pLineVBO->Unbind();
         Core::Mat4 objModel;
         Core::Mat4 ObjMVP = viewProjMatrix * objModel;
-        m_pPrimitiveShader->setMat4("uViewProjection", ObjMVP);
-        m_pPrimitiveShader->setVec3("colorVal", color);
+        m_pPrimitiveShader->SetMat4("uViewProjection", ObjMVP);
+        m_pPrimitiveShader->SetVec3("colorVal", color);
 
         m_pLineVAO->Bind();
         glLineWidth(2.0f);
