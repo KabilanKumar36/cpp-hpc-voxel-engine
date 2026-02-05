@@ -20,21 +20,22 @@ jobs:
            sudo apt-get install -y clang-format
 
       # 2. Check Formatting (Replicates your PowerShell script)
-      # We use 'find' to exclude 'vendor' folder, mimicking your ignore file.
-      # - name: Check Code Formatting
-      #   run: |
-      #      echo "Verifying code style..."
-      #      # Looks in 'src', checks .cpp/.h, EXCLUDES any folder named 'vendor' or 'external'
-      #      # FLAGS:
-      #      # --dry-run: Don't edit, just check.
-      #      # --Werror: Fail the job if formatting is bad.
-      #      # -style=file: Use your .clang-format config.
-      #      find src -type f \( -name "*.cpp" -o -name "*.h" \) \
-      #        -not -path "*/vendor/*" \
-      #        -not -path "*/external/*" \
-      #        -not -path "*/glad/*" \
-      #        -not -name "FastNoiseLite.h" \
-      #        | xargs clang-format -style=file --dry-run --Werror
+      # We use 'find' to exclude 'vendor' folder, mimicking ignore file.
+      - name: Check Code Formatting
+        run: |
+           echo "Verifying code style..."
+           # Looks in 'src', checks .cpp/.h, EXCLUDES any folder named 'vendor' or 'external'
+           # FLAGS:
+           # --dry-run: Don't edit, just check.
+           # --Werror: Fail the job if formatting is bad.
+           # -style=file: Use your .clang-format config.
+           find src -type f \( -name "*.cpp" -o -name "*.h" \) \
+             -not -path "*/vendor/*" \
+             -not -path "*/external/*" \
+             -not -path "*/glad/*" \
+             -not -name "FastNoiseLite.h" \
+             | xargs clang-format -style=file --dry-run
+             #--Werror removed for clang version 20.1.8 from VS 2026 is yet to be supported for ubuntu
 
       # 3. Install Heavy Dependencies (Only runs if formatting passes)
       - name: Install Build Dependencies (Linux)

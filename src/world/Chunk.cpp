@@ -242,7 +242,7 @@ void Chunk::updateHeightData() {
 
             for (int iY = 0; iY <= iHeight; iY++) {
                 int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-                if (iIndex == 1)
+                if (iIndex == -1)
                     continue;
                 uint8_t iBlockType = 3;  // Stone
                 if (iY == iHeight)

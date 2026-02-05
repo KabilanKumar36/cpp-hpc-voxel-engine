@@ -65,21 +65,3 @@ int main(int argc, char** argv) {
 
 	return RUN_ALL_TESTS();
 }
-
-int GetChunckCoord(int iPos) {
-	int iChunckSize = 16;
-	if (iPos >= 0) {
-		return iPos / iChunckSize;
-	}
-	else {
-		return (iPos - iChunckSize + 1) / iChunckSize;
-	}
-}
-
-int GetLocalCoord(int iPos) {
-	int iChunckSize = 16;
-	int iLocalPos = iPos % iChunckSize;
-	if (iLocalPos < 0)
-		iLocalPos += iChunckSize;
-	return iLocalPos;
-}
