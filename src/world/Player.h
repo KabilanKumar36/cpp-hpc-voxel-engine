@@ -12,7 +12,7 @@ public:
 
     void Update(float fDeltaTime, const std::vector<Chunk>& chunks);
 
-    void ProcessKeyboard(int iDir, float fDeltaTime);
+    void ProcessKeyboard(MovementDirection iDir, float fDeltaTime);
     void ProcessMouseMovement(float fOffset, float fYOffset, bool bConstraintPitch = true);
 
     Core::Camera& GetCamera() { return m_objCamera; }

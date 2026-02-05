@@ -8,8 +8,8 @@ Player::Player(const Core::Vec3& objStartPos) : m_objCamera(objStartPos) {
     m_objRigidBody.m_ObjSize = Core::Vec3(0.3f, 0.9f, 0.3f);
 }
 //*********************************************************************
-void Player::Update(float fDeltatTime, const std::vector<Chunk>& chunks) {
-    PhysicsSystem::Update(m_objRigidBody, fDeltatTime, chunks);
+void Player::Update(float fDeltaTime, const std::vector<Chunk>& chunks) {
+    PhysicsSystem::Update(m_objRigidBody, fDeltaTime, chunks);
 
     Core::Vec3 objEyeOffset(0.0f, 0.6f, 0.0f);
     m_objCamera.SetCameraPosition(m_objRigidBody.m_ObjPos + objEyeOffset);
@@ -20,15 +20,15 @@ void Player::Update(float fDeltatTime, const std::vector<Chunk>& chunks) {
         m_bIsGrounded = false;
 }
 //*********************************************************************
-void Player::ProcessKeyboard(int iDir, float fDeltaTime) {
+void Player::ProcessKeyboard(MovementDirection iDir, float fDeltaTime) {
     float fSpeed = m_fMoveSpeed;
 
     Core::Vec3 objForward = m_objCamera.GetFront();
-    objForward.y = 0.0;
+    objForward.y = 0.0f;
     objForward = objForward.normalize();
 
     Core::Vec3 objRight = m_objCamera.GetRight();
-    objRight.y = 0.0;
+    objRight.y = 0.0f;
     objRight = objRight.normalize();
 
     if (iDir == MovementDirection::FORWARD) {
@@ -54,7 +54,7 @@ void Player::ProcessKeyboard(int iDir, float fDeltaTime) {
     }
 }
 //*********************************************************************
-void Player::ProcessMouseMovement(float fXOffset, float fYOffset, bool bContrainPitch) {
-    m_objCamera.processMouseMovement(fXOffset, fYOffset, bContrainPitch);
+void Player::ProcessMouseMovement(float fXOffset, float fYOffset, bool bConstraintPitch) {
+    m_objCamera.processMouseMovement(fXOffset, fYOffset, bConstraintPitch);
 }
 //*********************************************************************

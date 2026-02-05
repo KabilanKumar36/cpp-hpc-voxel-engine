@@ -1,64 +1,63 @@
 #pragma once
+#include <memory>
+#include <string>
+#include <vector>
+
+// clang-format off
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
+// clang-format on
 
 #include "../core/camera.h"
 #include "../world/Chunk.h"
-#include "GLFW/glfw3.h"
-#include "glad/glad.h"
+#include "../world/Player.h"
 
 namespace App {
 class InputHandler {
 public:
-    static void ProcessInput(GLFWwindow* pWindow, float fDeltaTime);
-    static void UpdateTitleInfo(GLFWwindow* pWindow);
-    static void processFirePreviewAndFire(std::vector<Chunk>& chunks,
-                                          const Core::Mat4& viewProjection);
-    static float GetLastX() { return m_fLastX; }
-    static void SetLastX(float fValue) { m_fLastX = fValue; }
-    static float GetLastY() { return m_fLastY; }
-    static void SetLastY(float fValue) { m_fLastY = fValue; }
-    static float GetOrthoSize() { return m_fOrthoSize; }
-    static void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
+    InputHandler(const Core::Vec3& ObjStartPos);
+    void ProcessInput(GLFWwindow* pWindow, float fDeltaTime);
+    void UpdatePlayerPhysics(float fDeltaTime, const std::vector<Chunk>& chunks);
 
-    static bool IsFirstMouse() { return m_bFirstMouse; }
-    static void SetFirstMouse(bool bValue) { m_bFirstMouse = bValue; }
-    static bool IsEnableFaceCulling() { return m_bEnableFaceCulling; }
-    static void SetEnableFaceCulling(bool bValue) { m_bEnableFaceCulling = bValue; }
-    static bool IsPerspective() { return m_bPerspective; }
-    static void SetPerspective(bool bValue) { m_bPerspective = bValue; }
-    static bool IsLMBClickedFirstTime() { return m_bLMBClickedFirstTime; }
-    static void SetLMBClickedFirstTime(bool bValue) { m_bLMBClickedFirstTime = bValue; }
-    static bool IsFKeyPressedLastTime() { return m_bFKeyPressedLastTime; }
-    static void SetFKeyPressedLastTime(bool bValue) { m_bFKeyPressedLastTime = bValue; }
-    static bool IsPKeyPressedLastTime() { return m_bPKeyPressedLastTime; }
-    static void SetPKeyPressedLastTime(bool bValue) { m_bPKeyPressedLastTime = bValue; }
-    static Core::Camera& GetCamera() { return m_objCamera; }
+    void UpdateTitleInfo(GLFWwindow* pWindow) const;
+    void processFirePreviewAndFire(std::vector<Chunk>& chunks, const Core::Mat4& viewProjection);
+    float GetOrthoSize() const { return m_fOrthoSize; }
+    void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 
-    static unsigned int GetScreenWidth() { return SCREEN_WIDTH; }
-    static unsigned int GetScreenHeight() { return SCREEN_HEIGHT; }
+    bool IsEnableFaceCulling() const { return m_bEnableFaceCulling; }
+    void SetEnableFaceCulling(bool bValue) { m_bEnableFaceCulling = bValue; }
+    bool IsPerspective() const { return m_bPerspective; }
+    void SetPerspective(bool bValue) { m_bPerspective = bValue; }
+    bool IsLMBClickedFirstTime() const { return m_bLMBClickedFirstTime; }
+    void SetLMBClickedFirstTime(bool bValue) { m_bLMBClickedFirstTime = bValue; }
 
-    static int GetFrameCount() { return m_iFrameCount; }
-    static void AddFrameCount() { m_iFrameCount++; }
-    static void ResetCounters();
-    static float GetTime() { return m_fTimer; }
-    static void SetDeltaTime(float fDelTime);
-    static Core::Mat4 GetViewProjectionMatrix();
+    Core::Camera& GetCamera() { return m_pPlayer->GetCamera(); }
+    Player* GetPlayer() { return m_pPlayer.get(); }
+
+    unsigned int GetScreenWidth() const { return SCREEN_WIDTH; }
+    unsigned int GetScreenHeight() const { return SCREEN_HEIGHT; }
+
+    int GetFrameCount() const { return m_iFrameCount; }
+    void AddFrameCount() { m_iFrameCount++; }
+    void ResetCounters();
+    float GetTime() const { return m_fTimer; }
+    void SetDeltaTime(float fDelTime);
+    Core::Mat4 GetViewProjectionMatrix();
 
 private:
-    static Core::Camera m_objCamera;
-    static Core::Vec3 m_objCameraPos;
-    static float m_fLastX;
-    static float m_fLastY;
-    static float m_fOrthoSize;
-    static float m_fTimer;
-    static float m_fDeltaTime;
-    static int m_iFrameCount;
-    static const unsigned int SCREEN_WIDTH;
-    static const unsigned int SCREEN_HEIGHT;
-    static bool m_bFirstMouse;
-    static bool m_bEnableFaceCulling;
-    static bool m_bPerspective;
-    static bool m_bLMBClickedFirstTime;
-    static bool m_bFKeyPressedLastTime;
-    static bool m_bPKeyPressedLastTime;
+    Core::Vec3 m_objCameraPos;
+    std::unique_ptr<Player> m_pPlayer;
+
+    float m_fOrthoSize = 10.0f;
+    float m_fTimer = 0.0f;
+    float m_fDeltaTime = 0.0f;
+
+    int m_iFrameCount = 0;
+    const unsigned int SCREEN_WIDTH = 1280;
+    const unsigned int SCREEN_HEIGHT = 720;
+
+    bool m_bEnableFaceCulling = false;
+    bool m_bPerspective = true;
+    bool m_bLMBClickedFirstTime = false;
 };
 }  // namespace App

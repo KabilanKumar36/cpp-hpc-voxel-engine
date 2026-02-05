@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include <vector>
-#define BENCHMARK 0
+constexpr int BENCHMARK = 0;
 
 // clang-format off
 #include <glad/glad.h>
@@ -25,8 +25,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    GLFWwindow* pWindow = glfwCreateWindow(App::InputHandler::GetScreenWidth(),
-                                           App::InputHandler::GetScreenHeight(),
+    App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
+    GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
+                                           inputHandler.GetScreenHeight(),
                                            "HPC Voxel Engine",
                                            nullptr,
                                            nullptr);
@@ -83,24 +84,25 @@ int main() {
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;
         fLastFrame = fCurrentFrame;
-        App::InputHandler::AddFrameCount();
-        App::InputHandler::SetDeltaTime(fDeltaTime);
-        if (App::InputHandler::GetTime() >= 1.0f) {
-            App::InputHandler::UpdateTitleInfo(pWindow);
-            App::InputHandler::ResetCounters();
+        inputHandler.AddFrameCount();
+        inputHandler.SetDeltaTime(fDeltaTime);
+        if (inputHandler.GetTime() >= 1.0f) {
+            inputHandler.UpdateTitleInfo(pWindow);
+            inputHandler.ResetCounters();
         }
 
         InputManager::GetInstance().Update();
         glfwPollEvents();
-        App::InputHandler::ProcessInput(pWindow, fDeltaTime);
+        inputHandler.ProcessInput(pWindow, fDeltaTime);
 
-        Core::Mat4 viewProjection = App::InputHandler::GetViewProjectionMatrix();
+        inputHandler.UpdatePlayerPhysics(fDeltaTime, chunks);
+
+        Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
         Renderer::WorldRenderer::DrawChunks(chunks, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
-        App::InputHandler::processFirePreviewAndFire(chunks, viewProjection);
+        inputHandler.processFirePreviewAndFire(chunks, viewProjection);
 
         glfwSwapBuffers(pWindow);
-        // glfwPollEvents();
     }
     Renderer::PrimitiveRenderer::Shutdown();
     glfwTerminate();
