@@ -145,7 +145,8 @@ void InputHandler::processFirePreviewAndFire(std::vector<Chunk>& chunks,
                         int iLocalX = objRayHit.m_iBlocKX - (iTargetBlockX * CHUNK_SIZE);
                         int iLocalZ = objRayHit.m_iBlocKZ - (iTargetBlockZ * CHUNK_SIZE);
                         chunk.SetBlockAt(iLocalX, objRayHit.m_iBlocKY, iLocalZ, 0);
-                        chunk.GenerateMesh();
+                        chunk.ReconstructMesh();
+                        chunk.UploadMesh();
                     }
                 }
                 m_bLMBClickedFirstTime = false;

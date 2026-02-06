@@ -17,6 +17,7 @@ constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green colo
 #include <renderer/Texture.h>
 
 #include <world/Chunk.h>
+#include <world/ChunkManager.h>
 #include "app/InputHandler.h"
 #include "app/InputManager.h"
 #include "renderer/WorldRenderer.h"
@@ -73,14 +74,20 @@ int main() {
     Renderer::Texture texture("../assets/textures/texture_atlas.png");
     texture.Bind(0);
 
-    std::vector<Chunk> chunks;
+    std::vector<Chunk> vecChunks;
+    // ChunkManager objChunkManager;
     int iRenderDistance = RENDER_DISTANCE;
     int iTotalChunks = (iRenderDistance * 2) * (iRenderDistance * 2);
-    chunks.reserve(static_cast<size_t>(iTotalChunks) + 10);
+    vecChunks.reserve(static_cast<size_t>(iTotalChunks) + 10);
     for (int iX = -iRenderDistance; iX < iRenderDistance; iX++) {
         for (int iZ = -iRenderDistance; iZ < iRenderDistance; iZ++) {
-            chunks.emplace_back(iX, iZ);
+            // objChunkManager.LoadChunk(iX, iZ);
+            vecChunks.emplace_back(iX, iZ);
         }
+    }
+    for (auto& chunk : vecChunks) {
+        chunk.ReconstructMesh();
+        chunk.UploadMesh();
     }
 
     float fLastFrame = static_cast<float>(glfwGetTime());
@@ -92,6 +99,7 @@ int main() {
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;
         fLastFrame = fCurrentFrame;
+        // objChunkManager.Update();
 
         // For FPS Counter
         inputHandler.AddFrameCount();
@@ -105,13 +113,18 @@ int main() {
         glfwPollEvents();
         inputHandler.ProcessInput(pWindow, fDeltaTime);
 
-        inputHandler.UpdatePlayerPhysics(fDeltaTime, chunks);
+        /*if (objChunkManager.GetChunks().empty())
+            inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
+        else*/
+        inputHandler.UpdatePlayerPhysics(fDeltaTime, vecChunks /*objChunkManager.GetChunks()*/);
 
         Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
-        Renderer::WorldRenderer::DrawChunks(chunks, shader, viewProjection);
+        Renderer::WorldRenderer::DrawChunks(
+            vecChunks /*objChunkManager.GetChunks()*/, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
 
-        inputHandler.processFirePreviewAndFire(chunks, viewProjection);
+        inputHandler.processFirePreviewAndFire(vecChunks /*objChunkManager.GetMutableChunks()*/,
+                                               viewProjection);
 
         glfwSwapBuffers(pWindow);
     }

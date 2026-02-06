@@ -22,10 +22,8 @@ class Chunk {
 public:
     Chunk() = delete;
     Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
-        m_pVAO = new Renderer::VertexArray();
         m_bEnableFaceCulling = false;
         updateHeightData();
-        GenerateMesh();
     }
     ~Chunk();
     Chunk(const Chunk&) = delete;
@@ -60,7 +58,8 @@ public:
             return;
         m_iBlocks[iIndex] = uiBlockType;
     }
-    void GenerateMesh();
+    void ReconstructMesh();
+    void UploadMesh();
 
 private:
     std::vector<float> m_vec_fVertices;

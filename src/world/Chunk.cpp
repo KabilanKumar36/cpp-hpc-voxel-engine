@@ -256,7 +256,7 @@ void Chunk::updateHeightData() {
     }
 }
 //*********************************************************************
-void Chunk::GenerateMesh() {
+void Chunk::ReconstructMesh() {
     m_vec_fVertices.clear();
     m_vec_uiIndices.clear();
     for (int iX = 0; iX < CHUNK_SIZE; iX++) {
@@ -289,7 +289,27 @@ void Chunk::GenerateMesh() {
             }
         }
     }
+}
+//*********************************************************************
+void Chunk::UploadMesh() {
+    if (m_vec_fVertices.empty()) {
+        std::cout << "[Error] Chunk (" << m_iChunkX << ", " << m_iChunkZ
+                  << ") generated 0 vertices!\n";
+    } else {
+        // Only print first few to avoid spam
+        static int printCount = 0;
+        if (printCount < 5) {
+            std::cout << "[Success] Chunk generated " << m_vec_fVertices.size() << " floats.\n";
+            printCount++;
+        }
+    }
+    if (!m_pVAO) {
+        m_pVAO = new Renderer::VertexArray();
+    }
     updateBuffers();
+
+    m_vec_fVertices.clear();
+    m_vec_uiIndices.clear();
 }
 //*********************************************************************
 void Chunk::Render() const {
