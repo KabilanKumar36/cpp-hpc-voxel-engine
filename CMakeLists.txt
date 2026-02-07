@@ -84,6 +84,7 @@ enable_testing()
 add_executable(unit_tests 
     tests/test_main.cpp
     tests/test_physics.cpp
+    tests/test_chunk.cpp
 )
 
 # Link the VoxelCore library (which contains Chunk.cpp) and GTest

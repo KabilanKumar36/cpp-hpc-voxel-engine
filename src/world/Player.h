@@ -1,16 +1,16 @@
 #pragma once
 
-#include <vector>
 #include "../core/camera.h"
 #include "../physics/PhysicsSystem.h"
 #include "Chunk.h"
+#include "ChunkManager.h"
 
 enum MovementDirection { FORWARD = 0, BACKWARD, LEFTSIDE, RIGHTSIDE, UPSIDE, DOWNSIDE };
 class Player {
 public:
     Player(const Core::Vec3& objStartPos);
 
-    void Update(float fDeltaTime, const std::vector<Chunk>& chunks);
+    void Update(float fDeltaTime, const ChunkManager& objChunkManager);
 
     void ProcessKeyboard(MovementDirection iDir, float fDeltaTime);
     void ProcessMouseMovement(float fOffset, float fYOffset, bool bConstraintPitch = true);

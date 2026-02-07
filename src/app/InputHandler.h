@@ -1,7 +1,5 @@
 #pragma once
 #include <memory>
-#include <string>
-#include <vector>
 
 // clang-format off
 #include "glad/glad.h"
@@ -17,10 +15,10 @@ class InputHandler {
 public:
     InputHandler(const Core::Vec3& ObjStartPos);
     void ProcessInput(GLFWwindow* pWindow, float fDeltaTime);
-    void UpdatePlayerPhysics(float fDeltaTime, const std::vector<Chunk>& chunks);
+    void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
 
     void UpdateTitleInfo(GLFWwindow* pWindow) const;
-    void processFirePreviewAndFire(std::vector<Chunk>& chunks, const Core::Mat4& viewProjection);
+    void processFirePreviewAndFire(ChunkManager& objChunkManager, const Core::Mat4& viewProjection);
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 

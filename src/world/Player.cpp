@@ -8,8 +8,8 @@ Player::Player(const Core::Vec3& objStartPos) : m_objCamera(objStartPos) {
     m_objRigidBody.m_ObjSize = Core::Vec3(0.3f, 0.9f, 0.3f);
 }
 //*********************************************************************
-void Player::Update(float fDeltaTime, const std::vector<Chunk>& chunks) {
-    PhysicsSystem::Update(m_objRigidBody, fDeltaTime, chunks);
+void Player::Update(float fDeltaTime, const ChunkManager& objChunkManager) {
+    PhysicsSystem::Update(m_objRigidBody, fDeltaTime, objChunkManager);
 
     Core::Vec3 objEyeOffset(0.0f, 0.6f, 0.0f);
     m_objCamera.SetCameraPosition(m_objRigidBody.m_ObjPos + objEyeOffset);

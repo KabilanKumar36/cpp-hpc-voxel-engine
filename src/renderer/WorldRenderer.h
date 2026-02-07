@@ -3,6 +3,7 @@
 #include "../core/Matrix.h"
 #include "../physics/PhysicsSystem.h"
 #include "../world/Chunk.h"
+#include "../world/ChunkManager.h"
 #include "PrimitiveRenderer.h"
 #include "Shader.h"
 #include "glad/glad.h"
@@ -27,13 +28,13 @@ public:
         glEnable(GL_DEPTH_TEST);
     }
 
-    static inline void DrawChunks(const std::vector<Chunk> &chunks,
+    static inline void DrawChunks(ChunkManager &objChunkManager,
                                   Renderer::Shader &shader,
                                   const Core::Mat4 &objViewProjection) {
         shader.Use();
         shader.SetMat4("uViewProjection", objViewProjection);
-        for (auto &chunk : chunks) {
-            chunk.Render();
+        for(const auto& [Coords, objChunk] : objChunkManager.GetMutableChunks()){
+            objChunk.Render();
         }
     }
 };

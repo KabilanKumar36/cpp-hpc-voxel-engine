@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <vector>
 constexpr int BENCHMARK = 0;
-constexpr int RENDER_DISTANCE = 8;
+//constexpr int RENDER_DISTANCE = 8;
 constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
 
 // clang-format off
@@ -74,24 +74,9 @@ int main() {
     Renderer::Texture texture("../assets/textures/texture_atlas.png");
     texture.Bind(0);
 
-    std::vector<Chunk> vecChunks;
-    // ChunkManager objChunkManager;
-    int iRenderDistance = RENDER_DISTANCE;
-    int iTotalChunks = (iRenderDistance * 2) * (iRenderDistance * 2);
-    vecChunks.reserve(static_cast<size_t>(iTotalChunks) + 10);
-    for (int iX = -iRenderDistance; iX < iRenderDistance; iX++) {
-        for (int iZ = -iRenderDistance; iZ < iRenderDistance; iZ++) {
-            // objChunkManager.LoadChunk(iX, iZ);
-            vecChunks.emplace_back(iX, iZ);
-        }
-    }
-    for (auto& chunk : vecChunks) {
-        chunk.ReconstructMesh();
-        chunk.UploadMesh();
-    }
-
+    ChunkManager objChunkManager;
     float fLastFrame = static_cast<float>(glfwGetTime());
-
+    
     while (!glfwWindowShouldClose(pWindow)) {
         glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -99,7 +84,8 @@ int main() {
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;
         fLastFrame = fCurrentFrame;
-        // objChunkManager.Update();
+        Core::Vec3 objCameraPos = inputHandler.GetCamera().GetCameraPosition();
+        objChunkManager.Update(objCameraPos.x, objCameraPos.z);
 
         // For FPS Counter
         inputHandler.AddFrameCount();
@@ -113,18 +99,16 @@ int main() {
         glfwPollEvents();
         inputHandler.ProcessInput(pWindow, fDeltaTime);
 
-        /*if (objChunkManager.GetChunks().empty())
+        if (objChunkManager.GetMutableChunks().empty())
             inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
-        else*/
-        inputHandler.UpdatePlayerPhysics(fDeltaTime, vecChunks /*objChunkManager.GetChunks()*/);
+        else
+            inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
 
         Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
-        Renderer::WorldRenderer::DrawChunks(
-            vecChunks /*objChunkManager.GetChunks()*/, shader, viewProjection);
+        Renderer::WorldRenderer::DrawChunks(objChunkManager, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
 
-        inputHandler.processFirePreviewAndFire(vecChunks /*objChunkManager.GetMutableChunks()*/,
-                                               viewProjection);
+        inputHandler.processFirePreviewAndFire(objChunkManager, viewProjection);
 
         glfwSwapBuffers(pWindow);
     }

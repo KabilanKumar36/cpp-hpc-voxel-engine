@@ -20,11 +20,12 @@ Chunk::Chunk(Chunk&& other) noexcept
       m_iChunkX(other.m_iChunkX),
       m_iChunkZ(other.m_iChunkZ),
       m_bEnableFaceCulling(other.m_bEnableFaceCulling) {
-    m_pVAO = nullptr;
-    m_pVBO = nullptr;
-    m_pIBO = nullptr;
+    other.m_pVAO = nullptr;
+    other.m_pVBO = nullptr;
+    other.m_pIBO = nullptr;
 
     std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
+    std::memcpy(m_iHeightData, other.m_iHeightData, sizeof(m_iHeightData));
 }
 //*********************************************************************
 Chunk& Chunk::operator=(Chunk&& other) noexcept {
@@ -51,6 +52,7 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
         m_iChunkZ = other.m_iChunkZ;
 
         std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
+        std::memcpy(m_iHeightData, other.m_iHeightData, sizeof(m_iHeightData));
     }
     return *this;
 }

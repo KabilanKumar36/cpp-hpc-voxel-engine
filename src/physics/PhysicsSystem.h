@@ -2,9 +2,10 @@
 
 #include <algorithm>
 #include <iostream>
-#include <vector>
+#include <cmath>
 #include "../core/Ray.h"
 #include "../world/Chunk.h"
+#include "../world/ChunkManager.h"
 #include "AABB.h"
 
 struct RigidBody {
@@ -28,7 +29,7 @@ class PhysicsSystem {
 public:
     static void Update(RigidBody& objRigidBody,
                        float fDeltaTime,
-                       const std::vector<Chunk>& chunks) {
+                       const ChunkManager& objChunkManager) {
         const float fGravity = -20.0f;
         const float fFriction = 10.0f;
 
@@ -41,7 +42,7 @@ public:
         if (objRigidBody.m_ObjVelocity.x != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
             newPos.x += objRigidBody.m_ObjVelocity.x * fDeltaTime;
-            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+            if (CheckCollision(objRigidBody.GetAABB(newPos), objChunkManager)) {
                 objRigidBody.m_ObjVelocity.x = 0.0f;
             } else
                 objRigidBody.m_ObjPos.x = newPos.x;
@@ -50,7 +51,7 @@ public:
         if (objRigidBody.m_ObjVelocity.y != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
             newPos.y += objRigidBody.m_ObjVelocity.y * fDeltaTime;
-            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+            if (CheckCollision(objRigidBody.GetAABB(newPos), objChunkManager)) {
                 objRigidBody.m_ObjVelocity.y = 0.0f;
             } else
                 objRigidBody.m_ObjPos.y = newPos.y;
@@ -59,7 +60,7 @@ public:
         if (objRigidBody.m_ObjVelocity.z != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
             newPos.z += objRigidBody.m_ObjVelocity.z * fDeltaTime;
-            if (CheckCollision(objRigidBody.GetAABB(newPos), chunks)) {
+            if (CheckCollision(objRigidBody.GetAABB(newPos), objChunkManager)) {
                 objRigidBody.m_ObjVelocity.z = 0.0f;
             } else
                 objRigidBody.m_ObjPos.z = newPos.z;
@@ -69,19 +70,26 @@ public:
     // Simple Linear Interpolation for friction
     static float Lerp(float a, float b, float t) { return a + (b - a) * t; }
 
-    static bool CheckCollision(const AABB& objAABB, const std::vector<Chunk>& chunks) {
-        int iMinX = static_cast<int>(floor(objAABB.m_objMinPt.x));
-        int iMinY = static_cast<int>(floor(objAABB.m_objMinPt.y));
-        int iMinZ = static_cast<int>(floor(objAABB.m_objMinPt.z));
-        int iMaxX = static_cast<int>(floor(objAABB.m_objMaxPt.x));
-        int iMaxY = static_cast<int>(floor(objAABB.m_objMaxPt.y));
-        int iMaxZ = static_cast<int>(floor(objAABB.m_objMaxPt.z));
+    static bool CheckCollision(const AABB& objAABB, const ChunkManager& objChunkManager) {
+        int iMinX = static_cast<int>(std::floor(objAABB.m_objMinPt.x));
+        int iMinY = static_cast<int>(std::floor(objAABB.m_objMinPt.y));
+        int iMinZ = static_cast<int>(std::floor(objAABB.m_objMinPt.z));
+        int iMaxX = static_cast<int>(std::floor(objAABB.m_objMaxPt.x));
+        int iMaxY = static_cast<int>(std::floor(objAABB.m_objMaxPt.y));
+        int iMaxZ = static_cast<int>(std::floor(objAABB.m_objMaxPt.z));
 
         for (int iZ = iMinZ; iZ <= iMaxZ; iZ++) {
             for (int iY = iMinY; iY <= iMaxY; iY++) {
                 for (int iX = iMinX; iX <= iMaxX; iX++) {
-                    if (GetBlockAt(iX, iY, iZ, chunks) != 0) {
-                        return true;
+                    int iChunkX = static_cast<int>(std::floor(static_cast<float>(iX)/CHUNK_SIZE));
+                    int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iZ)/CHUNK_SIZE));
+                    const Chunk *pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
+                    if (pChunk){
+                        int iLocalX = iX - (iChunkX * CHUNK_SIZE);
+                        int iLocalZ = iZ - (iChunkZ * CHUNK_SIZE);
+                        if(pChunk->GetBlockAt(iLocalX, iY, iLocalZ) != 0) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -89,25 +97,10 @@ public:
         return false;
     }
 
-    static uint8_t GetBlockAt(int iX, int iY, int iZ, const std::vector<Chunk>& chunks) {
-        int iChunkX = static_cast<int>(floor(static_cast<float>(iX) / CHUNK_SIZE));
-        int iChunkZ = static_cast<int>(floor(static_cast<float>(iZ) / CHUNK_SIZE));
-
-        for (const auto& chunk : chunks) {
-            if (chunk.GetChunkX() != iChunkX || chunk.GetChunkZ() != iChunkZ)
-                continue;
-            int iLocalX = iX - (iChunkX * CHUNK_SIZE);
-            int iLocalZ = iZ - (iChunkZ * CHUNK_SIZE);
-
-            return chunk.GetBlockAt(iLocalX, iY, iLocalZ);
-        }
-        return 0;
-    }
-
     // DDA Algorithm for Ray Casting in Voxel Grid
     static RayHit RayCast(const Core::Ray& objRay,
                           float fMaxDistance,
-                          const std::vector<Chunk>& vec_objChunks) {
+                          const ChunkManager& objChunkManager) {
         RayHit hitResult;
         hitResult.m_bHit = false;
         hitResult.m_fDistance = fMaxDistance;
@@ -116,9 +109,9 @@ public:
         float fY = objRay.m_objPtOrigin.y;
         float fZ = objRay.m_objPtOrigin.z;
 
-        int iMapX = static_cast<int>(floor(fX));
-        int iMapY = static_cast<int>(floor(fY));
-        int iMapZ = static_cast<int>(floor(fZ));
+        int iMapX = static_cast<int>(std::floor(fX));
+        int iMapY = static_cast<int>(std::floor(fY));
+        int iMapZ = static_cast<int>(std::floor(fZ));
 
         int iStepX = (objRay.m_objDirection.x < 0) ? -1 : 1;
         int iStepY = (objRay.m_objDirection.y < 0) ? -1 : 1;
@@ -138,23 +131,31 @@ public:
                                         : (static_cast<float>(iMapZ + 1) - fZ) * fDeltaZ;
 
         int iLastAxis = 0;  // 0=X, 1=Y, 2=Z
-        while (true) {
-            uint8_t uiBlockType = GetBlockAt(iMapX, iMapY, iMapZ, vec_objChunks);
-            if (uiBlockType != 0) {
-                hitResult.m_bHit = true;
-                if (iLastAxis == 0)
-                    hitResult.m_fDistance = fSideDistX - fDeltaX;
-                else if (iLastAxis == 1)
-                    hitResult.m_fDistance = fSideDistY - fDeltaY;
-                else
-                    hitResult.m_fDistance = fSideDistZ - fDeltaZ;
+        int iStepCt = 0;
+        while (iStepCt++ < 500) {
+            int iChunkX = static_cast<int>(std::floor(static_cast<float>(iMapX)/CHUNK_SIZE));
+            int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iMapZ)/CHUNK_SIZE));
+            const Chunk *pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
+            if(pChunk){
+                int iLocalX = iMapX - (iChunkX * CHUNK_SIZE);
+                int iLocalZ = iMapZ - (iChunkZ * CHUNK_SIZE);
+                uint8_t uiBlockType = pChunk->GetBlockAt(iLocalX, iMapY, iLocalZ);
+                if (uiBlockType != 0) {
+                    hitResult.m_bHit = true;
+                    if (iLastAxis == 0)
+                        hitResult.m_fDistance = fSideDistX - fDeltaX;
+                    else if (iLastAxis == 1)
+                        hitResult.m_fDistance = fSideDistY - fDeltaY;
+                    else
+                        hitResult.m_fDistance = fSideDistZ - fDeltaZ;
 
-                hitResult.m_objHitPoint = objRay.at(hitResult.m_fDistance);
-                hitResult.m_iBlocKX = iMapX;
-                hitResult.m_iBlocKY = iMapY;
-                hitResult.m_iBlocKZ = iMapZ;
+                    hitResult.m_objHitPoint = objRay.at(hitResult.m_fDistance);
+                    hitResult.m_iBlocKX = iMapX;
+                    hitResult.m_iBlocKY = iMapY;
+                    hitResult.m_iBlocKZ = iMapZ;
 
-                return hitResult;
+                    return hitResult;
+                }
             }
             float fCurrentDistance = std::min({fSideDistX, fSideDistY, fSideDistZ});
             if (fCurrentDistance > fMaxDistance)

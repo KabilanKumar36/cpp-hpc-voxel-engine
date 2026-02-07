@@ -12,6 +12,9 @@ public:
         glBufferData(GL_ARRAY_BUFFER, uiSize, data, GL_STATIC_DRAW);
     }
     ~VertexBuffer() { glDeleteBuffers(1, &ID); }
+    
+    VertexBuffer(const VertexBuffer&) = delete;
+    VertexBuffer& operator=(const VertexBuffer&) = delete;
 
     void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, ID); }
     void Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }

@@ -60,7 +60,7 @@ public:
     }
     void ReconstructMesh();
     void UploadMesh();
-
+    bool IsValid() const { return m_pVAO != nullptr; }
 private:
     std::vector<float> m_vec_fVertices;
     std::vector<unsigned int> m_vec_uiIndices;
