@@ -1,8 +1,8 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include "../core/Ray.h"
 #include "../world/Chunk.h"
 #include "../world/ChunkManager.h"
@@ -81,13 +81,13 @@ public:
         for (int iZ = iMinZ; iZ <= iMaxZ; iZ++) {
             for (int iY = iMinY; iY <= iMaxY; iY++) {
                 for (int iX = iMinX; iX <= iMaxX; iX++) {
-                    int iChunkX = static_cast<int>(std::floor(static_cast<float>(iX)/CHUNK_SIZE));
-                    int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iZ)/CHUNK_SIZE));
-                    const Chunk *pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
-                    if (pChunk){
+                    int iChunkX = static_cast<int>(std::floor(static_cast<float>(iX) / CHUNK_SIZE));
+                    int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iZ) / CHUNK_SIZE));
+                    const Chunk* pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
+                    if (pChunk) {
                         int iLocalX = iX - (iChunkX * CHUNK_SIZE);
                         int iLocalZ = iZ - (iChunkZ * CHUNK_SIZE);
-                        if(pChunk->GetBlockAt(iLocalX, iY, iLocalZ) != 0) {
+                        if (pChunk->GetBlockAt(iLocalX, iY, iLocalZ) != 0) {
                             return true;
                         }
                     }
@@ -133,10 +133,10 @@ public:
         int iLastAxis = 0;  // 0=X, 1=Y, 2=Z
         int iStepCt = 0;
         while (iStepCt++ < 500) {
-            int iChunkX = static_cast<int>(std::floor(static_cast<float>(iMapX)/CHUNK_SIZE));
-            int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iMapZ)/CHUNK_SIZE));
-            const Chunk *pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
-            if(pChunk){
+            int iChunkX = static_cast<int>(std::floor(static_cast<float>(iMapX) / CHUNK_SIZE));
+            int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iMapZ) / CHUNK_SIZE));
+            const Chunk* pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
+            if (pChunk) {
                 int iLocalX = iMapX - (iChunkX * CHUNK_SIZE);
                 int iLocalZ = iMapZ - (iChunkZ * CHUNK_SIZE);
                 uint8_t uiBlockType = pChunk->GetBlockAt(iLocalX, iMapY, iLocalZ);

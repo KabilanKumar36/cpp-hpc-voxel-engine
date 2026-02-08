@@ -1,7 +1,7 @@
 #include "InputHandler.h"
+#include <cmath>
 #include <iostream>
 #include <string>
-#include <cmath>
 #include "../physics/PhysicsSystem.h"
 #include "../renderer/PrimitiveRenderer.h"
 #include "InputManager.h"
@@ -138,41 +138,45 @@ void InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
         }
         if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             if (m_bLMBClickedFirstTime && objRayHit.m_bHit) {
-                int iTargetBlockX =
-                    static_cast<int>(std::floor(static_cast<float>(objRayHit.m_iBlocKX) / CHUNK_SIZE));
-                int iTargetBlockZ =
-                    static_cast<int>(std::floor(static_cast<float>(objRayHit.m_iBlocKZ) / CHUNK_SIZE));
-                Chunk *pChunk = objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ);
-                if(pChunk){
+                int iTargetBlockX = static_cast<int>(
+                    std::floor(static_cast<float>(objRayHit.m_iBlocKX) / CHUNK_SIZE));
+                int iTargetBlockZ = static_cast<int>(
+                    std::floor(static_cast<float>(objRayHit.m_iBlocKZ) / CHUNK_SIZE));
+                Chunk* pChunk = objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ);
+                if (pChunk) {
                     int iLocalX = objRayHit.m_iBlocKX - (iTargetBlockX * CHUNK_SIZE);
                     int iLocalZ = objRayHit.m_iBlocKZ - (iTargetBlockZ * CHUNK_SIZE);
                     pChunk->SetBlockAt(iLocalX, objRayHit.m_iBlocKY, iLocalZ, 0);
                     pChunk->ReconstructMesh();
                     pChunk->UploadMesh();
-                    if(iLocalX == 0){
-                        Chunk *pAdjChunk = objChunkManager.GetChunk(iTargetBlockX + 1, iTargetBlockZ);
-                        if(pAdjChunk){
+                    if (iLocalX == 0) {
+                        Chunk* pAdjChunk =
+                            objChunkManager.GetChunk(iTargetBlockX + 1, iTargetBlockZ);
+                        if (pAdjChunk) {
                             pChunk->ReconstructMesh();
                             pChunk->UploadMesh();
                         }
                     }
-                    if(iLocalX == CHUNK_SIZE - 1){
-                        Chunk *pAdjChunk = objChunkManager.GetChunk(iTargetBlockX - 1, iTargetBlockZ);
-                        if(pAdjChunk){
+                    if (iLocalX == CHUNK_SIZE - 1) {
+                        Chunk* pAdjChunk =
+                            objChunkManager.GetChunk(iTargetBlockX - 1, iTargetBlockZ);
+                        if (pAdjChunk) {
                             pChunk->ReconstructMesh();
                             pChunk->UploadMesh();
                         }
                     }
-                    if(iLocalZ == 0){
-                        Chunk *pAdjChunk = objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ + 1);
-                        if(pAdjChunk){
+                    if (iLocalZ == 0) {
+                        Chunk* pAdjChunk =
+                            objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ + 1);
+                        if (pAdjChunk) {
                             pChunk->ReconstructMesh();
                             pChunk->UploadMesh();
                         }
                     }
-                    if(iLocalZ == CHUNK_SIZE - 1){
-                        Chunk *pAdjChunk = objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ - 1);
-                        if(pAdjChunk){
+                    if (iLocalZ == CHUNK_SIZE - 1) {
+                        Chunk* pAdjChunk =
+                            objChunkManager.GetChunk(iTargetBlockX, iTargetBlockZ - 1);
+                        if (pAdjChunk) {
                             pChunk->ReconstructMesh();
                             pChunk->UploadMesh();
                         }

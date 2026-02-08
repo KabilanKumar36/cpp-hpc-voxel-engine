@@ -1,7 +1,6 @@
 ﻿#include <iostream>
 #include <vector>
 constexpr int BENCHMARK = 0;
-//constexpr int RENDER_DISTANCE = 8;
 constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
 
 // clang-format off
@@ -76,7 +75,7 @@ int main() {
 
     ChunkManager objChunkManager;
     float fLastFrame = static_cast<float>(glfwGetTime());
-    
+
     while (!glfwWindowShouldClose(pWindow)) {
         glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

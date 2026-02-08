@@ -1,7 +1,7 @@
 #pragma once
+#include <FastNoiseLite.h>
 #include <cstdlib>
 #include <vector>
-#include <FastNoiseLite.h>
 #include "../renderer/Buffer.h"
 #include "../renderer/IndexBuffer.h"
 #include "../renderer/VertexArray.h"
@@ -61,6 +61,7 @@ public:
     void ReconstructMesh();
     void UploadMesh();
     bool IsValid() const { return m_pVAO != nullptr; }
+
 private:
     std::vector<float> m_vec_fVertices;
     std::vector<unsigned int> m_vec_uiIndices;

@@ -33,7 +33,7 @@ public:
                                   const Core::Mat4 &objViewProjection) {
         shader.Use();
         shader.SetMat4("uViewProjection", objViewProjection);
-        for(const auto& [Coords, objChunk] : objChunkManager.GetMutableChunks()){
+        for (const auto &[Coords, objChunk] : objChunkManager.GetMutableChunks()) {
             objChunk.Render();
         }
     }
