@@ -62,10 +62,11 @@ FetchContent_MakeAvailable(googletest)
 # Gather all source files EXCEPT main.cpp. 
 # This allows us to share the engine code between the Game and the Tests.
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
-list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$") 
+list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
-add_library(VoxelCore STATIC ${ENGINE_SOURCES})
-target_include_directories(VoxelCore PUBLIC src)
+set(VENDOR_SOURCES "vendor/stb_image.cpp")
+add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
+target_include_directories(VoxelCore PUBLIC src "${CMAKE_SOURCE_DIR}/vendor")
 # Link OpenGL dependencies to the Core so Chunk.cpp can use them
 target_link_libraries(VoxelCore PUBLIC glad glfw) 
 

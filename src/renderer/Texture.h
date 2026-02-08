@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <iostream>
 #include <string>
-#include "../vendor/stb_image.h"
+#include <stb_image.h>
 
 namespace Renderer {
 class Texture {

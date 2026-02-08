@@ -1,2 +1,11 @@
-src/vendor/stb_image.h
-src/core/FastNoiseLite.h
+# 1. Single-header libs (stb, FastNoise)
+vendor/
+
+# 2. CMake managed libs (GLAD, GLFW, GTest)
+external/
+external_cache/
+
+# 3. Build artifacts
+build/
+bin/
+lib/

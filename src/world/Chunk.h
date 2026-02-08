@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdlib>
 #include <vector>
-#include "../core/FastNoiseLite.h"
+#include <FastNoiseLite.h>
 #include "../renderer/Buffer.h"
 #include "../renderer/IndexBuffer.h"
 #include "../renderer/VertexArray.h"
