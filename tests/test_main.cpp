@@ -5,14 +5,21 @@
 #include "../src/world/Chunk.h"
 #include <iostream>
 
+void error_callback(int iError, const char* pcMsg){
+		std::cerr << "GLFW Error [" << iError << "]: " << pcMsg << std::endl;
+	}
+
 class OpenGLEnv : public ::testing::Environment{
 public:
 	GLFWwindow* pWindow;
-
+	
 	void SetUp() override {
+
+		glfwSetErrorCallback(error_callback);
+
 		if (!glfwInit()) {
 			std::cerr << "FATAL: Failed to init GLFW for unit tests." << std::endl;
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 
 		glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
@@ -20,16 +27,27 @@ public:
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-		pWindow = glfwCreateWindow(600, 460, "Hidden test window", NULL, NULL);
+		pWindow = glfwCreateWindow(640, 480, "Hidden test window", NULL, NULL);
 		if (!pWindow) {
-			std::cerr << "FATAL: Failed to create GLFW Window for unit tests." << std::endl;
-			exit(-1);
+			std::cerr << "FATAL: Failed to create GLFW Window for unit tests.";
+			std::cerr << "Retrying with OpenGL 4.5" << std::endl;
+			glfwDefaultWindowHints();
+			glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+			pWindow = glfwCreateWindow(640, 480, "Hidden test window", NULL, NULL);
+			if (!pWindow) {
+				std::cerr << "FATAL: Failed to create GLFW Window for unit tests." << std::endl;
+				exit(EXIT_FAILURE);
+			}
 		}
 		glfwMakeContextCurrent(pWindow);
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			std::cerr << "FATAL: Failed to load GLAD for unit tests." << std::endl;
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
