@@ -91,7 +91,7 @@ add_executable(unit_tests
 target_link_libraries(unit_tests 
     PRIVATE
     VoxelCore 
-    gtest_main
+    GTest::gtest
 )
 
 include(GoogleTest)
