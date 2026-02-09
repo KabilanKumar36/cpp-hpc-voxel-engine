@@ -39,23 +39,24 @@ Core Engineering Pillars:
 | Asset | stb_image | For Textures generation. |
 | Testing | GoogleTest | Physics and math verification. |
 
-📐 System Architecture
+## 📐 System Architecture
 
 The engine follows a strict separation of concerns between the Simulation Loop (Fixed Timestep) and Rendering Loop (Variable Timestep).
-
+```mermaid
 graph TD
-    App[Application Loop] -->|Poll Events| Input[Input System]
+    App[Application Loop] -->|Poll Events| Input[Input Handler]
     App -->|Fixed Update| Physics[Physics Engine]
     App -->|Variable Update| Render[Renderer]
     
     subgraph "World Data"
-        ChunkMgr[Chunk Manager] -->|Manage| Chunk[Chunk (16^3)]
-        Chunk -->|Generate| Mesh[Mesh Builder]
+        ChunkManager[ChunkManager] -->|Manage| Chunk["Chunk (16x16x16)"]
+        Chunk -->|Generate| Mesh["Chunk::ReconstructMesh()"]
         Mesh -->|Culling| Opt[Face Culling]
     end
     
-    Physics -->|Query| ChunkMgr
-    Render -->|Draw| ChunkMgr
+    Physics -->|Query| ChunkManager
+    Render -->|Draw| ChunkManager
+```
 
 ## ✨ Key Features (Current & Planned)
 
