@@ -18,14 +18,19 @@ public:
         std::optional<Chunk> optChunk;
         while ((optChunk = m_objFinishedQueue.try_pop()).has_value()) {
             Chunk& objChunk = optChunk.value();
-            objChunk.UploadMesh();
+
+            auto inserted = m_mapChunks.insert(std::make_pair(
+                std::make_pair(objChunk.GetChunkX(), objChunk.GetChunkZ()), std::move(objChunk)));
+
+            Chunk* pNewChunk = &inserted.first->second;
+            updateChunkNeighbours(pNewChunk);
+            pNewChunk->ReconstructMesh();
+            pNewChunk->UploadMesh();
+
             {
                 std::lock_guard<std::mutex> lock(m_mutexPending);
                 m_setPendingCoords.erase({objChunk.GetChunkX(), objChunk.GetChunkZ()});
             }
-
-            m_mapChunks.insert(std::make_pair(
-                std::make_pair(objChunk.GetChunkX(), objChunk.GetChunkZ()), std::move(objChunk)));
         }
 
         int iCurrentChunkX = static_cast<int>(std::floor(fPlayerX / CHUNK_SIZE));
@@ -68,7 +73,59 @@ public:
             }
         }
     }
+    void SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBlockType) {
+        int iChunkX = static_cast<int>(std::floor(static_cast<float>(iWorldX) / CHUNK_SIZE));
+        int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iWorldZ) / CHUNK_SIZE));
 
+        Chunk* pChunk = GetChunk(iChunkX, iChunkZ);
+        if (!pChunk)
+            return;
+
+        int iLocalX = iWorldX % 16;
+        int iLocalY = iWorldY;
+        int iLocalZ = iWorldZ % 16;
+
+        if (iLocalX < 0)
+            iLocalX += 16;
+
+        if (iLocalZ < 0)
+            iLocalZ += 16;
+        pChunk->SetBlockAt(iLocalX, iLocalY, iLocalZ, iBlockType);
+        pChunk->ReconstructMesh();
+        pChunk->UploadMesh();
+
+        if (iLocalX == 0) {
+            Chunk* pWest = GetChunk(iChunkX - 1, iChunkZ);
+            if (pWest) {
+                pWest->ReconstructMesh();
+                pWest->UploadMesh();
+            }
+        }
+
+        if (iLocalX == 15) {
+            Chunk* pEast = GetChunk(iChunkX + 1, iChunkZ);
+            if (pEast) {
+                pEast->ReconstructMesh();
+                pEast->UploadMesh();
+            }
+        }
+
+        if (iLocalZ == 0) {
+            Chunk* pSouth = GetChunk(iChunkX, iChunkZ - 1);
+            if (pSouth) {
+                pSouth->ReconstructMesh();
+                pSouth->UploadMesh();
+            }
+        }
+
+        if (iLocalZ == 15) {
+            Chunk* pNorth = GetChunk(iChunkX, iChunkZ + 1);
+            if (pNorth) {
+                pNorth->ReconstructMesh();
+                pNorth->UploadMesh();
+            }
+        }
+    }
     Chunk* GetChunk(int iX, int iZ) {
         auto itr = m_mapChunks.find({iX, iZ});
         if (itr != m_mapChunks.end()) {
@@ -94,9 +151,36 @@ private:
         }
         m_objThreadPool.submit([this, iX, iZ]() {
             Chunk objChunk(iX, iZ);
-            objChunk.ReconstructMesh();
+            // objChunk.ReconstructMesh();
             m_objFinishedQueue.push(std::move(objChunk));
         });
+    }
+    void updateChunkNeighbours(Chunk* pChunk) {
+        int iX = pChunk->GetChunkX();
+        int iZ = pChunk->GetChunkZ();
+        auto Link = [&](Direction iDir, int iNX, int iNZ) {
+            Chunk* pNeighbor = GetChunk(iNX, iNZ);
+            if (pNeighbor) {
+                pChunk->SetNeighbours(iDir, pNeighbor);
+                Direction iOppDir;
+                if (iDir == Direction::NORTH)
+                    iOppDir = SOUTH;
+                else if (iDir == Direction::SOUTH)
+                    iOppDir = NORTH;
+                else if (iDir == Direction::EAST)
+                    iOppDir = WEST;
+                else /* if (iDir == Direction::WEST)*/
+                    iOppDir = EAST;
+                pNeighbor->SetNeighbours(iOppDir, pChunk);
+
+                // pNeighbor->ReconstructMesh();
+                // pNeighbor->UploadMesh();
+            }
+        };
+        Link(Direction::NORTH, iX, iZ + 1);
+        Link(Direction::SOUTH, iX, iZ - 1);
+        Link(Direction::EAST, iX + 1, iZ);
+        Link(Direction::WEST, iX - 1, iZ);
     }
     std::map<std::pair<int, int>, Chunk> m_mapChunks;
     std::set<std::pair<int, int>> m_setPendingCoords;

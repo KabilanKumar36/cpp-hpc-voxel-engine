@@ -86,7 +86,7 @@ void Chunk::updateBuffers() {
     }
 }
 //*********************************************************************
-void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType) {
+void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockType) {
     unsigned int iStartIndex = static_cast<unsigned int>(m_vec_fVertices.size()) / 5;
     float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
     float fY = static_cast<float>(iY);
@@ -95,11 +95,11 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
     int iAtlasCol = 10, iAtlasRow = 8;
     if (iBlockType == 1)  // Grass
     {
-        if (iDir == Direction::UP)  // Grass
+        if (iDir == FaceDirection::UP)  // Grass
         {
             iAtlasCol = 2;
             iAtlasRow = 9;
-        } else if (iDir == Direction::DOWN)  // Stone
+        } else if (iDir == FaceDirection::DOWN)  // Stone
         {
             iAtlasCol = 1;
             iAtlasRow = 0;
@@ -110,7 +110,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
         }
     } else if (iBlockType == 2)  // Dirt
     {
-        if (iDir == Direction::DOWN)  // Stone
+        if (iDir == FaceDirection::DOWN)  // Stone
         {
             iAtlasCol = 1;
             iAtlasRow = 0;
@@ -131,7 +131,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
     float v0 = v1 + fSlotSize;
 
     switch (iDir) {
-        case Direction::FRONT:  // Z+ Face
+        case FaceDirection::FRONT:  // Z+ Face
         {
             // Origin: Bottom-Left (x, y)
             // Winding: Right (+x) -> Up (+y) -> Left (-x)
@@ -144,7 +144,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
                                    });
         } break;
 
-        case Direction::BACK:  // Z- Face
+        case FaceDirection::BACK:  // Z- Face
         {
             // Origin: Bottom-Right (x, y) if looking from back, but (x,y) in World Coords
             // Winding: Up (+y) -> Right (+x) -> Down (-y)
@@ -158,7 +158,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
                 });
         } break;
 
-        case Direction::RIGHT:  // X+ Face
+        case FaceDirection::RIGHT:  // X+ Face
         {
             // Origin: Bottom-Front (y, z)
             // Winding: Up (+y) -> Back (+z) -> Down (-y)
@@ -171,7 +171,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
                                    });
         } break;
 
-        case Direction::LEFT:  // X- Face
+        case FaceDirection::LEFT:  // X- Face
         {
             // Origin: Bottom-Back (y, z)
             // Winding: Back (+z) -> Up (+y) -> Front (-z)
@@ -184,7 +184,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
                                    });
         } break;
 
-        case Direction::UP:  // Y+ Face
+        case FaceDirection::UP:  // Y+ Face
         {
             // Origin: Top-Left-Front (x, z)
             // Winding: Back (+z) -> Right (+x) -> Front (-z)
@@ -197,7 +197,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, Direction iDir, int iBlockType)
                                    });
         } break;
 
-        case Direction::DOWN:  // Y- Face
+        case FaceDirection::DOWN:  // Y- Face
         {
             // Origin: Bottom-Left-Back (x, z)
             // Winding: Right (+x) -> Front (+z) -> Left (-x)
@@ -272,22 +272,22 @@ void Chunk::ReconstructMesh() {
                     continue;
 
                 if (iY == m_iHeightData[iX][iZ] || GetBlockAt(iX, iY + 1, iZ) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::UP, iBlockType);
+                    addBlockFace(iX, iY, iZ, FaceDirection::UP, iBlockType);
 
-                if (iY == 0 || GetBlockAt(iX, iY - 1, iZ) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::DOWN, iBlockType);
+                if (GetBlockAt(iX, iY - 1, iZ) == 0)
+                    addBlockFace(iX, iY, iZ, FaceDirection::DOWN, iBlockType);
 
-                if (iX == CHUNK_SIZE - 1 || GetBlockAt(iX + 1, iY, iZ) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::RIGHT, iBlockType);
+                if (GetBlockAt(iX + 1, iY, iZ) == 0)
+                    addBlockFace(iX, iY, iZ, FaceDirection::RIGHT, iBlockType);
 
-                if (iX == 0 || GetBlockAt(iX - 1, iY, iZ) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::LEFT, iBlockType);
+                if (GetBlockAt(iX - 1, iY, iZ) == 0)
+                    addBlockFace(iX, iY, iZ, FaceDirection::LEFT, iBlockType);
 
-                if (iZ == CHUNK_SIZE - 1 || GetBlockAt(iX, iY, iZ + 1) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::FRONT, iBlockType);
+                if (GetBlockAt(iX, iY, iZ + 1) == 0)
+                    addBlockFace(iX, iY, iZ, FaceDirection::FRONT, iBlockType);
 
-                if (iZ == 0 || GetBlockAt(iX, iY, iZ - 1) == 0)
-                    addBlockFace(iX, iY, iZ, Direction::BACK, iBlockType);
+                if (GetBlockAt(iX, iY, iZ - 1) == 0)
+                    addBlockFace(iX, iY, iZ, FaceDirection::BACK, iBlockType);
             }
         }
     }
@@ -298,12 +298,11 @@ void Chunk::UploadMesh() {
         std::cout << "[Error] Chunk (" << m_iChunkX << ", " << m_iChunkZ
                   << ") generated 0 vertices!\n";
     } else {
-        // Only print first few to avoid spam
-        static int printCount = 0;
+        /* static int printCount = 0;
         if (printCount < 5) {
             std::cout << "[Success] Chunk generated " << m_vec_fVertices.size() << " floats.\n";
             printCount++;
-        }
+        }*/
     }
     if (!m_pVAO) {
         m_pVAO = new Renderer::VertexArray();

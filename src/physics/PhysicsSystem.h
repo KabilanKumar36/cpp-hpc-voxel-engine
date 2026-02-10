@@ -140,7 +140,7 @@ public:
                 int iLocalX = iMapX - (iChunkX * CHUNK_SIZE);
                 int iLocalZ = iMapZ - (iChunkZ * CHUNK_SIZE);
                 uint8_t uiBlockType = pChunk->GetBlockAt(iLocalX, iMapY, iLocalZ);
-                if (uiBlockType != 0) {
+                if (uiBlockType != 0 && uiBlockType != 3) {
                     hitResult.m_bHit = true;
                     if (iLastAxis == 0)
                         hitResult.m_fDistance = fSideDistX - fDeltaX;
