@@ -61,30 +61,29 @@ graph TD
 ## ✨ Key Features (Current & Planned)
 
 ### ✅ Completed
-- [x] **Core Math Library:** 
-    - Custom `Vec3` and `Mat4` implementation with `constexpr` and SIMD-ready optimization.
 - [x] **High-Performance Rendering:**
-    - Hidden Face Removal: Internal and Inter-Chunk occlusion culling (removes ~85% of geometry).
-    - Texture Atlasing: Dynamic UV mapping with bitwise face-id logic.
-- [x] **Procedural Generation:**
-    - Infinite terrain using `FastNoiseLite` (OpenSimplex2) noise.
-    - Height-based Biome System (Stone, Dirt, Grass).
+    - **Hidden Face Removal:** Internal and Inter-Chunk occlusion culling (reducing vertex count by ~85%).
+    - **Smart Texturing:** Dynamic UV mapping with bitwise face-id logic and "Cave Ceiling" awareness.
+    - **Distance Culling:** Automatic chunk unloading outside a fixed radius to manage memory.
+
+- [x] **Physics & Interaction:**
+    - **AABB Collision:** Precise Axis-Aligned Bounding Box detection against voxel terrain.
+    - **Kinematic Character Controller:** "Collide & Slide" resolution for smooth movement against walls (no sticky friction).
+    - **World Interaction:** Real-time block breaking/placing with instant neighbor mesh updates.
+    - **Ray Casting:** DDA (Digital Differential Analyzer) algorithm for O(1) block picking.
+
 - [x] **Engine Core:**
-    - Custom Math Library: Vec3 / Mat4 with compiler-intrinsic optimizations.
-    - Interactive Camera: Euler-angle based FPS camera.
-    - Ray Casting: DDA (Digital Differential Analyzer) for O(1) block picking.
+    - **Custom Math Library:** `Vec3` / `Mat4` implementation with `constexpr` and SIMD-ready optimization.
+    - **Interactive Camera:** Euler-angle based FPS camera with WASD movement, Mouse Look, and Zoom.
+    - **Render Context:** Robust GLFW window handling and input polling.
+
+- [x] **Procedural Generation:**
+    - **Infinite Terrain:** Continuous world generation using `FastNoiseLite` (OpenSimplex2).
+    - **Biome System:** Height-based block assignment (Bedrock, Stone, Dirt, Grass).
+
 - [x] **Build & CI:**
-    - Automated GoogleTest suite for Math/Physics verification.
-    - Cross-platform CMake build (Windows/Linux).
-- [x] **Render Context:** Robust GLFW window handling and input polling.
-- [x] **Interactive Camera:** WASD movement, Mouse Look, and Zoom.
-- [x] **Physics Engine:**
-    - AABB (Axis-Aligned Bounding Box) Collision Detection.
-    - Voxel-aware terrain collision (direct chunk lookup).
-    - Gravity and Velocity resolution.
-- [x] **Debug Visualization:** Wireframe highlighting of targeted blocks.
-- [x] **Interaction:** Block breaking and placing mechanics.
-- [x] **Kinematic Character Controller:** Swept-AABB collision resolution against voxel terrain.
+    - **Zero-Dependency Setup:** Self-contained CMake build using `FetchContent`.
+    - **Automated Testing:** GoogleTest suite for Math/Physics verification running on GitHub Actions.
 
 ### 🚧 In Progress (Physics Transition)
 - [ ] **Frustum Culling:** CPU-side culling to optimize GPU workload for large view distances.
@@ -94,6 +93,7 @@ graph TD
 ### 📅 Planned
 - [ ] **Lighting Engine:** Ambient Occlusion (AO) and Day/Night cycle.
 - [ ] **Water Simulation:** Transparent rendering pass.
+- [ ] **RigidBody Dynamics:** Mass, Velocity, and Force accumulation.
 
 ## 📦 Build Instructions
 
