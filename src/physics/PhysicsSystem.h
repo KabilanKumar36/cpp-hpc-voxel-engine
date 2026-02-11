@@ -29,10 +29,12 @@ class PhysicsSystem {
 public:
     static void Update(RigidBody& objRigidBody,
                        float fDeltaTime,
-                       const ChunkManager& objChunkManager) {
-        const float fGravity = -20.0f;
+                       const ChunkManager& objChunkManager,
+                       bool bZeroGravity = false) {
+        float fGravity = -20.0f;
         const float fFriction = 10.0f;
-
+        if (bZeroGravity)
+            fGravity = 0.0f;
         objRigidBody.m_ObjVelocity.x =
             Lerp(objRigidBody.m_ObjVelocity.x, 0.0f, fFriction * fDeltaTime);
         objRigidBody.m_ObjVelocity.y += fGravity * fDeltaTime;

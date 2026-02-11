@@ -17,6 +17,7 @@ constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green colo
 
 #include <world/Chunk.h>
 #include <world/ChunkManager.h>
+#include "app/Application.h"
 #include "app/InputHandler.h"
 #include "app/InputManager.h"
 #include "renderer/WorldRenderer.h"
@@ -56,8 +57,9 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
     InputManager::GetInstance().Init(pWindow);
+    Application App(pWindow);
+    App.InitImGUI();
     glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     const GLubyte* vendor = glGetString(GL_VENDOR);
     const GLubyte* renderer = glGetString(GL_RENDERER);
@@ -75,6 +77,7 @@ int main() {
 
     ChunkManager objChunkManager;
     float fLastFrame = static_cast<float>(glfwGetTime());
+    static bool bFlyMode = false;
 
     while (!glfwWindowShouldClose(pWindow)) {
         glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
@@ -96,7 +99,10 @@ int main() {
 
         InputManager::GetInstance().Update();
         glfwPollEvents();
-        inputHandler.ProcessInput(pWindow, fDeltaTime);
+        App.HandleUIToggle();
+        if (!App.m_bIsUIActive) {
+            inputHandler.ProcessInput(pWindow, fDeltaTime);
+        }
 
         if (objChunkManager.GetMutableChunks().empty())
             inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
@@ -107,12 +113,68 @@ int main() {
         Renderer::WorldRenderer::DrawChunks(objChunkManager, shader, viewProjection);
         Renderer::WorldRenderer::DrawAxes(viewProjection);
 
-        inputHandler.processFirePreviewAndFire(objChunkManager, viewProjection);
+        RayHit objRayHit = inputHandler.processFirePreviewAndFire(objChunkManager, viewProjection);
+        App.BeginImGUIFrame();
+        if (App.m_bShowDebugPanel) {
+            ImGui::SetNextWindowSize(ImVec2(280, 360), ImGuiCond_FirstUseEver);
+            ImGui::Begin("System Monitor", &App.m_bShowDebugPanel);
 
+            ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Dev. Tools");
+            ImGui::Separator();
+            static bool bWireframeMode = false;
+            if (ImGui::Checkbox("Wireframe", &bWireframeMode)) {
+                if (bWireframeMode) {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                } else {
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                }
+            }
+            if (ImGui::Checkbox("Zero Gravity", &bFlyMode)) {
+                if (bFlyMode)
+                    inputHandler.SetZeroGravity(bFlyMode);
+                else
+                    inputHandler.SetZeroGravity(bFlyMode);
+            }
+
+            static float fFlySpeed = 20.0f;
+            if (ImGui::SliderFloat("Fly Speed", &fFlySpeed, 1.0f, 200.0f)) {
+                inputHandler.SetMovementSpeed(fFlySpeed);
+            }
+            ImGui::Separator();
+
+            ImGui::TextColored(ImVec4(0, 1, 0, 1), "Performance");
+            ImGui::Text("FPS: %0.1f", ImGui::GetIO().Framerate);
+            ImGui::Text("Frame Time: %0.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+            ImGui::Separator();
+
+            Core::Vec3 objCurrCameraPos = inputHandler.GetCamera().GetCameraPosition();
+            ImGui::TextColored(ImVec4(0, 1, 1, 1), "Position");
+            ImGui::Text("X: %0.3f, Y: %0.3f, Z: %0.3f",
+                        objCurrCameraPos.x,
+                        objCurrCameraPos.y,
+                        objCurrCameraPos.z);
+            ImGui::Separator();
+
+            ImGui::TextColored(ImVec4(1, 1, 0, 1), "World State");
+            ImGui::Text("Chunks Loaded: %zu", objChunkManager.GetMutableChunks().size());
+            ImGui::Separator();
+
+            ImGui::TextColored(ImVec4(1, 0, 1, 1), "Interaction");
+            if (objRayHit.m_bHit) {
+                ImGui::Text("Target: Block (%d, %d, %d)",
+                            objRayHit.m_iBlocKX,
+                            objRayHit.m_iBlocKY,
+                            objRayHit.m_iBlocKZ);
+                ImGui::Text("Distance: %.2f", objRayHit.m_fDistance);
+            }
+            ImGui::End();
+        }
+        App.EndImGUIFrame();
         glfwSwapBuffers(pWindow);
     }
-
+    App.ShutDownImGUI();
     Renderer::PrimitiveRenderer::Shutdown();
     glfwTerminate();
+
     return 0;
 }

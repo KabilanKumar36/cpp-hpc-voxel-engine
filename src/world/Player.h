@@ -10,13 +10,14 @@ class Player {
 public:
     Player(const Core::Vec3& objStartPos);
 
-    void Update(float fDeltaTime, const ChunkManager& objChunkManager);
+    void Update(float fDeltaTime, const ChunkManager& objChunkManager, bool bZeroGravity = false);
 
-    void ProcessKeyboard(MovementDirection iDir, float fDeltaTime);
+    void ProcessKeyboard(MovementDirection iDir, float fDeltaTime, bool bFlyMode = false);
     void ProcessMouseMovement(float fOffset, float fYOffset, bool bConstraintPitch = true);
 
     Core::Camera& GetCamera() { return m_objCamera; }
     Core::Vec3 GetPosition() const { return m_objRigidBody.m_ObjPos; }
+    void SetMovementSpeed(float fMoveSpeed) { m_fMoveSpeed = fMoveSpeed; }
 
 private:
     Core::Camera m_objCamera;

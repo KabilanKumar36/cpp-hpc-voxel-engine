@@ -14,7 +14,7 @@ InputHandler::InputHandler(const Core::Vec3& objStartPos) : m_objCameraPos(objSt
 //*********************************************************************
 void InputHandler::UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager) {
     if (m_pPlayer && m_bPerspective) {
-        m_pPlayer->Update(fDeltaTime, objChunkManager);
+        m_pPlayer->Update(fDeltaTime, objChunkManager, m_bZeroGravity);
     }
 }
 //*********************************************************************
@@ -108,10 +108,10 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
     }
 }
 //*********************************************************************
-void InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
-                                             const Core::Mat4& viewProjection) {
+RayHit InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
+                                               const Core::Mat4& viewProjection) {
+    RayHit objRayHit;
     InputManager& inputs = InputManager::GetInstance();
-
     if (inputs.IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || inputs.IsKeyPressed(GLFW_KEY_RIGHT_CONTROL)) {
         glDisable(GL_DEPTH_TEST);
         float fMaxDistance = 60.0f;
@@ -125,7 +125,7 @@ void InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
         Renderer::PrimitiveRenderer::DrawLine(
             objRayStart, objRayEnd, Core::Vec3(1.0f, 1.0f, 0.0f), viewProjection);
 
-        RayHit objRayHit = PhysicsSystem::RayCast(objRay, fMaxDistance, objChunkManager);
+        objRayHit = PhysicsSystem::RayCast(objRay, fMaxDistance, objChunkManager);
         if (objRayHit.m_bHit) {
             Core::Vec3 objBlockPos(static_cast<float>(objRayHit.m_iBlocKX),
                                    static_cast<float>(objRayHit.m_iBlocKY),
@@ -147,6 +147,7 @@ void InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
 
         glEnable(GL_DEPTH_TEST);
     }
+    return objRayHit;
 }
 //*********************************************************************
 Core::Mat4 InputHandler::GetViewProjectionMatrix() {

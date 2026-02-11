@@ -45,7 +45,33 @@ FetchContent_MakeAvailable(glfw)
 add_library(glad STATIC "external/glad/src/glad.c")
 target_include_directories(glad PUBLIC "external/glad/include")
 
-# --- GoogleTest ---
+# --- ImGUI ---
+message(STATUS "Downloading and configuring ImGUI...")
+FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui
+    GIT_TAG docking
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+FetchContent_MakeAvailable(imgui)
+
+add_library(imgui STATIC 
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
+target_include_directories(imgui PUBLIC 
+   ${imgui_SOURCE_DIR}
+   ${imgui_SOURCE_DIR}/backends
+)
+target_link_libraries(imgui PRIVATE glfw)
+
+# --- GoogleTest ---    
 message(STATUS "Downloading and configuring GoogleTest...")
 FetchContent_Declare(
     googletest
@@ -68,7 +94,7 @@ set(VENDOR_SOURCES "vendor/stb_image.cpp")
 add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
 target_include_directories(VoxelCore PUBLIC src "${CMAKE_SOURCE_DIR}/vendor")
 # Link OpenGL dependencies to the Core so Chunk.cpp can use them
-target_link_libraries(VoxelCore PUBLIC glad glfw) 
+target_link_libraries(VoxelCore PUBLIC glad glfw imgui) 
 
 # --------------------------------------------------------
 # 3. Main Executable
@@ -113,4 +139,4 @@ else()
         -Wpedantic
         -Werror   # The specific flag that fails build on warning
     )
-endif()
+endif()     

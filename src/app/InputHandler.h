@@ -18,7 +18,8 @@ public:
     void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
 
     void UpdateTitleInfo(GLFWwindow* pWindow) const;
-    void processFirePreviewAndFire(ChunkManager& objChunkManager, const Core::Mat4& viewProjection);
+    RayHit processFirePreviewAndFire(ChunkManager& objChunkManager,
+                                     const Core::Mat4& viewProjection);
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 
@@ -31,7 +32,11 @@ public:
 
     Core::Camera& GetCamera() { return m_pPlayer->GetCamera(); }
     Player* GetPlayer() { return m_pPlayer.get(); }
-
+    void SetMovementSpeed(float fMoveSpeed) {
+        if (m_pPlayer)
+            m_pPlayer->SetMovementSpeed(fMoveSpeed);
+    }
+    void SetZeroGravity(bool bZeroGravity) { m_bZeroGravity = bZeroGravity; }
     unsigned int GetScreenWidth() const { return SCREEN_WIDTH; }
     unsigned int GetScreenHeight() const { return SCREEN_HEIGHT; }
 
@@ -57,5 +62,6 @@ private:
     bool m_bEnableFaceCulling = false;
     bool m_bPerspective = true;
     bool m_bLMBClickedFirstTime = false;
+    bool m_bZeroGravity = false;
 };
 }  // namespace App
