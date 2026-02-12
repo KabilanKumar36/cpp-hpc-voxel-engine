@@ -5,16 +5,15 @@
 #include "../src/world/Chunk.h"
 #include <iostream>
 
-void error_callback(int iError, const char* pcMsg){
+static void error_callback(int iError, const char* pcMsg){
 		std::cerr << "GLFW Error [" << iError << "]: " << pcMsg << std::endl;
 	}
 
 class OpenGLEnv : public ::testing::Environment{
 public:
-	GLFWwindow* pWindow;
-	
-	void SetUp() override {
+    GLFWwindow* pWindow = nullptr;
 
+	void SetUp() override {
 		glfwSetErrorCallback(error_callback);
 
 		if (!glfwInit()) {
@@ -40,6 +39,7 @@ public:
 			pWindow = glfwCreateWindow(640, 480, "Hidden test window", NULL, NULL);
 			if (!pWindow) {
 				std::cerr << "FATAL: Failed to create GLFW Window for unit tests." << std::endl;
+                glfwTerminate();
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -47,12 +47,16 @@ public:
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			std::cerr << "FATAL: Failed to load GLAD for unit tests." << std::endl;
+            glfwDestroyWindow(pWindow);
+            pWindow = nullptr;
+            glfwTerminate();
 			exit(EXIT_FAILURE);
 		}
 	}
 
 	void TearDown() override {
-		glfwDestroyWindow(pWindow);
+        glfwDestroyWindow(pWindow);
+        pWindow = nullptr;
 		glfwTerminate();
 	}
 };
