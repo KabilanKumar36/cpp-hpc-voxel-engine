@@ -10,7 +10,7 @@ class Player {
 public:
     Player(const Core::Vec3& objStartPos);
 
-    void Update(float fDeltaTime, const ChunkManager& objChunkManager, bool bZeroGravity = false);
+    void Update(float fDeltaTime, const ChunkManager& objChunkManager, bool bFlyMode = false);
 
     void ProcessKeyboard(MovementDirection iDir, float fDeltaTime, bool bFlyMode = false);
     void ProcessMouseMovement(float fOffset, float fYOffset, bool bConstraintPitch = true);

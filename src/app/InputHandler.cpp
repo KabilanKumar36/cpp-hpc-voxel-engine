@@ -14,7 +14,7 @@ InputHandler::InputHandler(const Core::Vec3& objStartPos) : m_objCameraPos(objSt
 //*********************************************************************
 void InputHandler::UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager) {
     if (m_pPlayer && m_bPerspective) {
-        m_pPlayer->Update(fDeltaTime, objChunkManager, m_bZeroGravity);
+        m_pPlayer->Update(fDeltaTime, objChunkManager, m_bFlyMode);
     }
 }
 //*********************************************************************

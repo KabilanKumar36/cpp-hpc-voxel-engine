@@ -36,7 +36,7 @@ public:
         if (m_pPlayer)
             m_pPlayer->SetMovementSpeed(fMoveSpeed);
     }
-    void SetZeroGravity(bool bZeroGravity) { m_bZeroGravity = bZeroGravity; }
+    void SetFlyMode(bool bFlyMode) { m_bFlyMode = bFlyMode; }
     unsigned int GetScreenWidth() const { return SCREEN_WIDTH; }
     unsigned int GetScreenHeight() const { return SCREEN_HEIGHT; }
 
@@ -62,6 +62,6 @@ private:
     bool m_bEnableFaceCulling = false;
     bool m_bPerspective = true;
     bool m_bLMBClickedFirstTime = false;
-    bool m_bZeroGravity = false;
+    bool m_bFlyMode = false;
 };
 }  // namespace App

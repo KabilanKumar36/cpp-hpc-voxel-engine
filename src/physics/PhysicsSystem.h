@@ -30,11 +30,10 @@ public:
     static void Update(RigidBody& objRigidBody,
                        float fDeltaTime,
                        const ChunkManager& objChunkManager,
-                       bool bZeroGravity = false) {
+                       bool bFlyMode = false) {
         float fGravity = -20.0f;
         const float fFriction = 10.0f;
-        if (bZeroGravity)
-            fGravity = 0.0f;
+
         objRigidBody.m_ObjVelocity.x =
             Lerp(objRigidBody.m_ObjVelocity.x, 0.0f, fFriction * fDeltaTime);
         objRigidBody.m_ObjVelocity.y += fGravity * fDeltaTime;
@@ -50,14 +49,15 @@ public:
                 objRigidBody.m_ObjPos.x = newPos.x;
         }
 
-        if (objRigidBody.m_ObjVelocity.y != 0.0f) {
+        if (!bFlyMode && objRigidBody.m_ObjVelocity.y != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
             newPos.y += objRigidBody.m_ObjVelocity.y * fDeltaTime;
             if (CheckCollision(objRigidBody.GetAABB(newPos), objChunkManager)) {
                 objRigidBody.m_ObjVelocity.y = 0.0f;
             } else
                 objRigidBody.m_ObjPos.y = newPos.y;
-        }
+        } else
+            objRigidBody.m_ObjPos.y = 22.0f;
 
         if (objRigidBody.m_ObjVelocity.z != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
@@ -142,7 +142,9 @@ public:
                 int iLocalX = iMapX - (iChunkX * CHUNK_SIZE);
                 int iLocalZ = iMapZ - (iChunkZ * CHUNK_SIZE);
                 uint8_t uiBlockType = pChunk->GetBlockAt(iLocalX, iMapY, iLocalZ);
-                if (uiBlockType != 0 && uiBlockType != 3) {
+                if (uiBlockType == 3)
+                    return hitResult;
+                if (uiBlockType != 0) {
                     hitResult.m_bHit = true;
                     if (iLastAxis == 0)
                         hitResult.m_fDistance = fSideDistX - fDeltaX;

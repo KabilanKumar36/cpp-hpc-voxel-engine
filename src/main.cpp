@@ -131,11 +131,11 @@ int main() {
                     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                 }
             }
-            if (ImGui::Checkbox("Zero Gravity", &bFlyMode)) {
+            if (ImGui::Checkbox("Fly Mode", &bFlyMode)) {
                 if (bFlyMode)
-                    inputHandler.SetZeroGravity(bFlyMode);
+                    inputHandler.SetFlyMode(bFlyMode);
                 else
-                    inputHandler.SetZeroGravity(bFlyMode);
+                    inputHandler.SetFlyMode(bFlyMode);
             }
 
             static float fFlySpeed = 20.0f;
