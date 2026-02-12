@@ -88,9 +88,9 @@ void Chunk::updateBuffers() {
 //*********************************************************************
 void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockType) {
     unsigned int iStartIndex = static_cast<unsigned int>(m_vec_fVertices.size()) / 5;
-    float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
+    float fX = static_cast<float>(iX) + static_cast<float>(CHUNK_SIZE * m_iChunkX);
     float fY = static_cast<float>(iY);
-    float fZ = static_cast<float>(iZ) + (CHUNK_SIZE * m_iChunkZ);
+    float fZ = static_cast<float>(iZ) + static_cast<float>(CHUNK_SIZE * m_iChunkZ);
 
     int iAtlasCol = 10, iAtlasRow = 8;
     if (iBlockType == 1)  // Grass
@@ -125,8 +125,8 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockT
         iAtlasRow = 0;
     }
     float fSlotSize = 1.0f / 16.0f;
-    float u0 = iAtlasCol * fSlotSize;
-    float v1 = iAtlasRow * fSlotSize;
+    float u0 = static_cast<float>(iAtlasCol * fSlotSize);
+    float v1 = static_cast<float>(iAtlasRow * fSlotSize);
     float u1 = u0 + fSlotSize;
     float v0 = v1 + fSlotSize;
 
