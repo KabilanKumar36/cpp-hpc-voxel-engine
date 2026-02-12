@@ -167,7 +167,7 @@ Core::Mat4 InputHandler::GetViewProjectionMatrix() {
 void InputHandler::UpdateTitleInfo(GLFWwindow* pWindow) const {
     if (!pWindow)
         return;
-    int iFPS = static_cast<int>(m_iFrameCount / m_fTimer);
+    int iFPS = static_cast<int>(static_cast<float>(m_iFrameCount) / m_fTimer);
     std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
     if (m_bEnableFaceCulling)
         strTitle += "\tFace Culling Enabled (Press 'F' key to toogle)";

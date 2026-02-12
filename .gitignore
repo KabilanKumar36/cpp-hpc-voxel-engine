@@ -31,7 +31,13 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.ninja
+install_manifest.txt
+
+# BLOCK the old VS Config (We use Presets now)
 CMakeSettings.json
+
+# ALLOW the new Standard Config
+!CMakePresets.json
 
 # =========================
 # Visual Studio (IDE)

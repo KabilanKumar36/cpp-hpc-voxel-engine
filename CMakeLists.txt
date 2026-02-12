@@ -133,7 +133,9 @@ list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
 set(VENDOR_SOURCES "vendor/stb_image.cpp")
 add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
-target_include_directories(VoxelCore PUBLIC src "${CMAKE_SOURCE_DIR}/vendor")
+target_include_directories(VoxelCore PUBLIC src )
+# To exclude vendor library for strict check of Warnings
+target_include_directories(VoxelCore SYSTEM PUBLIC "${CMAKE_SOURCE_DIR}/vendor")
 # Link OpenGL dependencies to the Core so Chunk.cpp can use them
 target_link_libraries(VoxelCore PUBLIC glad glfw imgui) 
 set_strict_warnings(VoxelCore)
