@@ -125,8 +125,8 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockT
         iAtlasRow = 0;
     }
     float fSlotSize = 1.0f / 16.0f;
-    float u0 = static_cast<float>(iAtlasCol * fSlotSize);
-    float v1 = static_cast<float>(iAtlasRow * fSlotSize);
+    float u0 = static_cast<float>(iAtlasCol) * fSlotSize;
+    float v1 = static_cast<float>(iAtlasRow) * fSlotSize;
     float u1 = u0 + fSlotSize;
     float v0 = v1 + fSlotSize;
 
