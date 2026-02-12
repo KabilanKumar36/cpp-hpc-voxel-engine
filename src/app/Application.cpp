@@ -4,16 +4,15 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
-
 //*********************************************************************
-Application::Application(GLFWwindow* pWindow) : m_pWindow(pWindow) {
-}
+Application::Application(GLFWwindow* pWindow) : m_pWindow(pWindow) {}
 //*********************************************************************
-void Application::InitImGUI()  {
+void Application::InitImGUI() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
 
-    ImGuiIO &IO = ImGui::GetIO(); (void)IO;
+    ImGuiIO& IO = ImGui::GetIO();
+    (void)IO;
 
     IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -22,7 +21,6 @@ void Application::InitImGUI()  {
 
     ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
     ImGui_ImplOpenGL3_Init("#version 460");
-
 }
 //*********************************************************************
 void Application::ShutDownImGUI() {
