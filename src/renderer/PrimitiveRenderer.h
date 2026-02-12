@@ -10,8 +10,8 @@ namespace Renderer {
 class PrimitiveRenderer {
 public:
     static void Init() {
-        m_pPrimitiveShader = new Shader("../assets/shaders/vertex_SimpleDebug.glsl",
-                                        "../assets/shaders/fragment_SimpleDebug.glsl");
+        m_pPrimitiveShader = new Shader("assets/shaders/vertex_SimpleDebug.glsl",
+                                        "assets/shaders/fragment_SimpleDebug.glsl");
         std::vector<float> cubeVertices = {
             0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0,
             0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 0,

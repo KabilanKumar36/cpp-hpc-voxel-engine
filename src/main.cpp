@@ -66,13 +66,13 @@ int main() {
     std::cout << "GPU Renderer: " << vendor << std::endl;
     std::cout << "Renderer: " << renderer << std::endl;
 
-    Renderer::Shader shader("../assets/shaders/vertex.glsl", "../assets/shaders/fragment.glsl");
+    Renderer::Shader shader("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
     Renderer::PrimitiveRenderer::Init();
     SetOpenGLState();
 
     shader.Use();
     shader.SetInt("u_Texture", 0);
-    Renderer::Texture texture("../assets/textures/texture_atlas.png");
+    Renderer::Texture texture("assets/textures/texture_atlas.png");
     texture.Bind(0);
 
     ChunkManager objChunkManager;

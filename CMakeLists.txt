@@ -28,9 +28,13 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #Output Directories
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURE_TYPES)
+    message("No build types selected, defaulting to Debug")
+    set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build type (Debug, Release)" FORCE)
+endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/${CMAKE_BUILD_TYPE})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib/${CMAKE_BUILD_TYPE})
 
 #Download to a permanent folder in your project root
 set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/external_cache")
@@ -175,3 +179,13 @@ set_strict_warnings(unit_tests)
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
+
+# --------------------------------------------------------
+# 5. Asset copying to bin
+# --------------------------------------------------------
+
+add_custom_command(TARGET VoxelEngine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    "${CMAKE_SOURCE_DIR}/assets"
+    "$<TARGET_FILE_DIR:VoxelEngine>/assets"
+    COMMENT "Copying assets to output directory...")
