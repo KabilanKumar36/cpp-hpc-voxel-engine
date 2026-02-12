@@ -133,6 +133,12 @@ list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
 set(VENDOR_SOURCES "vendor/stb_image.cpp")
 add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
+if(MSVC)
+    set_source_files_properties(${VENDOR_SOURCES} PROPERTIES COMPILE_OPTIONS /w)
+else()
+    set_source_files_properties(${VENDOR_SOURCES} PROPERTIES COMPILE_OPTIONS -w)
+endif()
+
 target_include_directories(VoxelCore PUBLIC src )
 # To exclude vendor library for strict check of Warnings
 target_include_directories(VoxelCore SYSTEM PUBLIC "${CMAKE_SOURCE_DIR}/vendor")
