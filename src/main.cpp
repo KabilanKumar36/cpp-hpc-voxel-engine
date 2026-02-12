@@ -85,6 +85,8 @@ int main() {
 
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;
+        if (fDeltaTime > 0.1f)
+            fDeltaTime = 0.1f;
         fLastFrame = fCurrentFrame;
         Core::Vec3 objCameraPos = inputHandler.GetCamera().GetCameraPosition();
         objChunkManager.Update(objCameraPos.x, objCameraPos.z);

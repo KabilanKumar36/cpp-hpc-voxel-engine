@@ -6,11 +6,26 @@ LANGUAGES CXX C
 )
 
 # --------------------------------------------------------
-# Global Settings
+# 1. Global Hardening
+# --------------------------------------------------------
+option(ENABLE_ASAN "Enable AddressSanitizer for memory safety" ON)
+
+if(ENABLE_ASAN)
+    if(MSVC)
+        add_compile_options(/fsanitize=address)
+        add_link_options(/INCREMENTAL:NO)
+    else()
+        add_compile_options(-fsanitize=address -g)
+        add_link_options(-fsanitize=address)
+    endif()
+endif()
+# --------------------------------------------------------
+# 2. Global Settings
 # --------------------------------------------------------
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 #Output Directories
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
@@ -24,7 +39,7 @@ set(FETCHCONTENT_UPDATES_DISCONNECTED ON)
 include(FetchContent)
 
 # --------------------------------------------------------
-# 1. Dependencies
+# 3. Dependencies
 # --------------------------------------------------------
 
 # --- GLFW ---
@@ -43,7 +58,7 @@ FetchContent_MakeAvailable(glfw)
 # --- GLAD ---
 # We treat GLAD as a static library
 add_library(glad STATIC "external/glad/src/glad.c")
-target_include_directories(glad PUBLIC "external/glad/include")
+target_include_directories(glad SYSTEM PUBLIC "external/glad/include")
 
 # --- ImGUI ---
 message(STATUS "Downloading and configuring ImGUI...")
@@ -65,7 +80,7 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/imgui_demo.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
-target_include_directories(imgui PUBLIC 
+target_include_directories(imgui SYSTEM PUBLIC 
    ${imgui_SOURCE_DIR}
    ${imgui_SOURCE_DIR}/backends
 )
@@ -83,7 +98,33 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 
 # --------------------------------------------------------
-# 2. VoxelCore Library (Shared Logic)
+# 4. STRICT WARNINGS & SANITIZERS
+# --------------------------------------------------------
+function(set_strict_warnings target_name)
+    if(MSVC)
+        # Windows (Visual Studio)
+        target_compile_options(${target_name} PRIVATE
+            /W4       # Warning Level 4 (High)
+            /WX       # Treat Warnings as Errors
+            /permissive- # Enforce strict standards conformance
+            /D_CRT_SECURE_NO_WARNINGS # Optional: Silence C-style safety warnings if needed
+            /MP # Multi processor compilation
+        )
+    else()
+        # Linux / macOS (GCC / Clang)
+        target_compile_options(${target_name} PUBLIC
+            -Wall
+            -Wextra
+            -Wpedantic
+            -Werror   # The specific flag that fails build on warning
+            -Wshadow
+            -Wconversion
+        )
+    endif()
+endfunction()
+
+# --------------------------------------------------------
+# 5. VoxelCore Library (Shared Logic)
 # --------------------------------------------------------
 # Gather all source files EXCEPT main.cpp. 
 # This allows us to share the engine code between the Game and the Tests.
@@ -95,16 +136,18 @@ add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
 target_include_directories(VoxelCore PUBLIC src "${CMAKE_SOURCE_DIR}/vendor")
 # Link OpenGL dependencies to the Core so Chunk.cpp can use them
 target_link_libraries(VoxelCore PUBLIC glad glfw imgui) 
+set_strict_warnings(VoxelCore)
 
 # --------------------------------------------------------
-# 3. Main Executable
+# 6. Main Executable
 # --------------------------------------------------------
 # Make sure your main file is listed here
 add_executable(VoxelEngine "src/main.cpp") 
 target_link_libraries(VoxelEngine PRIVATE VoxelCore)
+set_strict_warnings(VoxelEngine)
 
 # --------------------------------------------------------
-# 4. Unit Tests
+# 5. Unit Tests
 # --------------------------------------------------------
 enable_testing()
 
@@ -120,23 +163,7 @@ target_link_libraries(unit_tests
     VoxelCore 
     GTest::gtest
 )
+set_strict_warnings(unit_tests)
 
 include(GoogleTest)
 gtest_discover_tests(unit_tests)
-if(MSVC)
-    # Windows (Visual Studio)
-    target_compile_options(VoxelCore PUBLIC
-        /W4       # Warning Level 4 (High)
-        /WX       # Treat Warnings as Errors
-        /permissive- # Enforce strict standards conformance
-        /D_CRT_SECURE_NO_WARNINGS # Optional: Silence C-style safety warnings if needed
-    )
-else()
-    # Linux / macOS (GCC / Clang)
-    target_compile_options(VoxelCore PUBLIC
-        -Wall
-        -Wextra
-        -Wpedantic
-        -Werror   # The specific flag that fails build on warning
-    )
-endif()     
