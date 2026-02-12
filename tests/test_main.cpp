@@ -2,10 +2,17 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <gtest/gtest.h>
+#include <sanitizer/lsan_interface.h>
 #include "../src/world/Chunk.h"
 #include <iostream>
 
-static void error_callback(int iError, const char* pcMsg){
+// CI envirounments (xvfb / mesa) often leak GLX configurations.
+extern "C" const char* __lsan_default_suppressions() {
+    return "leak:_glfwInitGLX\n"
+		"leak:exetensionSupportedGLX\n"
+		"leak:glX\n"; //Catch all other GLX Driver leaks
+}
+static void error_callback(int iError, const char* pcMsg) {
 		std::cerr << "GLFW Error [" << iError << "]: " << pcMsg << std::endl;
 	}
 
