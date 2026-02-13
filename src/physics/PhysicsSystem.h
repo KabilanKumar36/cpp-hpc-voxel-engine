@@ -13,6 +13,7 @@ public:
     Core::Vec3 m_ObjPos;
     Core::Vec3 m_ObjVelocity;
     Core::Vec3 m_ObjSize;  // Half extents of (Width/2, Height/2, Length/2)
+    bool m_bIsGrounded{false};
 
     AABB GetAABB(const Core::Vec3& newPos) const {
         return AABB(newPos - m_ObjSize, newPos + m_ObjSize);
@@ -33,12 +34,19 @@ public:
                        bool bFlyMode = false) {
         float fGravity = -20.0f;
         const float fFriction = 10.0f;
+        const float fAirDrag = 1.0f;
+        float fCurrentFriction = fAirDrag;
+        if (objRigidBody.m_bIsGrounded) {
+            fCurrentFriction = fFriction;
+            objRigidBody.m_bIsGrounded = false;
+        }
+        float fAlpha = fCurrentFriction * fDeltaTime;
+        if (fAlpha > 1.0f)
+            fAlpha = 1.0f;
 
-        objRigidBody.m_ObjVelocity.x =
-            Lerp(objRigidBody.m_ObjVelocity.x, 0.0f, fFriction * fDeltaTime);
+        objRigidBody.m_ObjVelocity.x = Lerp(objRigidBody.m_ObjVelocity.x, 0.0f, fAlpha);
         objRigidBody.m_ObjVelocity.y += fGravity * fDeltaTime;
-        objRigidBody.m_ObjVelocity.z =
-            Lerp(objRigidBody.m_ObjVelocity.z, 0.0f, fFriction * fDeltaTime);
+        objRigidBody.m_ObjVelocity.z = Lerp(objRigidBody.m_ObjVelocity.z, 0.0f, fAlpha);
 
         if (objRigidBody.m_ObjVelocity.x != 0.0f) {
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
@@ -53,6 +61,8 @@ public:
             Core::Vec3 newPos = objRigidBody.m_ObjPos;
             newPos.y += objRigidBody.m_ObjVelocity.y * fDeltaTime;
             if (CheckCollision(objRigidBody.GetAABB(newPos), objChunkManager)) {
+                if (objRigidBody.m_ObjVelocity.y < 0.0f)
+                    objRigidBody.m_bIsGrounded = true;
                 objRigidBody.m_ObjVelocity.y = 0.0f;
             } else
                 objRigidBody.m_ObjPos.y = newPos.y;
