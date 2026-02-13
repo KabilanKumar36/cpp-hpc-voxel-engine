@@ -62,6 +62,7 @@ private:
     bool m_bEnableFaceCulling = false;
     bool m_bPerspective = true;
     bool m_bLMBClickedFirstTime = false;
+    bool m_bRMBClickedFirstTime = false;
     bool m_bFlyMode = false;
 };
 }  // namespace App

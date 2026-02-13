@@ -144,6 +144,16 @@ RayHit InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
             }
         } else
             m_bLMBClickedFirstTime = true;
+        if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+            if (m_bRMBClickedFirstTime && objRayHit.m_bHit) {
+                int iBlockX = objRayHit.m_iBlocKX + static_cast<int>(objRayHit.m_objNormal.x);
+                int iBlockY = objRayHit.m_iBlocKY + static_cast<int>(objRayHit.m_objNormal.y);
+                int iBlockZ = objRayHit.m_iBlocKZ + static_cast<int>(objRayHit.m_objNormal.z);
+                objChunkManager.SetBlock(iBlockX, iBlockY, iBlockZ, 1);
+                m_bRMBClickedFirstTime = false;
+            }
+        } else
+            m_bRMBClickedFirstTime = true;
 
         glEnable(GL_DEPTH_TEST);
     }

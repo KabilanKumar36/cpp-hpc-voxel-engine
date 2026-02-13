@@ -263,7 +263,7 @@ void Chunk::ReconstructMesh() {
     m_vec_uiIndices.clear();
     for (int iX = 0; iX < CHUNK_SIZE; iX++) {
         for (int iZ = 0; iZ < CHUNK_SIZE; iZ++) {
-            for (int iY = 0; iY <= m_iHeightData[iX][iZ]; iY++) {
+            for (int iY = 0; iY < CHUNK_HEIGHT; iY++) {
                 int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
                 if (iIndex == -1)
                     continue;

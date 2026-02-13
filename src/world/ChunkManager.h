@@ -74,6 +74,11 @@ public:
         }
     }
     void SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBlockType) {
+        if (iWorldY < 0 || iWorldY >= CHUNK_HEIGHT) {
+            std::cout << "Cannot place block above: Height limit reached." << iWorldY << std::endl;
+            return;
+        }
+
         int iChunkX = static_cast<int>(std::floor(static_cast<float>(iWorldX) / CHUNK_SIZE));
         int iChunkZ = static_cast<int>(std::floor(static_cast<float>(iWorldZ) / CHUNK_SIZE));
 
@@ -81,19 +86,25 @@ public:
         if (!pChunk)
             return;
 
-        int iLocalX = iWorldX % 16;
+        int iLocalX = iWorldX % CHUNK_SIZE;
         int iLocalY = iWorldY;
-        int iLocalZ = iWorldZ % 16;
+        int iLocalZ = iWorldZ % CHUNK_SIZE;
 
         if (iLocalX < 0)
-            iLocalX += 16;
+            iLocalX += CHUNK_SIZE;
 
         if (iLocalZ < 0)
-            iLocalZ += 16;
+            iLocalZ += CHUNK_SIZE;
         pChunk->SetBlockAt(iLocalX, iLocalY, iLocalZ, iBlockType);
         pChunk->ReconstructMesh();
         pChunk->UploadMesh();
-
+        if (iBlockType != 0) {
+            int iBelowY = iLocalY - 1;
+            uint8_t iBelowBlockType = pChunk->GetBlockAt(iLocalX, iBelowY, iLocalZ);
+            if (iBelowBlockType == 1) {
+                pChunk->SetBlockAt(iLocalX, iBelowY, iLocalZ, 2);
+            }
+        }
         if (iLocalX == 0) {
             Chunk* pWest = GetChunk(iChunkX - 1, iChunkZ);
             if (pWest) {
