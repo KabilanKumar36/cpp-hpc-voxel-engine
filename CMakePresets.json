@@ -7,40 +7,56 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/${presetName}",
       "installDir": "${sourceDir}/out/install/${presetName}",
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
-      },
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
         "rhs": "Windows"
       }
     },
+
     {
-      "name": "x64-Debug",
-      "displayName": "x64 Debug (ASan On)",
+      "name": "windows-msvc-debug",
+      "displayName": "Windows MSVC Debug",
       "inherits": "windows-base",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
       "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_BUILD_TYPE": "Debug",
-        "ENABLE_ASAN": "ON" // <--- SAFETY ON
+        "ENABLE_ASAN": "ON"
       }
     },
     {
-      "name": "x64-Release",
-      "displayName": "x64 Release (Max Speed)",
+      "name": "windows-msvc-release",
+      "displayName": "Windows MSVC Release",
       "inherits": "windows-base",
-      "architecture": {
-        "value": "x64",
-        "strategy": "external"
-      },
       "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe",
         "CMAKE_BUILD_TYPE": "Release",
-        "ENABLE_ASAN": "OFF" // <--- SAFETY OFF for Performance
+        "ENABLE_ASAN": "OFF"
+      }
+    },
+    
+    {
+      "name": "windows-mingw-debug",
+      "displayName": "Windows MinGW Debug",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc.exe",
+        "CMAKE_CXX_COMPILER": "g++.exe",
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_ASAN": "OFF"
+      }
+    },
+    {
+      "name": "windows-mingw-release",
+      "displayName": "Windows MinGW Release",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc.exe",
+        "CMAKE_CXX_COMPILER": "g++.exe",
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_ASAN": "OFF"
       }
     }
   ]

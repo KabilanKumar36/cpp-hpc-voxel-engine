@@ -10,11 +10,11 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            // We set CWD to the project root 'bin' folder so assets load correctly
-            "cwd": "${workspaceFolder}/bin/",
+            "cwd": "${command:cmake.getLaunchTargetDirectory}",
             "environment": [],
             // Do NOT use "console": "externalTerminal" (that is for MSVC only)
             "externalConsole": true,
+            "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
