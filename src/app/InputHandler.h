@@ -23,8 +23,8 @@ public:
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 
-    bool IsEnableFaceCulling() const { return m_bEnableFaceCulling; }
-    void SetEnableFaceCulling(bool bValue) { m_bEnableFaceCulling = bValue; }
+    bool IsCullingEnabled() const { return m_bCullingEnabled; }
+    void SetCullingEnable(bool bValue) { m_bCullingEnabled = bValue; }
     bool IsPerspective() const { return m_bPerspective; }
     void SetPerspective(bool bValue) { m_bPerspective = bValue; }
     bool IsLMBClickedFirstTime() const { return m_bLMBClickedFirstTime; }
@@ -59,7 +59,7 @@ private:
     const unsigned int SCREEN_WIDTH = 1280;
     const unsigned int SCREEN_HEIGHT = 720;
 
-    bool m_bEnableFaceCulling = false;
+    bool m_bCullingEnabled = false;
     bool m_bPerspective = true;
     bool m_bLMBClickedFirstTime = false;
     bool m_bRMBClickedFirstTime = false;

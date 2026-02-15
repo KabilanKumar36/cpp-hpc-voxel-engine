@@ -33,7 +33,7 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
         UpdateTitleInfo(pWindow);
     }
     if (inputs.IsKeyJustPressed(GLFW_KEY_F)) {
-        m_bEnableFaceCulling = !m_bEnableFaceCulling;
+        m_bCullingEnabled = !m_bCullingEnabled;
         UpdateTitleInfo(pWindow);
     }
 
@@ -179,10 +179,10 @@ void InputHandler::UpdateTitleInfo(GLFWwindow* pWindow) const {
         return;
     int iFPS = static_cast<int>(static_cast<float>(m_iFrameCount) / m_fTimer);
     std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
-    if (m_bEnableFaceCulling)
-        strTitle += "\tFace Culling Enabled (Press 'F' key to toogle)";
+    if (m_bCullingEnabled)
+        strTitle += "\tCulling Enabled (Press 'F' key to toogle)";
     else
-        strTitle += "\tFace Culling Disabled (Press 'F' key to toogle)";
+        strTitle += "\tCulling Disabled (Press 'F' key to toogle)";
 
     if (m_bPerspective)
         strTitle += "\tPerspective Projection (Press 'P' key to toggle)";

@@ -112,7 +112,8 @@ int main() {
             inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
 
         Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
-        Renderer::WorldRenderer::DrawChunks(objChunkManager, shader, viewProjection);
+        Renderer::WorldRenderer::DrawChunks(
+            objChunkManager, shader, viewProjection, inputHandler.IsCullingEnabled());
         Renderer::WorldRenderer::DrawAxes(viewProjection);
 
         RayHit objRayHit = inputHandler.processFirePreviewAndFire(objChunkManager, viewProjection);

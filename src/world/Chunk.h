@@ -2,6 +2,7 @@
 #include <FastNoiseLite.h>
 #include <cstdlib>
 #include <vector>
+#include "../physics/AABB.h"
 #include "../renderer/Buffer.h"
 #include "../renderer/IndexBuffer.h"
 #include "../renderer/VertexArray.h"
@@ -46,6 +47,24 @@ public:
     [[nodiscard]] int GetChunkZ() const { return m_iChunkZ; }
     [[nodiscard]] bool GetFaceCulling() const { return m_bEnableFaceCulling; }
 
+    AABB GetAABB() const {
+        float fWorldX = static_cast<float>(m_iChunkX * CHUNK_SIZE);
+        float fWorldZ = static_cast<float>(m_iChunkZ * CHUNK_SIZE);
+        int iMinHeight = CHUNK_HEIGHT, iMaxHeight = 0;
+        for (int iX = 0; iX < CHUNK_SIZE; iX++) {
+            for (int iZ = 0; iZ < CHUNK_SIZE; iZ++) {
+                int iHeight = m_iHeightData[iX][iZ];
+                if (iHeight < iMinHeight)
+                    iMinHeight = iHeight;
+                if (iHeight > iMaxHeight)
+                    iMaxHeight = iHeight;
+            }
+        }
+        float fMinHeight = static_cast<float>(iMinHeight);
+        float fMaxHeight = static_cast<float>(iMaxHeight + 1);
+        return AABB(Core::Vec3(fWorldX, fMinHeight, fWorldZ),
+                    Core::Vec3(fWorldX + CHUNK_SIZE, fMaxHeight, fWorldZ + CHUNK_SIZE));
+    }
     void Render() const;
     void SetFaceCulling(bool bOpt) { m_bEnableFaceCulling = bOpt; }
     [[nodiscard]] inline int GetFlatIndexOf3DLayer(int iX, int iY, int iZ) const {

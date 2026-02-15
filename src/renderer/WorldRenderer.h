@@ -4,6 +4,7 @@
 #include "../physics/PhysicsSystem.h"
 #include "../world/Chunk.h"
 #include "../world/ChunkManager.h"
+#include "Frustrum.h"
 #include "PrimitiveRenderer.h"
 #include "Shader.h"
 #include "glad/glad.h"
@@ -30,10 +31,16 @@ public:
 
     static inline void DrawChunks(ChunkManager &objChunkManager,
                                   Renderer::Shader &shader,
-                                  const Core::Mat4 &objViewProjection) {
+                                  const Core::Mat4 &objViewProjection,
+                                  bool bEnableFaceCulling = false) {
         shader.Use();
         shader.SetMat4("uViewProjection", objViewProjection);
+        Frustrum objFrustrum;
+        objFrustrum.Update(objViewProjection);
         for (const auto &[Coords, objChunk] : objChunkManager.GetMutableChunks()) {
+            if (bEnableFaceCulling && !objFrustrum.IsBoxInVisibleFrustrum(objChunk.GetAABB())) {
+                continue;
+            }
             objChunk.Render();
         }
     }
