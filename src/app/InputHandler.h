@@ -8,13 +8,14 @@
 
 #include "../core/camera.h"
 #include "../world/Chunk.h"
+#include "../world/ChunkManager.h"
 #include "../world/Player.h"
 
 namespace App {
 class InputHandler {
 public:
     InputHandler(const Core::Vec3& ObjStartPos);
-    void ProcessInput(GLFWwindow* pWindow, float fDeltaTime);
+    void ProcessInput(GLFWwindow* pWindow, ChunkManager& objChunkManager, float fDeltaTime);
     void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
 
     void UpdateTitleInfo(GLFWwindow* pWindow) const;
@@ -61,6 +62,7 @@ private:
 
     bool m_bCullingEnabled = false;
     bool m_bPerspective = true;
+    bool m_bEscClickedFirstTime = false;
     bool m_bLMBClickedFirstTime = false;
     bool m_bRMBClickedFirstTime = false;
     bool m_bFlyMode = false;

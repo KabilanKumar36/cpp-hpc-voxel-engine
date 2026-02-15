@@ -74,8 +74,8 @@ int main() {
     shader.SetInt("u_Texture", 0);
     Renderer::Texture texture("assets/textures/texture_atlas.png");
     texture.Bind(0);
-
-    ChunkManager objChunkManager;
+    std::string strRegnFilePath = "ChunkData";
+    ChunkManager objChunkManager(strRegnFilePath);
     float fLastFrame = static_cast<float>(glfwGetTime());
     static bool bFlyMode = false;
 
@@ -103,7 +103,7 @@ int main() {
         glfwPollEvents();
         App.HandleUIToggle();
         if (!App.m_bIsUIActive) {
-            inputHandler.ProcessInput(pWindow, fDeltaTime);
+            inputHandler.ProcessInput(pWindow, objChunkManager, fDeltaTime);
         }
 
         if (objChunkManager.GetMutableChunks().empty())

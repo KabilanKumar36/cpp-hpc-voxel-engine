@@ -6,14 +6,16 @@
 #include <mutex>
 #include <optional>
 #include <set>
+#include <string>
 #include "../core/ThreadPool.h"
 #include "../core/ThreadSafeQueue.h"
 #include "Chunk.h"
+#include "RegionManager.h"
 
 class ChunkManager {
 public:
-    ChunkManager() = default;
-
+    ChunkManager() = delete;
+    ChunkManager(std::string& strFolderPath) : m_objRegionManager(strFolderPath) {}
     void Update(float fPlayerX, float fPlayerZ) {
         std::optional<Chunk> optChunk;
         while ((optChunk = m_objFinishedQueue.try_pop()).has_value()) {
@@ -137,6 +139,13 @@ public:
             }
         }
     }
+    void SaveWorld() {
+        std::cout << "Saving world..." << std::endl;
+        for (auto& pair : m_mapChunks) {
+            Chunk& objChunk = pair.second;
+            m_objRegionManager.SaveChunk(objChunk);
+        }
+    }
     Chunk* GetChunk(int iX, int iZ) {
         auto itr = m_mapChunks.find({iX, iZ});
         if (itr != m_mapChunks.end()) {
@@ -162,7 +171,7 @@ private:
         }
         m_objThreadPool.submit([this, iX, iZ]() {
             Chunk objChunk(iX, iZ);
-            // objChunk.ReconstructMesh();
+            m_objRegionManager.LoadChunk(objChunk);
             m_objFinishedQueue.push(std::move(objChunk));
         });
     }
@@ -196,6 +205,8 @@ private:
     std::map<std::pair<int, int>, Chunk> m_mapChunks;
     std::set<std::pair<int, int>> m_setPendingCoords;
     std::mutex m_mutexPending;
+
+    RegionManager m_objRegionManager;
 
     Core::ThreadSafeQueue<Chunk> m_objFinishedQueue;  // Destroyed Last
     Core::ThreadPool m_objThreadPool;                 // Destroyed first

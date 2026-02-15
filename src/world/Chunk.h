@@ -118,6 +118,11 @@ public:
     void UploadMesh();
     bool IsValid() const { return m_pVAO != nullptr; }
     void SetNeighbours(Direction iDir, Chunk* pChunk) { m_pNeighbours[iDir] = pChunk; }
+    const uint8_t* GetBlockData() const { return m_iBlocks; }
+    void SetBlockData(const uint8_t* iBlocks) {
+        if (iBlocks)
+            memcpy(m_iBlocks, iBlocks, CHUNK_VOL * sizeof(uint8_t));
+    }
 
 private:
     std::vector<float> m_vec_fVertices;

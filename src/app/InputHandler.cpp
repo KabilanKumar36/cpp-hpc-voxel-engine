@@ -18,11 +18,18 @@ void InputHandler::UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& obj
     }
 }
 //*********************************************************************
-void InputHandler::ProcessInput(GLFWwindow* pWindow, float fDeltaTime) {
+void InputHandler::ProcessInput(GLFWwindow* pWindow,
+                                ChunkManager& objChunkManager,
+                                float fDeltaTime) {
     InputManager& inputs = InputManager::GetInstance();
 
-    if (inputs.IsKeyPressed(GLFW_KEY_ESCAPE))
+    if (inputs.IsKeyPressed(GLFW_KEY_ESCAPE)) {
+        if (!m_bEscClickedFirstTime) {
+            objChunkManager.SaveWorld();
+        }
+        m_bEscClickedFirstTime = true;
         glfwSetWindowShouldClose(pWindow, true);
+    }
     if (inputs.IsKeyJustPressed(GLFW_KEY_P)) {
         m_bPerspective = !m_bPerspective;
         if (m_bPerspective)
