@@ -223,9 +223,9 @@ void Chunk::ReconstructMesh() {
 void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockType) {
     unsigned int iStartIndex = static_cast<unsigned int>(m_vec_fVertices.size()) / 5;
 
-    float fX = static_cast<float>(iX) + (CHUNK_SIZE * m_iChunkX);
+    float fX = static_cast<float>(iX) + (CHUNK_SIZE * static_cast<float>(m_iChunkX));
     float fY = static_cast<float>(iY);
-    float fZ = static_cast<float>(iZ) + (CHUNK_SIZE * m_iChunkZ);
+    float fZ = static_cast<float>(iZ) + (CHUNK_SIZE * static_cast<float>(m_iChunkZ));
 
     // Texture Atlas Calculations
     int iAtlasCol = 0, iAtlasRow = 0;
@@ -253,8 +253,8 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockT
     }
 
     float fSlotSize = 1.0f / 16.0f;  // Assuming 16x16 Texture Atlas
-    float u0 = iAtlasCol * fSlotSize;
-    float v1 = iAtlasRow * fSlotSize;
+    float u0 = static_cast<float>(iAtlasCol) * fSlotSize;
+    float v1 = static_cast<float>(iAtlasRow) * fSlotSize;
     float u1 = u0 + fSlotSize;
     float v0 = v1 + fSlotSize;
 

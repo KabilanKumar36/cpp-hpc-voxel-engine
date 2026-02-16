@@ -140,9 +140,9 @@ RayHit PhysicsSystem::RayCast(const Core::Ray& objRay,
     float fDeltaY = safeInv(objRay.m_objDirection.y);
     float fDeltaZ = safeInv(objRay.m_objDirection.z);
 
-    float fSideDistX = (iStepX < 0) ? (fX - iMapX) * fDeltaX : (iMapX + 1.0f - fX) * fDeltaX;
-    float fSideDistY = (iStepY < 0) ? (fY - iMapY) * fDeltaY : (iMapY + 1.0f - fY) * fDeltaY;
-    float fSideDistZ = (iStepZ < 0) ? (fZ - iMapZ) * fDeltaZ : (iMapZ + 1.0f - fZ) * fDeltaZ;
+    float fSideDistX = (iStepX < 0) ? (fX - static_cast<float>(iMapX) )* fDeltaX : (static_cast<float>(iMapX) + 1.0f - fX) * fDeltaX;
+    float fSideDistY = (iStepY < 0) ? (fY - static_cast<float>(iMapY)) * fDeltaY : (static_cast<float>(iMapY) + 1.0f - fY) * fDeltaY;
+    float fSideDistZ = (iStepZ < 0) ? (fZ - static_cast<float>(iMapZ)) * fDeltaZ : (static_cast<float>(iMapZ) + 1.0f - fZ) * fDeltaZ;
 
     int iLastAxis = 0;
     const int MAX_STEPS = 500;
