@@ -3,13 +3,20 @@
 #include <iostream>
 
 namespace Core {
+
+/**
+ * @struct Vec3
+ * @brief A 3-component vector structure (x, y, z) with standard math operations.
+ */
 struct Vec3 {
     float x, y, z;
-    // Constructors
+
+    // --- Constructors ---
     constexpr Vec3() : x(0.0f), y(0.0f), z(0.0f) {}
     constexpr Vec3(float _x, float _y, float _z) : x(_x), y(_y), z(_z) {}
 
-    // Operator Overloads
+    // --- Operator Overloads ---
+
     [[nodiscard]] constexpr Vec3 operator+(const Vec3& other) const noexcept {
         return Vec3(x + other.x, y + other.y, z + other.z);
     }
@@ -34,9 +41,13 @@ struct Vec3 {
     [[nodiscard]] constexpr Vec3 operator/(float scalar) const noexcept {
         return Vec3(x / scalar, y / scalar, z / scalar);
     }
-    // Utility Functions
+
+    // --- geometric Utilities ---
+
     [[nodiscard]] float squaredLength() const { return x * x + y * y + z * z; }
-    [[nodiscard]] float length() const { return std::sqrt(x * x + y * y + z * z); }
+
+    [[nodiscard]] float length() const { return std::sqrt(squaredLength()); }
+
     [[nodiscard]] Vec3 normalize() const {
         float len = length();
         if (len < 1e-5f)
@@ -52,7 +63,8 @@ struct Vec3 {
         return diff.length();
     }
 
-    // Dot and Cross Product
+    // --- Dot and Cross Product ---
+
     [[nodiscard]] constexpr float dot(const Vec3& other) const noexcept {
         return x * other.x + y * other.y + z * other.z;
     }
@@ -61,8 +73,10 @@ struct Vec3 {
             y * other.z - z * other.y, z * other.x - x * other.z, x * other.y - y * other.x);
     }
 
+    // --- Debug ---
+
     void print() const { std::cout << "Vec3(" << x << ", " << y << ", " << z << ")\n"; }
-    // Debug Helper
+
     friend std::ostream& operator<<(std::ostream& os, const Vec3& vec) {
         os << "Vec3(" << vec.x << ", " << vec.y << ", " << vec.z << ")";
         return os;

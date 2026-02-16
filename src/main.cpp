@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include <vector>
-constexpr int BENCHMARK = 0;
+
 constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
 
 // clang-format off
@@ -44,29 +44,26 @@ int main() {
                                            nullptr,
                                            nullptr);
     if (pWindow == nullptr) {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(pWindow);
-#if BENCHMARK
-    glfwSwapInterval(0);  // 0 = Unlock FPS (VSync OFF), 1 = Lock to 60 (VSync ON)
-#endif
+
+    // Unlock FPS (VSync OFF) to demonstrate high performance
+    glfwSwapInterval(0);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
+        std::cerr << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
     InputManager::GetInstance().Init(pWindow);
     Application App(pWindow);
     App.InitImGUI();
     glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    const GLubyte* vendor = glGetString(GL_VENDOR);
-    const GLubyte* renderer = glGetString(GL_RENDERER);
-    std::cout << "GPU Renderer: " << vendor << std::endl;
-    std::cout << "Renderer: " << renderer << std::endl;
 
-    Renderer::Shader shader("assets/shaders/vertex.glsl", "assets/shaders/fragment.glsl");
+    Renderer::Shader shader("assets/shaders/vertex_Chunk.glsl",
+                            "assets/shaders/fragment_Chunk.glsl");
     Renderer::PrimitiveRenderer::Init();
     SetOpenGLState();
 
@@ -74,24 +71,28 @@ int main() {
     shader.SetInt("u_Texture", 0);
     Renderer::Texture texture("assets/textures/texture_atlas.png");
     texture.Bind(0);
+
+    // World & Chunk Initialization
     std::string strRegnFilePath = "ChunkData";
     ChunkManager objChunkManager(strRegnFilePath);
     float fLastFrame = static_cast<float>(glfwGetTime());
     static bool bFlyMode = false;
 
+    // Main Render Loop
     while (!glfwWindowShouldClose(pWindow)) {
         glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;
+        // Cap delta time to prevent physics explosions on lag spikes
         if (fDeltaTime > 0.1f)
             fDeltaTime = 0.1f;
         fLastFrame = fCurrentFrame;
         Core::Vec3 objCameraPos = inputHandler.GetCamera().GetCameraPosition();
         objChunkManager.Update(objCameraPos.x, objCameraPos.z);
 
-        // For FPS Counter
+        // Update Stats
         inputHandler.AddFrameCount();
         inputHandler.SetDeltaTime(fDeltaTime);
         if (inputHandler.GetTime() >= 1.0f) {
@@ -106,17 +107,20 @@ int main() {
             inputHandler.ProcessInput(pWindow, objChunkManager, fDeltaTime);
         }
 
+        // Logic & Physics
         if (objChunkManager.GetMutableChunks().empty())
             inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
         else
             inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
 
+        // Rendering
         Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
         Renderer::WorldRenderer::DrawChunks(
             objChunkManager, shader, viewProjection, inputHandler.IsCullingEnabled());
         Renderer::WorldRenderer::DrawAxes(viewProjection);
+        RayHit objRayHit = inputHandler.ProcessFirePreviewAndFire(objChunkManager, viewProjection);
 
-        RayHit objRayHit = inputHandler.processFirePreviewAndFire(objChunkManager, viewProjection);
+        // UI Rendering
         App.BeginImGUIFrame();
         if (App.m_bShowDebugPanel) {
             ImGui::SetNextWindowSize(ImVec2(280, 360), ImGuiCond_FirstUseEver);
@@ -126,17 +130,10 @@ int main() {
             ImGui::Separator();
             static bool bWireframeMode = false;
             if (ImGui::Checkbox("Wireframe", &bWireframeMode)) {
-                if (bWireframeMode) {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-                } else {
-                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                }
+                glPolygonMode(GL_FRONT_AND_BACK, bWireframeMode ? GL_LINE : GL_FILL);
             }
             if (ImGui::Checkbox("Fly Mode", &bFlyMode)) {
-                if (bFlyMode)
-                    inputHandler.SetFlyMode(bFlyMode);
-                else
-                    inputHandler.SetFlyMode(bFlyMode);
+                inputHandler.SetFlyMode(bFlyMode);
             }
 
             static float fFlySpeed = 20.0f;
@@ -156,6 +153,7 @@ int main() {
                         objCurrCameraPos.x,
                         objCurrCameraPos.y,
                         objCurrCameraPos.z);
+
             ImGui::Separator();
 
             ImGui::TextColored(ImVec4(1, 1, 0, 1), "World State");

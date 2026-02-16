@@ -65,10 +65,10 @@ public:
         glDeleteShader(uiFragment);
     }
 
-    void Use() { glUseProgram(ID); }
+    void Use() const { glUseProgram(ID); }
 
     void SetMat4(const std::string &name, const Core::Mat4 &mat) const {
-        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, mat.elements);
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, mat.m_fElements);
     }
 
     void SetVec3(const std::string &name, const Core::Vec3 &vec) const {

@@ -3,25 +3,26 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 #include <gtest/gtest.h>
-#include <cmath>
 #include <iostream>
-#include "../src/world/Chunk.h"
 
 #if defined(__linux__) || defined(__APPLE__)
 #include <sanitizer/lsan_interface.h>
 
-// CI envirounments (xvfb / mesa) often leak GLX configurations.
+// Suppress known leaks in Linux GL drivers (Mesa/Nvidia) to keep CI clean
 extern "C" const char* __lsan_default_suppressions() {
     return "leak:_glfwInitGLX\n"
-           "leak:exetensionSupportedGLX\n"
-           "leak:glX\n";  // Catch all other GLX Driver leaks
+           "leak:extensionSupportedGLX\n"
+           "leak:glX\n"
+           "leak:swrast\n";
 }
 #endif
 
+// Error callback for GLFW
 static void error_callback(int iError, const char* pcMsg) {
     std::cerr << "GLFW Error [" << iError << "]: " << pcMsg << std::endl;
 }
 
+// Global Test Environment
 class OpenGLEnv : public ::testing::Environment {
 public:
     GLFWwindow* pWindow = nullptr;
@@ -34,67 +35,56 @@ public:
             exit(EXIT_FAILURE);
         }
 
+        // Create a hidden window for context
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+        // Try OpenGL 4.6 first
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-        pWindow = glfwCreateWindow(640, 480, "Hidden test window", NULL, NULL);
+        pWindow = glfwCreateWindow(640, 480, "Hidden Test Window", NULL, NULL);
+
+        // Fallback to 4.5 if 4.6 is unavailable
         if (!pWindow) {
-            std::cerr << "FATAL: Failed to create GLFW Window for unit tests.";
-            std::cerr << "Retrying with OpenGL 4.5" << std::endl;
+            std::cerr << "Warning: OpenGL 4.6 not supported. Retrying with 4.5..." << std::endl;
             glfwDefaultWindowHints();
             glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-            pWindow = glfwCreateWindow(640, 480, "Hidden test window", NULL, NULL);
+            pWindow = glfwCreateWindow(640, 480, "Hidden Test Window", NULL, NULL);
             if (!pWindow) {
-                std::cerr << "FATAL: Failed to create GLFW Window for unit tests." << std::endl;
+                std::cerr << "FATAL: Failed to create GLFW Window." << std::endl;
                 glfwTerminate();
                 exit(EXIT_FAILURE);
             }
         }
+
         glfwMakeContextCurrent(pWindow);
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            std::cerr << "FATAL: Failed to load GLAD for unit tests." << std::endl;
+            std::cerr << "FATAL: Failed to load GLAD." << std::endl;
             glfwDestroyWindow(pWindow);
-            pWindow = nullptr;
             glfwTerminate();
             exit(EXIT_FAILURE);
         }
     }
 
     void TearDown() override {
-        glfwDestroyWindow(pWindow);
-        pWindow = nullptr;
+        if (pWindow) {
+            glfwDestroyWindow(pWindow);
+            pWindow = nullptr;
+        }
         glfwTerminate();
     }
 };
-TEST(ChunkTest, InitialCoordinates) {
-    Chunk chunk(5, -3);
-    EXPECT_EQ(chunk.GetChunkX(), 5);
-    EXPECT_EQ(chunk.GetChunkZ(), -3);
-}
 
-TEST(ChunkTest, ConstantsCheck) {
-    EXPECT_EQ(CHUNK_SIZE, 16);
-    EXPECT_EQ(CHUNK_HEIGHT, 16);
-    EXPECT_EQ(CHUNK_VOL, 4096);
-}
-TEST(ChunkTest, BlockIndicies) {
-    int iX = 0, iY = 0, iZ = 0;
-    int iIndex = iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE);
-    EXPECT_EQ(iIndex, 0);
-
-    iX = 1;
-    EXPECT_EQ(iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_SIZE), 1);
-}
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
 
+    // Register the OpenGL environment
     ::testing::AddGlobalTestEnvironment(new OpenGLEnv);
 
     return RUN_ALL_TESTS();

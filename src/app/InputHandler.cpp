@@ -2,7 +2,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include "../physics/PhysicsSystem.h"
+
 #include "../renderer/PrimitiveRenderer.h"
 #include "InputManager.h"
 
@@ -59,7 +59,7 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow,
     if (m_bPerspective) {
         if (inputs.IsKeyPressed(GLFW_KEY_W))
             m_pPlayer->ProcessKeyboard(MovementDirection::FORWARD, fDeltaTime);
-        if (inputs.IsKeyPressed(GLFW_KEY_S) == GLFW_PRESS)
+        if (inputs.IsKeyPressed(GLFW_KEY_S))
             m_pPlayer->ProcessKeyboard(MovementDirection::BACKWARD, fDeltaTime);
         if (inputs.IsKeyPressed(GLFW_KEY_A))
             m_pPlayer->ProcessKeyboard(MovementDirection::LEFTSIDE, fDeltaTime);
@@ -67,7 +67,7 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow,
             m_pPlayer->ProcessKeyboard(MovementDirection::RIGHTSIDE, fDeltaTime);
         if (inputs.IsKeyPressed(GLFW_KEY_SPACE))
             m_pPlayer->ProcessKeyboard(MovementDirection::UPSIDE, fDeltaTime);
-        // Always rotate (FPS Style) - Use this if cursor is hidden
+
         if (mouseDelta.x != 0.0f || mouseDelta.y != 0.0f) {
             m_pPlayer->ProcessMouseMovement(mouseDelta.x, mouseDelta.y);
         }
@@ -86,23 +86,23 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow,
 
         float fZoomSpeed = 10.0f * fDeltaTime;
         if (inputs.IsKeyPressed(GLFW_KEY_SPACE)) {
-            m_fOrthoSize -= fZoomSpeed;  // Zoom In
+            m_fOrthoSize -= fZoomSpeed;
             if (m_fOrthoSize < 1.0f)
                 m_fOrthoSize = 1.0f;
         }
         if (inputs.IsKeyPressed(GLFW_KEY_LEFT_SHIFT)) {
-            m_fOrthoSize += fZoomSpeed;  // Zoom Out
+            m_fOrthoSize += fZoomSpeed;
             if (m_fOrthoSize > 40.0f)
                 m_fOrthoSize = 40.0f;
         }
-        // Only rotate when Left Click is held (Editor Style)
+
         if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
             if (mouseDelta.x != 0.0f || mouseDelta.y != 0.0f) {
                 m_pPlayer->ProcessMouseMovement(mouseDelta.x, mouseDelta.y);
             }
         } else if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
             if (mouseDelta.x != 0.0f || mouseDelta.y != 0.0f) {
-                m_pPlayer->GetCamera().processMousePan(mouseDelta.x, mouseDelta.y);
+                m_pPlayer->GetCamera().ProcessMousePan(mouseDelta.x, mouseDelta.y);
             }
         }
         if (scrollY != 0.0) {
@@ -115,16 +115,18 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow,
     }
 }
 //*********************************************************************
-RayHit InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
+RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                                                const Core::Mat4& viewProjection) {
     RayHit objRayHit;
     InputManager& inputs = InputManager::GetInstance();
+
+    // Ctrl Key enables "Debug/Building" mode
     if (inputs.IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || inputs.IsKeyPressed(GLFW_KEY_RIGHT_CONTROL)) {
         glDisable(GL_DEPTH_TEST);
         float fMaxDistance = 60.0f;
         Core::Ray objRay(GetCamera().GetCameraPosition(), GetCamera().GetFront());
 
-        // Draw Ray
+        // Draw Debug Ray
         Core::Vec3 objUp = GetCamera().GetUp();
         Core::Vec3 objRight = GetCamera().GetFront().cross(objUp).normalize();
         Core::Vec3 objRayStart = objRay.m_objPtOrigin - objUp * 0.1f + objRight * 0.2f;
@@ -138,30 +140,36 @@ RayHit InputHandler::processFirePreviewAndFire(ChunkManager& objChunkManager,
                                    static_cast<float>(objRayHit.m_iBlocKY),
                                    static_cast<float>(objRayHit.m_iBlocKZ));
 
+            // Draw Block Highlight
             Renderer::PrimitiveRenderer::DrawCube(objBlockPos,
                                                   Core::Vec3(1.005f, 1.005f, 1.005f),
                                                   Core::Vec3(1.0f, 0.0f, 1.0f),
                                                   viewProjection);
-        }
-        if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-            if (m_bLMBClickedFirstTime && objRayHit.m_bHit) {
-                objChunkManager.SetBlock(
-                    objRayHit.m_iBlocKX, objRayHit.m_iBlocKY, objRayHit.m_iBlocKZ, 0);
-                m_bLMBClickedFirstTime = false;
-            }
-        } else
-            m_bLMBClickedFirstTime = true;
-        if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-            if (m_bRMBClickedFirstTime && objRayHit.m_bHit) {
-                int iBlockX = objRayHit.m_iBlocKX + static_cast<int>(objRayHit.m_objNormal.x);
-                int iBlockY = objRayHit.m_iBlocKY + static_cast<int>(objRayHit.m_objNormal.y);
-                int iBlockZ = objRayHit.m_iBlocKZ + static_cast<int>(objRayHit.m_objNormal.z);
-                objChunkManager.SetBlock(iBlockX, iBlockY, iBlockZ, 1);
-                m_bRMBClickedFirstTime = false;
-            }
-        } else
-            m_bRMBClickedFirstTime = true;
 
+            // Destroy Block
+            if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+                if (m_bLMBClickedFirstTime) {
+                    objChunkManager.SetBlock(
+                        objRayHit.m_iBlocKX, objRayHit.m_iBlocKY, objRayHit.m_iBlocKZ, 0);
+                    m_bLMBClickedFirstTime = false;
+                }
+            } else {
+                m_bLMBClickedFirstTime = true;
+            }
+
+            // Place Block
+            if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+                if (m_bRMBClickedFirstTime) {
+                    int iBlockX = objRayHit.m_iBlocKX + static_cast<int>(objRayHit.m_objNormal.x);
+                    int iBlockY = objRayHit.m_iBlocKY + static_cast<int>(objRayHit.m_objNormal.y);
+                    int iBlockZ = objRayHit.m_iBlocKZ + static_cast<int>(objRayHit.m_objNormal.z);
+                    objChunkManager.SetBlock(iBlockX, iBlockY, iBlockZ, 1);
+                    m_bRMBClickedFirstTime = false;
+                }
+            } else {
+                m_bRMBClickedFirstTime = true;
+            }
+        }
         glEnable(GL_DEPTH_TEST);
     }
     return objRayHit;
@@ -171,11 +179,11 @@ Core::Mat4 InputHandler::GetViewProjectionMatrix() {
     Core::Mat4 projection;
     float fAspectRatio = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
     if (App::InputHandler::IsPerspective()) {
-        projection = Core::Mat4::perspective(GetCamera().GetZoom(), fAspectRatio, 0.1f, 100.0f);
+        projection = Core::Mat4::Perspective(GetCamera().GetZoom(), fAspectRatio, 0.1f, 100.0f);
     } else {
         float fHeight = m_fOrthoSize;
         float fWidth = m_fOrthoSize * fAspectRatio;
-        projection = Core::Mat4::orthographic(-fWidth, fWidth, -fHeight, fHeight, -100.0f, 100.0f);
+        projection = Core::Mat4::Orthographic(-fWidth, fWidth, -fHeight, fHeight, -100.0f, 100.0f);
     }
     Core::Mat4 view = GetCamera().GetViewMatrix();
     return projection * view;
@@ -184,17 +192,14 @@ Core::Mat4 InputHandler::GetViewProjectionMatrix() {
 void InputHandler::UpdateTitleInfo(GLFWwindow* pWindow) const {
     if (!pWindow)
         return;
-    int iFPS = static_cast<int>(static_cast<float>(m_iFrameCount) / m_fTimer);
-    std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
-    if (m_bCullingEnabled)
-        strTitle += "\tCulling Enabled (Press 'F' key to toogle)";
-    else
-        strTitle += "\tCulling Disabled (Press 'F' key to toogle)";
 
-    if (m_bPerspective)
-        strTitle += "\tPerspective Projection (Press 'P' key to toggle)";
-    else
-        strTitle += "\tOrthographic Projection (Press 'P' key to toggle)";
+    int iFPS =
+        (m_fTimer > 0.0f) ? static_cast<int>(static_cast<float>(m_iFrameCount) / m_fTimer) : 0;
+
+    std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
+    strTitle += (m_bCullingEnabled ? "\tCulling: ON (F)" : "\tCulling: OFF (F)");
+    strTitle += (m_bPerspective ? "\tMode: Perspective (P)" : "\tMode: Orthographic (P)");
+
     glfwSetWindowTitle(pWindow, strTitle.c_str());
 }
 //*********************************************************************

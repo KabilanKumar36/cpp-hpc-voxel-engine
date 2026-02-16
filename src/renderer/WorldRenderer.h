@@ -1,48 +1,34 @@
 #pragma once
 
 #include "../core/Matrix.h"
-#include "../physics/PhysicsSystem.h"
-#include "../world/Chunk.h"
 #include "../world/ChunkManager.h"
-#include "Frustrum.h"
-#include "PrimitiveRenderer.h"
 #include "Shader.h"
-#include "glad/glad.h"
 
 namespace Renderer {
+
+/**
+ * @class WorldRenderer
+ * @brief High-level renderer for the Voxel World and Global Axes.
+ */
 class WorldRenderer {
 public:
-    static inline void DrawAxes(const Core::Mat4 &objViewProjection, float fLength = 50.0f) {
-        glDisable(GL_DEPTH_TEST);
-        PrimitiveRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),
-                                    Core::Vec3(fLength, 0.0f, 0.0f),
-                                    Core::Vec3(1.0f, 0.0f, 0.0f),
-                                    objViewProjection);
-        PrimitiveRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),
-                                    Core::Vec3(0.0f, fLength, 0.0f),
-                                    Core::Vec3(0.0f, 1.0f, 0.0f),
-                                    objViewProjection);
-        PrimitiveRenderer::DrawLine(Core::Vec3(0.0f, 0.0f, 0.0f),
-                                    Core::Vec3(0.0f, 0.0f, fLength),
-                                    Core::Vec3(0.0f, 0.0f, 1.0f),
-                                    objViewProjection);
-        glEnable(GL_DEPTH_TEST);
-    }
+    /**
+     * @brief Draws the RGB coordinate axes at the origin.
+     * @param objViewProjection Camera VP Matrix.
+     * @param fLength Length of the axis lines.
+     */
+    static void DrawAxes(const Core::Mat4 &objViewProjection, float fLength = 50.0f);
 
-    static inline void DrawChunks(ChunkManager &objChunkManager,
-                                  Renderer::Shader &shader,
-                                  const Core::Mat4 &objViewProjection,
-                                  bool bEnableFaceCulling = false) {
-        shader.Use();
-        shader.SetMat4("uViewProjection", objViewProjection);
-        Frustrum objFrustrum;
-        objFrustrum.Update(objViewProjection);
-        for (const auto &[Coords, objChunk] : objChunkManager.GetMutableChunks()) {
-            if (bEnableFaceCulling && !objFrustrum.IsBoxInVisibleFrustrum(objChunk.GetAABB())) {
-                continue;
-            }
-            objChunk.Render();
-        }
-    }
+    /**
+     * @brief Renders the voxel world chunks.
+     * @param objChunkManager The world manager containing chunks.
+     * @param shader The main voxel shader.
+     * @param objViewProjection Camera VP Matrix.
+     * @param bEnableFrustumCulling If true, skips chunks outside the camera view.
+     */
+    static void DrawChunks(ChunkManager &objChunkManager,
+                           Renderer::Shader &shader,
+                           const Core::Mat4 &objViewProjection,
+                           bool bEnableFrustumCulling = false);
 };
 }  // namespace Renderer

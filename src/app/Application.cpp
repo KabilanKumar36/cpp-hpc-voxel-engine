@@ -12,7 +12,7 @@ void Application::InitImGUI() {
     ImGui::CreateContext();
 
     ImGuiIO& IO = ImGui::GetIO();
-    (void)IO;
+    (void)IO;  // Silence unused variable warning
 
     IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -42,17 +42,22 @@ void Application::EndImGUIFrame() {
 //*********************************************************************
 void Application::HandleUIToggle() {
     static bool bKeyWasPressed = false;
+
+    // Toggle UI state on Grave Accent (`~`) press
     if (glfwGetKey(m_pWindow, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
         if (!bKeyWasPressed) {
             bKeyWasPressed = true;
             m_bIsUIActive = !m_bIsUIActive;
+
+            // Switch cursor mode based on UI state
             if (m_bIsUIActive) {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } else {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
             }
         }
-    } else
+    } else {
         bKeyWasPressed = false;
+    }
 }
 //*********************************************************************

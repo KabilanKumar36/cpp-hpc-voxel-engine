@@ -7,6 +7,7 @@
 // clang-format on
 
 #include "../core/camera.h"
+#include "../physics/PhysicsSystem.h"
 #include "../world/Chunk.h"
 #include "../world/ChunkManager.h"
 #include "../world/Player.h"
@@ -17,10 +18,12 @@ public:
     InputHandler(const Core::Vec3& ObjStartPos);
     void ProcessInput(GLFWwindow* pWindow, ChunkManager& objChunkManager, float fDeltaTime);
     void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
-
     void UpdateTitleInfo(GLFWwindow* pWindow) const;
-    RayHit processFirePreviewAndFire(ChunkManager& objChunkManager,
+
+    // Raycasts into the world to preview/edit blocks. Returns hit result for logic processing.
+    RayHit ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                                      const Core::Mat4& viewProjection);
+
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 

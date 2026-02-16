@@ -9,7 +9,7 @@
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed as a foundational framework for Computational Engineering (CAE) simulations, focusing on cache coherency, hardware-accelerated rendering, custom memory allocators and low-level memory management.
 
-![Day 05 Demo](assets/screenshots/demo_day_05.png)
+![Day 05 Demo](docs/screenshots/demo_day_05.png)
 
 ## 🚀 Overview
 

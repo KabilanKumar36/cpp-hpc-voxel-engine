@@ -4,134 +4,163 @@
 #include "MathUtils.h"
 
 namespace Core {
-struct Mat4 {
-    float elements[16];  // Column-major order (OpenGL Standard)
 
-    // 1. Constructor: Identity Matrix
+/**
+ * @struct Mat4
+ * @brief A 4x4 Matrix structure stored in Column-Major order (OpenGL Standard).
+ *
+ * Index Layout:
+ * 0  4  8 12
+ * 1  5  9 13
+ * 2  6 10 14
+ * 3  7 11 15
+ */
+struct Mat4 {
+    float m_fElements[16];
+
+    // --- Constructors ---
+
+    /**
+     * @brief Default constructor initializes to Identity Matrix.
+     */
     constexpr Mat4() noexcept {
-        for (int i = 0; i < 16; i++) elements[i] = 0.0f;
-        // Diagonal = 1.0
-        elements[0 + 0 * 4] = 1.0f;
-        elements[1 + 1 * 4] = 1.0f;
-        elements[2 + 2 * 4] = 1.0f;
-        elements[3 + 3 * 4] = 1.0f;
+        // Initialize all to 0.0f
+        for (int i = 0; i < 16; i++) m_fElements[i] = 0.0f;
+        // Diagonal = 1.0f (Identity)
+        m_fElements[0] = 1.0f;
+        m_fElements[5] = 1.0f;
+        m_fElements[10] = 1.0f;
+        m_fElements[15] = 1.0f;
     }
 
-    static Mat4 identity() { return Mat4(); }
+    // Helper to get Identity (matches default constructor)
+    static Mat4 Identity() { return Mat4(); }
 
-    static Mat4 zero() {
+    // Helper to get a pure Zero matrix (for Projections)
+    static Mat4 Zero() {
         Mat4 result;
-        // Manual loop for constexpr compatibility, or memset if not constexpr
-        for (int i = 0; i < 16; i++) result.elements[i] = 0.0f;
+        // We must manually zero it out because the constructor sets diagonals to 1
+        for (int i = 0; i < 16; i++) result.m_fElements[i] = 0.0f;
         return result;
     }
 
-    // 2. Operation: Matrix Multiplication
-    // FIXED: Corrected to Column-Major indexing [row + col * 4]
+    // --- Operations ---
+
+    /**
+     * @brief Matrix Multiplication.
+     * @return New Matrix result = (*this) * other
+     */
     Mat4 operator*(const Mat4& other) const {
-        Mat4 result = Mat4::zero();
+        Mat4 result = Mat4::Zero();
         for (int col = 0; col < 4; ++col) {
             for (int row = 0; row < 4; ++row) {
                 float sum = 0.0f;
                 for (int k = 0; k < 4; ++k) {
                     // Row of A * Column of B
-                    sum += elements[row + k * 4] * other.elements[k + col * 4];
+                    sum += m_fElements[row + k * 4] * other.m_fElements[k + col * 4];
                 }
-                result.elements[row + col * 4] = sum;
+                result.m_fElements[row + col * 4] = sum;
             }
         }
         return result;
     }
 
-    // 3. Camera: Perspective Projection
-    // FIXED: Swapped indices 11 and 14 to correct spot
-    static Mat4 perspective(float fov, float aspect, float nearplane, float farplane) {
-        Mat4 result = Mat4::zero();
+    // --- Projections & Transforms ---
+
+    /**
+     * @brief Creates a Perspective Projection Matrix (FOV Y).
+     * @param fov Field of View in degrees.
+     * @param aspect Aspect Ratio (Width / Height).
+     * @param nearplane Distance to near clipping plane.
+     * @param farplane Distance to far clipping plane.
+     */
+    static Mat4 Perspective(float fov, float aspect, float nearplane, float farplane) {
+        Mat4 result = Mat4::Zero();
         float tanHalfFOV = std::tan(fov * 3.1415926535f * 0.5f / 180.0f);
 
-        result.elements[0 + 0 * 4] = 1.0f / (aspect * tanHalfFOV);
-        result.elements[1 + 1 * 4] = 1.0f / (tanHalfFOV);
-        result.elements[2 + 2 * 4] = -(farplane + nearplane) / (farplane - nearplane);
+        // [0][0] = 1 / (aspect * tan(fov/2))
+        result.m_fElements[0] = 1.0f / (aspect * tanHalfFOV);
 
-        // Critical Fixes:
-        result.elements[2 + 3 * 4] = -1.0f;  // Index 11 (Row 3, Col 2): Perspective division
-        result.elements[3 + 2 * 4] = 0.0f;   // Clear this spot
-        result.elements[3 + 2 * 4] =
-            -(2.0f * farplane * nearplane) /
-            (farplane - nearplane);  // Wait, index is [14] (Row 2, Col 3) in column major?
+        // [1][1] = 1 / tan(fov/2)
+        result.m_fElements[5] = 1.0f / (tanHalfFOV);
 
-        // Let's be explicit to avoid confusion:
-        // Col 2 (Z-axis interaction)
-        result.elements[10] = -(farplane + nearplane) / (farplane - nearplane);
-        result.elements[11] = -1.0f;
+        // [2][2] = -(far + near) / (far - near)
+        result.m_fElements[10] = -(farplane + nearplane) / (farplane - nearplane);
 
-        // Col 3 (Translation)
-        result.elements[14] = -(2.0f * farplane * nearplane) / (farplane - nearplane);
-        result.elements[15] = 0.0f;
+        // [2][3] = -1 (This is Index 11 in Column-Major: Row 3, Col 2)
+        // This puts -Z into W for perspective divide
+        result.m_fElements[11] = -1.0f;
+
+        // [3][2] = -(2 * far * near) / (far - near) (Index 14: Row 2, Col 3)
+        result.m_fElements[14] = -(2.0f * farplane * nearplane) / (farplane - nearplane);
+
+        // [3][3] = 0
+        result.m_fElements[15] = 0.0f;
 
         return result;
     }
 
-    // 4. Camera: LookAt
-    // FIXED: Corrected W component and rotation layout
-    static Mat4 lookAt(const Vec3& eye, const Vec3& tgt, const Vec3& up) {
-        Mat4 result = Mat4::identity();
+    /**
+     * @brief Creates a View Matrix using Eye, Target, and Up vectors.
+     */
+    static Mat4 LookAt(const Vec3& eye, const Vec3& tgt, const Vec3& up) {
+        Mat4 result;
         Vec3 fwd = (tgt - eye).normalize();
         Vec3 right = fwd.cross(up).normalize();
         Vec3 trueUp = right.cross(fwd);
 
-        // Rotation (Transposed)
-        // Column 0 (Right)
-        result.elements[0] = right.x;
-        result.elements[4] = right.y;
-        result.elements[8] = right.z;
+        // Rotation Part (Orthonormal Basis)
+        // Row 0: Right
+        result.m_fElements[0] = right.x;
+        result.m_fElements[4] = right.y;
+        result.m_fElements[8] = right.z;
 
-        // Column 1 (Up)
-        result.elements[1] = trueUp.x;
-        result.elements[5] = trueUp.y;
-        result.elements[9] = trueUp.z;
+        // Row 1: Up
+        result.m_fElements[1] = trueUp.x;
+        result.m_fElements[5] = trueUp.y;
+        result.m_fElements[9] = trueUp.z;
 
-        // Column 2 (Forward - Negated)
-        result.elements[2] = -fwd.x;
-        result.elements[6] = -fwd.y;
-        result.elements[10] = -fwd.z;
+        // Row 2: -Forward (Looking down -Z)
+        result.m_fElements[2] = -fwd.x;
+        result.m_fElements[6] = -fwd.y;
+        result.m_fElements[10] = -fwd.z;
 
-        // Column 3 (Translation)
-        result.elements[12] = -right.dot(eye);
-        result.elements[13] = -trueUp.dot(eye);
-        result.elements[14] = fwd.dot(eye);  // Positive dot because Z is inverted
-        result.elements[15] = 1.0f;          // FIXED: Must be 1.0f, not -1.0f
+        // Translation Part (Dot products)
+        result.m_fElements[12] = -right.dot(eye);
+        result.m_fElements[13] = -trueUp.dot(eye);
+        result.m_fElements[14] = fwd.dot(eye);  // Dot with positive fwd because Z is negated
 
         return result;
     }
-    static Mat4 orthographic(
+
+    static Mat4 Orthographic(
         float left, float right, float bottom, float top, float nearplane, float farplane) {
         Mat4 result;
 
-        result.elements[0 + 0 * 4] = 2.0f / (right - left);
-        result.elements[1 + 1 * 4] = 2.0f / (top - bottom);
-        result.elements[2 + 2 * 4] = -2.0f / (farplane - nearplane);
+        result.m_fElements[0] = 2.0f / (right - left);
+        result.m_fElements[5] = 2.0f / (top - bottom);
+        result.m_fElements[10] = -2.0f / (farplane - nearplane);
 
-        result.elements[0 + 3 * 4] = -(right + left) / (right - left);
-        result.elements[1 + 3 * 4] = -(top + bottom) / (top - bottom);
-        result.elements[2 + 3 * 4] = -(farplane + nearplane) / (farplane - nearplane);
+        result.m_fElements[12] = -(right + left) / (right - left);
+        result.m_fElements[13] = -(top + bottom) / (top - bottom);
+        result.m_fElements[14] = -(farplane + nearplane) / (farplane - nearplane);
 
         return result;
     }
 
     static Mat4 Translation(const Vec3& translation) {
         Mat4 result;
-        result.elements[0 + 3 * 4] = translation.x;
-        result.elements[1 + 3 * 4] = translation.y;
-        result.elements[2 + 3 * 4] = translation.z;
+        result.m_fElements[12] = translation.x;
+        result.m_fElements[13] = translation.y;
+        result.m_fElements[14] = translation.z;
         return result;
     }
 
     static Mat4 Scale(float scaleX, float scaleY, float scaleZ) {
         Mat4 result;
-        result.elements[0 + 0 * 4] = scaleX;
-        result.elements[1 + 1 * 4] = scaleY;
-        result.elements[2 + 2 * 4] = scaleZ;
+        result.m_fElements[0] = scaleX;
+        result.m_fElements[5] = scaleY;
+        result.m_fElements[10] = scaleZ;
         return result;
     }
 };
