@@ -74,3 +74,12 @@ enc_temp_folder/
 
 # Dependencies Cache (from CMake FetchContent)
 external_cache/
+
+# Ignore Doxygen generated docs
+docs/html/
+docs/latex/
+docs/*.db
+docs/*.log
+
+# But KEEP the screenshots
+!docs/screenshots/

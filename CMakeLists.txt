@@ -181,7 +181,41 @@ include(GoogleTest)
 gtest_discover_tests(unit_tests)
 
 # --------------------------------------------------------
-# 5. Asset copying to bin
+# 6. Documentation (Doxygen)
+# --------------------------------------------------------
+find_package(Doxygen)
+
+if(DOXYGEN_FOUND)
+    # Check if Graphviz (dot) is available for diagrams
+    find_program(DOXYGEN_DOT_EXECUTABLE dot)
+    if(DOXYGEN_DOT_EXECUTABLE)
+        set(DOXYGEN_HAVE_DOT "YES")
+        message(STATUS "Graphviz found: Enabling diagrams in documentation")
+    else()
+        set(DOXYGEN_HAVE_DOT "NO")
+        message(STATUS "Graphviz not found: Diagrams will be disabled")
+    endif()
+
+    # Configure the template (Doxyfile.in -> Doxyfile)
+    configure_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+        ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        @ONLY
+    )
+
+    # Add the 'docs' target
+    add_custom_target(docs
+        COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation into docs/html with Doxygen..."
+        VERBATIM
+    )
+else()
+    message(WARNING "Doxygen not found! 'docs' target will not be available.")
+endif()
+
+# --------------------------------------------------------
+# 7. Asset copying to bin
 # --------------------------------------------------------
 
 add_custom_command(TARGET VoxelEngine POST_BUILD

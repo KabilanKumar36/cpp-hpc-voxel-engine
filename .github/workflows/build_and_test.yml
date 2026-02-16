@@ -2,7 +2,7 @@ name: Build and Test
 
 on:
   push:
-    branches: [main, feature/*]
+    branches: [main, feature/*, docs/*]
   pull_request:
     branches: [main]
 
@@ -30,14 +30,26 @@ jobs:
       # 3. Install Heavy Dependencies (Only runs if formatting passes)
       - name: Install Build Dependencies (Linux)
         run: |
-           sudo apt-get install -y libwayland-dev libgl1-mesa-dev libxkbcommon-dev xorg-dev xvfb
+           sudo apt-get install -y libwayland-dev libgl1-mesa-dev libxkbcommon-dev xorg-dev xvfb doxygen graphviz
 
+      # 3. Configure Cmake, Build Engine, Run Tests and Generate Docs
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
-      - name: Build
+      - name: Build Engine
         run: cmake --build build --config Release
 
       - name: Run Unit Tests
         run: |
           xvfb-run ctest --test-dir build --output-on-failure
+          
+      - name: Generate Documentation
+        run: |
+           cmake --build build --target docs
+           
+      # Upload docs as an artifact so we can download and view them
+      - name: Upload Documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: HTML-Docs
+          path: docs/html
