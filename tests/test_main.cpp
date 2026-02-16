@@ -37,31 +37,16 @@ public:
 
         // Create a hidden window for context
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-
-        // Try OpenGL 4.6 first
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
         pWindow = glfwCreateWindow(640, 480, "Hidden Test Window", NULL, NULL);
-
-        // Fallback to 4.5 if 4.6 is unavailable
         if (!pWindow) {
-            std::cerr << "Warning: OpenGL 4.6 not supported. Retrying with 4.5..." << std::endl;
-            glfwDefaultWindowHints();
-            glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-            glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-            pWindow = glfwCreateWindow(640, 480, "Hidden Test Window", NULL, NULL);
-            if (!pWindow) {
-                std::cerr << "FATAL: Failed to create GLFW Window." << std::endl;
-                glfwTerminate();
-                exit(EXIT_FAILURE);
-            }
+            std::cerr << "FATAL: Failed to create GLFW Window." << std::endl;
+            glfwTerminate();
+            exit(EXIT_FAILURE);
         }
-
         glfwMakeContextCurrent(pWindow);
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {

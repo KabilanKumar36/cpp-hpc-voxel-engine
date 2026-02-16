@@ -1,4 +1,4 @@
-#version 460 core
+#version 450 core
 
 // Attributes from Chunk::updateBuffers()
 // layout(location = 0) in vec3 aPos;     // Position
