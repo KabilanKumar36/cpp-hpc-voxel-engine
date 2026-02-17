@@ -11,8 +11,11 @@ USE_MDFILE_AS_MAINPAGE = "@CMAKE_SOURCE_DIR@/README.md"
 
 # Output selection
 GENERATE_HTML          = YES
-HTML_OUTPUT            = html  # This creates docs/html
-GENERATE_LATEX         = NO    # Disable LaTeX to save space
+HTML_OUTPUT            = api
+GENERATE_LATEX         = NO    # Disable other format to save space
+GENERATE_RTF		   = NO
+GENERATE_MAN		   = NO
+GENERATE_XML		   = NO
 
 # Visual Style
 HTML_COLORSTYLE_HUE    = 220
@@ -35,3 +38,12 @@ DIRECTORY_GRAPH        = YES
 # Warnings
 QUIET                  = YES
 WARN_IF_UNDOCUMENTED   = NO
+
+# 1. Strip the project root path from the output
+STRIP_FROM_PATH        = "@CMAKE_SOURCE_DIR@"
+
+# 2. Strip the project root from #include paths in the code view
+STRIP_FROM_INC_PATH    = "@CMAKE_SOURCE_DIR@"
+
+# 3. (Optional) Ensure we only see relative paths
+FULL_PATH_NAMES        = YES

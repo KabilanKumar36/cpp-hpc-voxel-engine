@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['icebox_0',['🧊 Roadmap (Icebox)',['../index.html#autotoc_md7',1,'']]],
+  ['id_1',['ID',['../class_renderer_1_1_shader.html#ae35668df40808bf4ad46081a50ce9d39',1,'Renderer::Shader::ID'],['../class_renderer_1_1_texture.html#a9fddd7fa6c734beff983dd8723ac65e6',1,'Renderer::Texture::ID']]],
+  ['identity_2',['Identity',['../struct_core_1_1_mat4.html#aed756cb82e41afc31f3476821e4be4dd',1,'Core::Mat4']]],
+  ['indexbuffer_3',['IndexBuffer',['../class_renderer_1_1_index_buffer.html',1,'Renderer::IndexBuffer'],['../class_renderer_1_1_index_buffer.html#aff1fe31041a829005ed3550d54e5ef77',1,'Renderer::IndexBuffer::IndexBuffer(unsigned int *data, unsigned int uiCount)'],['../class_renderer_1_1_index_buffer.html#ae03dbd8a3c7ce3613a7f97f062884ef6',1,'Renderer::IndexBuffer::IndexBuffer(const IndexBuffer &amp;)=delete']]],
+  ['indexbuffer_2eh_4',['IndexBuffer.h',['../_index_buffer_8h.html',1,'']]],
+  ['init_5',['Init',['../class_input_manager.html#a592b67df4ec1d57b9cd1948b70196122',1,'InputManager::Init()'],['../class_renderer_1_1_primitive_renderer.html#a7cf3c684686c9b38fbe6fbbbf9f1caca',1,'Renderer::PrimitiveRenderer::Init()']]],
+  ['initimgui_6',['InitImGUI',['../class_application.html#a86962b014f53ac8c23a436ae6056838f',1,'Application']]],
+  ['inputhandler_7',['InputHandler',['../class_app_1_1_input_handler.html',1,'App::InputHandler'],['../class_app_1_1_input_handler.html#a2a8e95ec792bff142a2a339edcff9566',1,'App::InputHandler::InputHandler()']]],
+  ['inputhandler_2ecpp_8',['InputHandler.cpp',['../_input_handler_8cpp.html',1,'']]],
+  ['inputhandler_2eh_9',['InputHandler.h',['../_input_handler_8h.html',1,'']]],
+  ['inputmanager_10',['InputManager',['../class_input_manager.html',1,'InputManager'],['../class_input_manager.html#ad87c25e67ad7234a8173ecabd816facd',1,'InputManager::InputManager()']]],
+  ['inputmanager_2ecpp_11',['InputManager.cpp',['../_input_manager_8cpp.html',1,'']]],
+  ['inputmanager_2eh_12',['InputManager.h',['../_input_manager_8h.html',1,'']]],
+  ['instructions_13',['📦 Build Instructions',['../index.html#autotoc_md8',1,'']]],
+  ['invalidate_14',['invalidate',['../class_core_1_1_thread_safe_queue.html#a619bd78a709d0474a0a1a048eed88622',1,'Core::ThreadSafeQueue']]],
+  ['isboxinvisiblefrustum_15',['IsBoxInVisibleFrustum',['../class_frustum.html#aeb94039790357cb5f81d522c3a5b1924',1,'Frustum']]],
+  ['iscullingenabled_16',['IsCullingEnabled',['../class_app_1_1_input_handler.html#a695aebe430315aa5ed724ff3ac5ae555',1,'App::InputHandler']]],
+  ['iskeyjustpressed_17',['IsKeyJustPressed',['../class_input_manager.html#aadbed086a5cd17a45ea8b7d2088e51a8',1,'InputManager']]],
+  ['iskeypressed_18',['IsKeyPressed',['../class_input_manager.html#a86366549a527434404da7099de40ebeb',1,'InputManager']]],
+  ['islmbclickedfirsttime_19',['IsLMBClickedFirstTime',['../class_app_1_1_input_handler.html#a6ef75e1528a63217965685eba3d5fded',1,'App::InputHandler']]],
+  ['ismousebuttonpressed_20',['IsMouseButtonPressed',['../class_input_manager.html#a54ccf363ae667510a6f49cad4a0d8334',1,'InputManager']]],
+  ['isperspective_21',['IsPerspective',['../class_app_1_1_input_handler.html#a6ed3b00f05a92856f3596cf79235eb02',1,'App::InputHandler']]],
+  ['isvalid_22',['IsValid',['../class_chunk.html#a400db6139a8ec56ce626a720b1b0acf0',1,'Chunk']]]
+];

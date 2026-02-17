@@ -205,7 +205,12 @@ if(DOXYGEN_FOUND)
 
     # Add the 'docs' target
     add_custom_target(docs
+        # 1. Run Doxygen
         COMMAND ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+        
+        # 2. Auto-create the .nojekyll file (Cross-platform way)
+        COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_SOURCE_DIR}/docs/.nojekyll"
+        
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation into docs/html with Doxygen..."
         VERBATIM

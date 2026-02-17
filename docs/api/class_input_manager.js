@@ -1,0 +1,26 @@
+var class_input_manager =
+[
+    [ "InputManager", "class_input_manager.html#ad87c25e67ad7234a8173ecabd816facd", null ],
+    [ "FrameBufferSizeCallback", "class_input_manager.html#a29fe05553ae99e78b02a540cb97850bf", null ],
+    [ "GetInstance", "class_input_manager.html#acc5217a010570a78fcce689dd84e5d7d", null ],
+    [ "GetMouseDelta", "class_input_manager.html#afd86524fc39df711d77169829a239a01", null ],
+    [ "GetMousePosition", "class_input_manager.html#a693d1157b3e8b94a7dc3e78e80dde8f1", null ],
+    [ "GetScroll", "class_input_manager.html#a3cfb45ffc172ef741cbc1e4b08a7c00b", null ],
+    [ "Init", "class_input_manager.html#a592b67df4ec1d57b9cd1948b70196122", null ],
+    [ "IsKeyJustPressed", "class_input_manager.html#aadbed086a5cd17a45ea8b7d2088e51a8", null ],
+    [ "IsKeyPressed", "class_input_manager.html#a86366549a527434404da7099de40ebeb", null ],
+    [ "IsMouseButtonPressed", "class_input_manager.html#a54ccf363ae667510a6f49cad4a0d8334", null ],
+    [ "keyCallback", "class_input_manager.html#ad63ddbee7f444546b216c9acd1e271b5", null ],
+    [ "mouseButtonCallback", "class_input_manager.html#ae2ca508976670dd8b7bc134ca63f2c1c", null ],
+    [ "mousePosCallback", "class_input_manager.html#afc02a97908dd38a0dfbf3d3e098cac0b", null ],
+    [ "scrollCallback", "class_input_manager.html#ae93a60d6b6ebe0fb758980ae7f3652aa", null ],
+    [ "Update", "class_input_manager.html#aa5480931dba2720e7d80dd00a53adae0", null ],
+    [ "m_bButtons", "class_input_manager.html#a22ff267656b40a1ff09481e6c097e161", null ],
+    [ "m_bFirstMouse", "class_input_manager.html#a66e03dc3d669a3d45eea900280dd7496", null ],
+    [ "m_bKeys", "class_input_manager.html#a836e1f035b7a9022cadf08d0e5b2e5c9", null ],
+    [ "m_bPrevKeys", "class_input_manager.html#ab79898a66d781da1cf2977b3681d2ae9", null ],
+    [ "m_dScrollY", "class_input_manager.html#ad22fffa36cb46634c80dab72ebf787fc", null ],
+    [ "m_objMouseDelta", "class_input_manager.html#ad45ac95f87ba71a8d229093bc66482d6", null ],
+    [ "m_objMousePosition", "class_input_manager.html#a6412696b0aaee5a4d6e932450908b78a", null ],
+    [ "m_objMousePrevPosition", "class_input_manager.html#a80a699b08a7e6dd7ccacd43894cb8c15", null ]
+];
