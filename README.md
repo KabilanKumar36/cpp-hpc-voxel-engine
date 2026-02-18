@@ -7,93 +7,88 @@
 ![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/build_and_test.yml/badge.svg)
 
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
-Designed as a foundational framework for Computational Engineering (CAE) simulations, focusing on cache coherency, hardware-accelerated rendering, custom memory allocators and low-level memory management.
+Designed as a foundational framework for Computational Engineering (CAE) simulations, focusing on cache coherency, hardware-accelerated rendering, custom memory allocators, and low-level memory management.
 
 ![Day 05 Demo](docs/screenshots/demo_day_05.png)
 
 ## 🚀 Overview
 
-This project is a technical playground for implementing high-performance graphics concepts without relying on commercial game engines. This engine is architected to support Finite Element Analysis (FEA) and Physics Simulations in later stages.
+This project is a technical playground for implementing high-performance graphics concepts without relying on commercial game engines. The engine is architected to support Finite Element Analysis (FEA) and Physics Simulations in later stages.
 
-Core Engineering Pillars:
+**Core Engineering Pillars:**
 
 * **Data-Oriented Design:** Struct-of-Arrays (SoA) layout for voxel data to maximize CPU cache hits.
-* **Custom Math Library:** SIMD-ready vectors and matrices.
+* **Custom Math Library:** SIMD-ready vectors and matrices implementation.
 * **Systems Hardening:** Zero-warning codebase enforced by CI/CD (`/WX` (MSVC) and `-Werror` GCC/Clang).
 * **Modern OpenGL (4.6):** Direct State Access (DSA) and optimized buffer streaming for voxel generation.
 * **Memory Management:** Leveraging C++20 features and RAII/Move Semantics for deterministic resource lifecycles.
-* **Zero-dependency architecture:** Managing memory and resources manually.
-* **Memory Ownership:** Strict RAII and Move Semantics (C++20) for deterministic resource management.
+* **Zero-Dependency:** Managing memory, windowing context, and resources manually without heavy frameworks.
 
 ## 🛠️ Tech Stack
 
 | Component | Technology | Reasoning |
 | :--- | :--- | :--- |
-| Language | C++20 | Concepts, Modules, constexpr math. |
-| Graphics | OpenGL 4.6 | Core Profile for compute-shader readiness. |
-| Build System | CMake 3.23+ | FetchContent for dependency-free setup. |
-| Windowing | GLFW 3.4 | Robust cross-platform context management. |
-| Loader | Glad | Dynamic loader for OpenGL. |
-| Math | Custom SIMD | Hand-rolled Vector/Matrix library for solver integration. |
-| Procedural | FastNoiseLite | OpenSimplex2 noise for terrain generation. |
-| Asset | stb_image | For Textures generation. |
-| Testing | GoogleTest | Physics and math verification. |
+| **Language** | C++20 | Concepts, Modules, `constexpr` math optimizations. |
+| **Graphics** | OpenGL 4.6 | Core Profile for compute-shader readiness and DSA. |
+| **Build System** | CMake 3.23+ | `FetchContent` for dependency-free setup. |
+| **Windowing** | GLFW 3.4 | Robust cross-platform context management. |
+| **Loader** | GLAD | Dynamic loader for OpenGL function pointers. |
+| **Math** | Custom SIMD | Hand-rolled Vector/Matrix library for solver integration. |
+| **Procedural** | FastNoiseLite | OpenSimplex2 noise for infinite terrain generation. |
+| **Asset** | stb_image | Lightweight image loading for texture atlases. |
+| **Testing** | GoogleTest | Automated verification for Physics and Math logic. |
 
 ## 📐 System Architecture
 
 The engine follows a strict separation of concerns between the Simulation Loop (Fixed Timestep) and Rendering Loop (Variable Timestep).
-```mermaid
-graph TD
-    App[Application Loop] -->|Poll Events| Input[Input Handler]
-    App -->|Fixed Update| Physics[Physics Engine]
-    App -->|Variable Update| Render[Renderer]
-    
-    subgraph "World Data"
-        ChunkManager[ChunkManager] -->|Manage| Chunk["Chunk (16x16x16)"]
-        Chunk -->|Generate| Mesh["Chunk::ReconstructMesh()"]
-        Mesh -->|Culling| Opt[Face Culling]
-    end
-    
-    Physics -->|Query| ChunkManager
-    Render -->|Draw| ChunkManager
-```
+
+![System Architecture](docs/screenshots/system_architecture.png)
 
 ## ✨ Key Features (Current & Planned)
 
 ### ✅ Completed
 - [x] **High-Performance Rendering:**
+    - **Frustum Culling:** CPU-side optimization checking Chunk AABBs against camera planes.
     - **Hidden Face Removal:** Internal and Inter-Chunk occlusion culling (reducing vertex count by ~85%).
-    - **Smart Texturing:** Dynamic UV mapping with bitwise face-id logic and "Cave Ceiling" awareness.
-    - **Distance Culling:** Automatic chunk unloading outside a fixed radius to manage memory.
+    - **Distance Fog:** Exponential fog shader to mask world borders and chunk loading.
+    - **Smart Texturing:** Dynamic UV mapping with bitwise face-id logic.
+
+- [x] **Core Architecture:**
+    - **Region-Based Persistence:** Custom `.mcr` file system that saves modified chunks to disk (Run-Length Encoded).
+    - **Worker Thread Pool:** Asynchronous job system for non-blocking chunk generation and mesh building.
+    - **ImGui Debugger:** Real-time performance profiling and variable tuning (toggle via `~` key).
+    - **Zero-Warning Policy:** CI pipeline enforcing `clang-format` and strict linting (`/WX`, `-Werror`).
 
 - [x] **Physics & Interaction:**
     - **AABB Collision:** Precise Axis-Aligned Bounding Box detection against voxel terrain.
-    - **Kinematic Character Controller:** "Collide & Slide" resolution for smooth movement against walls (no sticky friction).
-    - **World Interaction:** Real-time block breaking/placing with instant neighbor mesh updates.
+    - **Kinematic Character Controller:** "Collide & Slide" resolution for smooth movement.
+    - **Infinite Streaming:** Dynamic loading/unloading of chunks based on player position.
+    - **Fly Mode:** Creative-mode flight with noclip and variable speed control.
     - **Ray Casting:** DDA (Digital Differential Analyzer) algorithm for O(1) block picking.
 
 - [x] **Engine Core:**
     - **Custom Math Library:** `Vec3` / `Mat4` implementation with `constexpr` and SIMD-ready optimization.
     - **Interactive Camera:** Euler-angle based FPS camera with WASD movement, Mouse Look, and Zoom.
     - **Render Context:** Robust GLFW window handling and input polling.
+    - **Thread Safety:** Mutex-guarded chunk management for safe multi-threaded loading.
 
 - [x] **Procedural Generation:**
-    - **Infinite Terrain:** Continuous world generation using `FastNoiseLite` (OpenSimplex2).
+    - **Infinite Terrain:** Continuous world generation using `FastNoiseLite`.
     - **Biome System:** Height-based block assignment (Bedrock, Stone, Dirt, Grass).
 
 - [x] **Build & CI:**
     - **Zero-Dependency Setup:** Self-contained CMake build using `FetchContent`.
     - **Automated Testing:** GoogleTest suite for Math/Physics verification running on GitHub Actions.
+    - **Automated Docs:** Doxygen & Graphviz integration for API documentation.
 
-### 🚧 In Progress (Physics Transition)
-- [ ] **Frustum Culling:** CPU-side culling to optimize GPU workload for large view distances.
-- [ ] **ImGui Integration:** Debug dashboard for real-time performance profiling.
-- [ ] **Fixed Timestep Loop:** Decoupling simulation logic (60Hz) from rendering (Uncapped).
+### 🚧 Backlog (Next Sprint)
+- [ ] **Greedy Meshing:** Merging adjacent faces of the same type to drastically reduce vertex count and GPU memory usage.
+- [ ] **Fluid Simulation:** Finite Element Analysis (FEA) based fluid flow using cellular automata.
 
-### 📅 Planned
-- [ ] **Lighting Engine:** Ambient Occlusion (AO) and Day/Night cycle.
-- [ ] **Water Simulation:** Transparent rendering pass.
-- [ ] **RigidBody Dynamics:** Mass, Velocity, and Force accumulation.
+### 🧊 Roadmap (Icebox)
+- [ ] **Morton Encoding (Z-Order Curve):** Reordering chunk memory layout to improve spatial cache locality. [Image of Z-Order Curve Morton Code]
+- [ ] **Directional Shadow Mapping:** Cascaded Shadow Maps (CSM) for dynamic sun lighting.
+- [ ] **Compute Shaders:** Moving voxel generation from the CPU Thread Pool to the GPU.
 
 ## 📦 Build Instructions
 

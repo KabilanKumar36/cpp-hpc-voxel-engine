@@ -15,7 +15,7 @@ uniform mat4 uViewProjection; // Camera View * Projection Matrix
 // Fog Settings
 // Lower density = thicker fog further away
 // Higher gradient = sharper transition
-const float density = 0.007;
+const float density = 0.015;
 const float gradient = 1.5;
 
 void main()
@@ -28,7 +28,8 @@ void main()
 
     // 3. Calculate Fog Visibility based on distance from camera
     // gl_Position.z is the depth/distance relative to the camera
-    float distance = length(gl_Position.xyz);
+    //float distance = length(gl_Position.xyz);
+    float distance = gl_Position.w;
     Visibility = exp(-pow((distance * density), gradient));
     
     // Clamp to ensure valid range [0, 1]
