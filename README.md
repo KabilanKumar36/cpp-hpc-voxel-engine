@@ -6,6 +6,9 @@
 ![OpenGL](https://img.shields.io/badge/OpenGL-4.6-red.svg)
 ![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/build_and_test.yml/badge.svg)
 
+> **🚀 v1.0 Tech Demo Available!**
+> [**Download Windows Demo (Zip)**](https://github.com/kabilankumar36/cpp-hpc-voxel-engine/releases/latest) - *Requires NVIDIA GPU*
+
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed as a foundational framework for Computational Engineering (CAE) simulations, focusing on cache coherency, hardware-accelerated rendering, custom memory allocators, and low-level memory management.
 
