@@ -60,8 +60,8 @@ private:
     float m_fDeltaTime = 0.0f;
 
     int m_iFrameCount = 0;
-    const unsigned int SCREEN_WIDTH = 1280;
-    const unsigned int SCREEN_HEIGHT = 720;
+    const unsigned int SCREEN_WIDTH = 1920;
+    const unsigned int SCREEN_HEIGHT = 1080;
 
     bool m_bCullingEnabled = false;
     bool m_bPerspective = true;

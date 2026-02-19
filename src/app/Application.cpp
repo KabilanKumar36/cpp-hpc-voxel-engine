@@ -12,7 +12,7 @@ void Application::InitImGUI() {
     ImGui::CreateContext();
 
     ImGuiIO& IO = ImGui::GetIO();
-    (void)IO;  // Silence unused variable warning
+    IO.FontGlobalScale = 1.5f;
 
     IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;

@@ -123,7 +123,7 @@ int main() {
         // UI Rendering
         App.BeginImGUIFrame();
         if (App.m_bShowDebugPanel) {
-            ImGui::SetNextWindowSize(ImVec2(280, 360), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(420, 540), ImGuiCond_FirstUseEver);
             ImGui::Begin("System Monitor", &App.m_bShowDebugPanel);
 
             ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Dev. Tools");
