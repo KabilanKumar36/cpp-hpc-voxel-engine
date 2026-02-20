@@ -84,14 +84,15 @@ The engine follows a strict separation of concerns between the Simulation Loop (
     - **Automated Testing:** GoogleTest suite for Math/Physics verification running on GitHub Actions.
     - **Automated Docs:** Doxygen & Graphviz integration for API documentation.
 
-### 🚧 Backlog (Next Sprint)
-- [ ] **Greedy Meshing:** Merging adjacent faces of the same type to drastically reduce vertex count and GPU memory usage.
-- [ ] **Fluid Simulation:** Finite Element Analysis (FEA) based fluid flow using cellular automata.
+# 🚧 Backlog (Next Sprint: Physics & Solvers)
+- [ ] **Greedy Meshing:** Merging adjacent faces of the same type to drastically reduce vertex count and GPU memory bandwidth.
+- [ ] **Grid-Based Fluid Dynamics:** Implementing volumetric fluid flow using Cellular Automata / Lattice Boltzmann Method (LBM) for real-time simulation.
 
 ### 🧊 Roadmap (Icebox)
-- [ ] **Morton Encoding (Z-Order Curve):** Reordering chunk memory layout to improve spatial cache locality. [Image of Z-Order Curve Morton Code]
-- [ ] **Directional Shadow Mapping:** Cascaded Shadow Maps (CSM) for dynamic sun lighting.
-- [ ] **Compute Shaders:** Moving voxel generation from the CPU Thread Pool to the GPU.
+- [ ] **Morton Encoding (Z-Order Curve):** Reordering chunk memory layout to drastically improve spatial CPU cache locality. 
+- [ ] **Compute Shaders:** Moving voxel procedural generation from the CPU Thread Pool to the GPU via OpenGL 4.5 SSBOs.
+- [ ] **Sparse Voxel Octrees (SVO):** Transitioning from a dense grid to an SVO to support massive render distances and memory compression.
+- [ ] **Directional Shadow Mapping:** Cascaded Shadow Maps (CSM) for dynamic, large-scale sun lighting.
 
 ## 📦 Build Instructions
 
