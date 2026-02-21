@@ -1,6 +1,7 @@
 #pragma once
 #include <glad/glad.h>
 #include "Buffer.h"
+#include "IndexBuffer.h"
 
 namespace Renderer {
 
@@ -13,7 +14,7 @@ class VertexArray {
 public:
     unsigned int m_RendererID;
 
-    VertexArray() { glGenVertexArrays(1, &m_RendererID); }
+    VertexArray() { glCreateVertexArrays(1, &m_RendererID); }
     ~VertexArray() { glDeleteVertexArrays(1, &m_RendererID); }
 
     VertexArray(const VertexArray &) = delete;
@@ -35,21 +36,32 @@ public:
                        int iNumComponents,
                        int iStride,
                        int iOffset) const {
-        Bind();
-        vbo.Bind();
+        // 1. Enable the attribute index on the VAO explicitly
+        glEnableVertexArrayAttrib(m_RendererID, iLayoutIndex);
 
-        // Convert "Float Count" to "Bytes" for OpenGL
-        glVertexAttribPointer(iLayoutIndex,
-                              iNumComponents,
-                              GL_FLOAT,
-                              GL_FALSE,
-                              iStride * sizeof(float),
-                              (void *)(iOffset * sizeof(float)));
+        // 2. Specify the FORMAT of the data (Components, Type, Normalized, Relative Offset)
+        glVertexArrayAttribFormat(m_RendererID,
+                                  iLayoutIndex,
+                                  iNumComponents,
+                                  GL_FLOAT,
+                                  GL_FALSE,
+                                  iOffset * sizeof(float));
 
-        glEnableVertexAttribArray(iLayoutIndex);
+        // 3. Attach the VBO to a "Binding Point" on the VAO.
+        // We use iLayoutIndex as the binding point index for simplicity.
+        // Signature: (VAO_ID, BindingIndex, VBO_ID, BufferStartOffset, Stride)
+        glVertexArrayVertexBuffer(
+            m_RendererID, iLayoutIndex, vbo.m_RendererID, 0, iStride * sizeof(float));
 
-        vbo.Unbind();
-        // Note: Do not Unbind VAO here, usually done by the caller or Renderer
+        // 4. Link the Attribute Index to that Binding Point
+        glVertexArrayAttribBinding(m_RendererID, iLayoutIndex, iLayoutIndex);
+    }
+    /**
+     * @brief Attaches an IndexBuffer to this VAO using DSA.
+     * @param ibo The IndexBuffer to attach.
+     */
+    void AttachIndexBuffer(const IndexBuffer &ibo) const {
+        glVertexArrayElementBuffer(m_RendererID, ibo.m_RendererID);
     }
 };
 }  // namespace Renderer

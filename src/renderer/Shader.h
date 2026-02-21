@@ -94,7 +94,7 @@ private:
         } else {
             glGetProgramiv(uiShader, GL_LINK_STATUS, &iSuccess);
             if (!iSuccess) {
-                glGetShaderInfoLog(uiShader, 1024, nullptr, cInfoLog);
+                glGetProgramInfoLog(uiShader, 1024, nullptr, cInfoLog);
                 std::cout << "ERROR::PROGRAM::LINKING_ERROR\n" << cInfoLog;
                 std::cout
                     << "-----------------------------------------------------------------------";

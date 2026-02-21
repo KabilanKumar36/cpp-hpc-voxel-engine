@@ -18,9 +18,8 @@ public:
      * @param uiSize Total size of the data in bytes.
      */
     VertexBuffer(const void* data, unsigned int uiSize) {
-        glGenBuffers(1, &m_RendererID);
-        glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-        glBufferData(GL_ARRAY_BUFFER, uiSize, data, GL_STATIC_DRAW);
+        glCreateBuffers(1, &m_RendererID);
+        glNamedBufferData(m_RendererID, uiSize, data, GL_STATIC_DRAW);
     }
 
     ~VertexBuffer() { glDeleteBuffers(1, &m_RendererID); }
@@ -31,5 +30,11 @@ public:
 
     void Bind() const { glBindBuffer(GL_ARRAY_BUFFER, m_RendererID); }
     void Unbind() const { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+    /**
+     * @brief Updates buffer data without reallocating memory (DSA).
+     */
+    void UpdateData(const void* data, unsigned int uiSize, unsigned int uiOffset = 0) const {
+        glNamedBufferSubData(m_RendererID, uiOffset, uiSize, data);
+    }
 };
 }  // namespace Renderer

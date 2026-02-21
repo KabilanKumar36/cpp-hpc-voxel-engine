@@ -177,7 +177,7 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
 //*********************************************************************
 Core::Mat4 InputHandler::GetViewProjectionMatrix() {
     Core::Mat4 projection;
-    float fAspectRatio = static_cast<float>(SCREEN_WIDTH) / static_cast<float>(SCREEN_HEIGHT);
+    float fAspectRatio = static_cast<float>(m_iScreenWidth) / static_cast<float>(m_iScreenHeight);
     if (App::InputHandler::IsPerspective()) {
         projection = Core::Mat4::Perspective(GetCamera().GetZoom(), fAspectRatio, 0.1f, 100.0f);
     } else {

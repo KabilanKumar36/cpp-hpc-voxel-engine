@@ -1,4 +1,8 @@
-﻿#include <iostream>
+﻿#if defined(_WIN32) && defined(NDEBUG)
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#endif
+
+#include <iostream>
 #include <vector>
 
 constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
@@ -35,13 +39,19 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
+    GLFWmonitor* pPrimaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* pVideoMode = glfwGetVideoMode(pPrimaryMonitor);
+    glfwWindowHint(GLFW_RED_BITS, pVideoMode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, pVideoMode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, pVideoMode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, pVideoMode->refreshRate);
 
     App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
-
+    inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
                                            inputHandler.GetScreenHeight(),
                                            "HPC Voxel Engine",
-                                           nullptr,
+                                           pPrimaryMonitor,
                                            nullptr);
     if (pWindow == nullptr) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -65,7 +75,6 @@ int main() {
     Renderer::Shader shader("assets/shaders/vertex_Chunk.glsl",
                             "assets/shaders/fragment_Chunk.glsl");
     Renderer::PrimitiveRenderer::Init();
-    SetOpenGLState();
 
     shader.Use();
     shader.SetInt("u_Texture", 0);
@@ -82,6 +91,7 @@ int main() {
     while (!glfwWindowShouldClose(pWindow)) {
         glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        SetOpenGLState();
 
         float fCurrentFrame = static_cast<float>(glfwGetTime());
         float fDeltaTime = fCurrentFrame - fLastFrame;

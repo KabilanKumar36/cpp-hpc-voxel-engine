@@ -10,35 +10,34 @@ public:
     unsigned int ID;
     int width, height, nrChannels;
     Texture(const char* cPath) {
-        glGenTextures(1, &ID);
-        glBindTexture(GL_TEXTURE_2D, ID);
+        glCreateTextures(GL_TEXTURE_2D, 1, &ID);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(ID, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(ID, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(ID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(ID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         stbi_set_flip_vertically_on_load(false);
 
         unsigned char* cData = stbi_load(cPath, &width, &height, &nrChannels, 0);
         if (cData) {
-            GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
+            GLenum iInternalFormat = (nrChannels == 4) ? GL_RGBA8 : GL_RGB8;
+            GLenum iDataFormat = (nrChannels == 4) ? GL_RGBA : GL_RGB;
 
-            glTexImage2D(
-                GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, cData);
-            glGenerateMipmap(GL_TEXTURE_2D);
+            glTextureStorage2D(ID, 1, iInternalFormat, width, height);
+            glTextureSubImage2D(ID, 0, 0, 0, width, height, iDataFormat, GL_UNSIGNED_BYTE, cData);
+            glGenerateTextureMipmap(ID);
+            stbi_image_free(cData);
+
         } else {
             std::cout << "ERROR::TEXTURE::FAILED_TO_LOAD_PATH" << std::endl;
+            glTextureStorage2D(ID, 1, GL_RGBA8, 1, 1);
             unsigned char debugColor[] = {255, 0, 255, 255};  // Bright Pink
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, debugColor);
+            glTextureSubImage2D(ID, 0, 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, debugColor);
         }
-        stbi_image_free(cData);
     }
 
-    void Bind(unsigned int iSlot) const {
-        glActiveTexture(GL_TEXTURE0 + iSlot);
-        glBindTexture(GL_TEXTURE_2D, ID);
-    }
+    void Bind(unsigned int iSlot) const { glBindTextureUnit(iSlot, ID); }
 };
 }  // namespace Renderer

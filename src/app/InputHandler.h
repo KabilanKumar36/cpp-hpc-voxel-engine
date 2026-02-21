@@ -41,8 +41,12 @@ public:
             m_pPlayer->SetMovementSpeed(fMoveSpeed);
     }
     void SetFlyMode(bool bFlyMode) { m_bFlyMode = bFlyMode; }
-    unsigned int GetScreenWidth() const { return SCREEN_WIDTH; }
-    unsigned int GetScreenHeight() const { return SCREEN_HEIGHT; }
+    void SetScreenWidth(int iWidth, int iHeight) {
+        m_iScreenWidth = iWidth;
+        m_iScreenHeight = iHeight;
+    }
+    unsigned int GetScreenWidth() const { return m_iScreenWidth; }
+    unsigned int GetScreenHeight() const { return m_iScreenHeight; }
 
     int GetFrameCount() const { return m_iFrameCount; }
     void AddFrameCount() { m_iFrameCount++; }
@@ -60,8 +64,8 @@ private:
     float m_fDeltaTime = 0.0f;
 
     int m_iFrameCount = 0;
-    const unsigned int SCREEN_WIDTH = 1920;
-    const unsigned int SCREEN_HEIGHT = 1080;
+    int m_iScreenWidth = 1920;
+    int m_iScreenHeight = 1080;
 
     bool m_bCullingEnabled = false;
     bool m_bPerspective = true;

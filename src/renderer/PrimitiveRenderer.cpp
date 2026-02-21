@@ -31,14 +31,13 @@ void PrimitiveRenderer::Init() {
     m_pCubeVBO = new VertexBuffer(cubeVertices.data(),
                                   static_cast<unsigned int>(cubeVertices.size()) * sizeof(float));
 
-    m_pCubeVAO->LinkAttribute(*m_pCubeVBO, 0, 3, 0, 0);
-    m_pCubeVAO->Unbind();
+    m_pCubeVAO->LinkAttribute(*m_pCubeVBO, 0, 3, 3, 0);
 
     // 3. Setup Dynamic Line
     float fLineVertices[] = {0, 0, 0, 0, 0, 0};
     m_pLineVBO = new VertexBuffer(fLineVertices, sizeof(fLineVertices));
     m_pLineVAO = new VertexArray();
-    m_pLineVAO->LinkAttribute(*m_pLineVBO, 0, 3, 0, 0);
+    m_pLineVAO->LinkAttribute(*m_pLineVBO, 0, 3, 3, 0);
 }
 
 // ********************************************************************
@@ -104,9 +103,8 @@ void PrimitiveRenderer::DrawLine(const Core::Vec3& objVecStart,
     float fLineVertices[] = {
         objVecStart.x, objVecStart.y, objVecStart.z, objVecEnd.x, objVecEnd.y, objVecEnd.z};
 
-    m_pLineVBO->Bind();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(fLineVertices), fLineVertices, GL_DYNAMIC_DRAW);
-    m_pLineVBO->Unbind();
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(fLineVertices), fLineVertices, GL_DYNAMIC_DRAW);
+    m_pLineVBO->UpdateData(fLineVertices, sizeof(fLineVertices));
 
     // Identity Model Matrix for lines (world space coords)
     Core::Mat4 objModel;

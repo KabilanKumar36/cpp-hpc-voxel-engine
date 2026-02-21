@@ -163,13 +163,9 @@ void Chunk::updateBuffers() {
         m_pVAO->LinkAttribute(*m_pVBO, 0, 3, 5, 0);
         // Attribute 1: TexCoord (2 floats)
         m_pVAO->LinkAttribute(*m_pVBO, 1, 2, 5, 3);
-
-        if (m_pIBO)
-            m_pIBO->Bind();
-
-        m_pVAO->Unbind();
-        if (m_pIBO)
-            m_pIBO->Unbind();
+        if (m_pIBO) {
+            m_pVAO->AttachIndexBuffer(*m_pIBO);
+        }
     }
 }
 

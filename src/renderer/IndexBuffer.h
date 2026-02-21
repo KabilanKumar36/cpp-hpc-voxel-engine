@@ -14,9 +14,8 @@ public:
      * @param uiCount Total NUMBER of indices (not bytes).
      */
     IndexBuffer(unsigned int* data, unsigned int uiCount) : m_uiCount(uiCount) {
-        glGenBuffers(1, &m_RendererID);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, uiCount * sizeof(unsigned int), data, GL_STATIC_DRAW);
+        glCreateBuffers(1, &m_RendererID);
+        glNamedBufferData(m_RendererID, uiCount * sizeof(unsigned int), data, GL_STATIC_DRAW);
     }
 
     ~IndexBuffer() { glDeleteBuffers(1, &m_RendererID); }
