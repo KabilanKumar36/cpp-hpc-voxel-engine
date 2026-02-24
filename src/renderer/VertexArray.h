@@ -42,10 +42,10 @@ public:
         // 2. Specify the FORMAT of the data (Components, Type, Normalized, Relative Offset)
         glVertexArrayAttribFormat(m_RendererID,
                                   iLayoutIndex,
-                              iNumComponents,
-                              GL_FLOAT,
-                              GL_FALSE,
-                                  (void *)(uintptr_t)(iOffset * sizeof(float)));
+                                  iNumComponents,
+                                  GL_FLOAT,
+                                  GL_FALSE,
+                                  iOffset * sizeof(float));
 
         // 3. Attach the VBO to a "Binding Point" on the VAO.
         // We use iLayoutIndex as the binding point index for simplicity.
