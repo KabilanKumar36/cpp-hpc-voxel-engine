@@ -52,4 +52,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: HTML-Docs
-          path: docs/html
+          path: docs/api
