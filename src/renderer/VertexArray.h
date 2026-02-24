@@ -43,8 +43,8 @@ public:
                               iNumComponents,
                               GL_FLOAT,
                               GL_FALSE,
-                              iStride * sizeof(float),
-                              (void *)(iOffset * sizeof(float)));
+                              static_cast<GLsizei>(iStride * sizeof(float)),
+                              (void *)(uintptr_t)(iOffset * sizeof(float)));
 
         glEnableVertexAttribArray(iLayoutIndex);
 
