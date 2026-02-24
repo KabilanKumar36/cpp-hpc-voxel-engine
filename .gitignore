@@ -76,6 +76,7 @@ enc_temp_folder/
 external_cache/
 
 # Ignore Doxygen generated docs
+docs/api/
 docs/html/
 docs/latex/
 docs/*.db
