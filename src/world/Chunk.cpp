@@ -5,7 +5,7 @@
 
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
-    m_bEnableFaceCulling = false;
+    m_bEnableFaceCulling = true;
     updateHeightData();
 }
 

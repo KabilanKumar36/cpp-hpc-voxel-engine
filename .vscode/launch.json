@@ -11,9 +11,23 @@
             "args": [],
             "stopAtEntry": false,
             "cwd": "${command:cmake.getLaunchTargetDirectory}",
-            "environment": [],
+            // To suppress libEGL warnings and ZINK failure
+            "environment": [
+                {
+                    "name": "WAYLAND_DISPLAY",
+                    "value": ""
+                } ,
+                {
+                    "name": "GDK_BACKEND",
+                    "value": "x11"
+                } ,
+                {
+                    "name": "XDG_SESSION_TYPE",
+                    "value": "x11"
+                } 
+            ],
             // Do NOT use "console": "externalTerminal" (that is for MSVC only)
-            "externalConsole": true,
+            "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
                 {

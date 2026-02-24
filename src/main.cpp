@@ -36,6 +36,9 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+
     App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
 
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
@@ -60,8 +63,10 @@ int main() {
     InputManager::GetInstance().Init(pWindow);
     Application App(pWindow);
     App.InitImGUI();
-    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 
+    // Explicit scoping for openGL items to maintain RAII before glfwTerminate is called to deleted.
+{
     Renderer::Shader shader("assets/shaders/vertex_Chunk.glsl",
                             "assets/shaders/fragment_Chunk.glsl");
     Renderer::PrimitiveRenderer::Init();
@@ -71,7 +76,6 @@ int main() {
     shader.SetInt("u_Texture", 0);
     Renderer::Texture texture("assets/textures/texture_atlas.png");
     texture.Bind(0);
-
     // World & Chunk Initialization
     std::string strRegnFilePath = "ChunkData";
     ChunkManager objChunkManager(strRegnFilePath);
@@ -172,7 +176,8 @@ int main() {
         }
         App.EndImGUIFrame();
         glfwSwapBuffers(pWindow);
-    }
+        }
+}
     App.ShutDownImGUI();
     Renderer::PrimitiveRenderer::Shutdown();
     glfwTerminate();

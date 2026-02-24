@@ -35,6 +35,9 @@ public:
         }
         stbi_image_free(cData);
     }
+    ~Texture(){
+        glDeleteTextures(1, &ID);
+    }
 
     void Bind(unsigned int iSlot) const {
         glActiveTexture(GL_TEXTURE0 + iSlot);
