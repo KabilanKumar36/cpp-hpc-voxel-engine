@@ -45,7 +45,7 @@ public:
                                   iNumComponents,
                                   GL_FLOAT,
                                   GL_FALSE,
-                                  iOffset * sizeof(float));
+                                  static_cast<GLuint>(iOffset * sizeof(float)));
 
         // 3. Attach the VBO to a "Binding Point" on the VAO.
         // We use iLayoutIndex as the binding point index for simplicity.
