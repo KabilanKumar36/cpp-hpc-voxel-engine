@@ -1,0 +1,8 @@
+leak:libwayland-client
+leak:libwayland-cursor
+leak:libGLX_mesa
+leak:libEGL_mesa
+leak:libglapi
+leak:glfw
+leak:glTexImage2D
+leak:Renderer::Texture::Texture

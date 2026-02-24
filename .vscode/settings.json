@@ -1,0 +1,8 @@
+{
+    "cmake.buildTarget": "all",
+    "cmake.environment": {
+        "WAYLAND_DISPLAY": "",
+        "GDK_BACKEND": "x11",
+        "XDG_SESSION_TYPE": "x11"
+    }
+}

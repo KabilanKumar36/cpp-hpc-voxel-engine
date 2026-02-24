@@ -37,6 +37,9 @@ public:
             glTextureSubImage2D(ID, 0, 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, debugColor);
         }
     }
+    ~Texture(){
+        glDeleteTextures(1, &ID);
+    }
 
     void Bind(unsigned int iSlot) const { glBindTextureUnit(iSlot, ID); }
 };

@@ -53,7 +53,11 @@ void Application::HandleUIToggle() {
             if (m_bIsUIActive) {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } else {
+#ifdef _WIN32
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#else
+                glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+#endif
             }
         }
     } else {

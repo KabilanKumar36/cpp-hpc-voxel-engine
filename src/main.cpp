@@ -45,7 +45,10 @@ int main() {
     glfwWindowHint(GLFW_GREEN_BITS, pVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, pVideoMode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, pVideoMode->refreshRate);
-
+	
+	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+    
     App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
     inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
@@ -70,8 +73,16 @@ int main() {
     InputManager::GetInstance().Init(pWindow);
     Application App(pWindow);
     App.InitImGUI();
+#ifdef _WIN32
+    // Enable High-DPI support on Windows
+    glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
     glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#else
+    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+#endif
 
+    // Explicit scoping for openGL items to maintain RAII before glfwTerminate is called to deleted.
+    {
     Renderer::Shader shader("assets/shaders/vertex_Chunk.glsl",
                             "assets/shaders/fragment_Chunk.glsl");
     Renderer::PrimitiveRenderer::Init();
@@ -182,6 +193,7 @@ int main() {
         }
         App.EndImGUIFrame();
         glfwSwapBuffers(pWindow);
+        }
     }
     App.ShutDownImGUI();
     Renderer::PrimitiveRenderer::Shutdown();
