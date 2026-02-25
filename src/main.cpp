@@ -39,22 +39,22 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    GLFWmonitor* pPrimaryMonitor = glfwGetPrimaryMonitor();
+    /* GLFWmonitor* pPrimaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* pVideoMode = glfwGetVideoMode(pPrimaryMonitor);
     glfwWindowHint(GLFW_RED_BITS, pVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, pVideoMode->greenBits);
     glfwWindowHint(GLFW_BLUE_BITS, pVideoMode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, pVideoMode->refreshRate);
+    glfwWindowHint(GLFW_REFRESH_RATE, pVideoMode->refreshRate);*/
 	
-	glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	//glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     
     App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
-    inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
+    //inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
                                            inputHandler.GetScreenHeight(),
                                            "HPC Voxel Engine",
-                                           pPrimaryMonitor,
+                                           /*pPrimaryMonitor*/ nullptr,
                                            nullptr);
     if (pWindow == nullptr) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -133,6 +133,8 @@ int main() {
             inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
         else
             inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
+
+        //PhysicsSystem::UpdateTemparature(fDeltaTime, inputHandler.GetFrameCount(), objChunkManager);
 
         // Rendering
         Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();

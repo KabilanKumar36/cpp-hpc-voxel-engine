@@ -53,3 +53,21 @@ TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
 
     EXPECT_EQ(ObjTgtChunk.GetChunkX(), 0);
 }
+
+TEST(ChunkTest, MoveConstructor_ThermalBufferTransfer) {
+    Chunk ObjSrcChunk(1, 1);
+
+    // Inject test data
+    ObjSrcChunk.InjectHeat(8, 8, 8, 99.0f);
+
+    // Perform the Move
+    Chunk ObjTgtChunk(std::move(ObjSrcChunk));
+
+    // 1. Verify target has the data
+    // (You might need a public getter for testing, or just verify via DebugPrint)
+    // For now, let's just check the "validity" via a null check if you add one
+
+    // 2. Verify source pointers are NULL
+    EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
+    EXPECT_NE(ObjTgtChunk.GetCurrData(), nullptr);
+}

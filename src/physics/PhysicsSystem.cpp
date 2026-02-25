@@ -111,7 +111,6 @@ bool PhysicsSystem::checkCollision(const AABB& objAABB, const ChunkManager& objC
     }
     return false;
 }
-
 //*********************************************************************
 RayHit PhysicsSystem::RayCast(const Core::Ray& objRay,
                               float fMaxDistance,
@@ -208,4 +207,15 @@ RayHit PhysicsSystem::RayCast(const Core::Ray& objRay,
     }
 
     return hitResult;
+}
+//*********************************************************************
+void PhysicsSystem::UpdateTemparature(float fDelta, int iFrameCount, ChunkManager& objChunkManager) {
+    auto& mapChunks = objChunkManager.GetMutableChunks();
+    for (auto& [coords, objChunk] : mapChunks) {
+        objChunk.InjectHeat(8, 8, 8, 100.0f);
+        objChunk.ThermalStep(0.1f, fDelta);
+        if (iFrameCount == 0) {
+            objChunk.DebugPrintThermalSlice();
+        }
+    }
 }

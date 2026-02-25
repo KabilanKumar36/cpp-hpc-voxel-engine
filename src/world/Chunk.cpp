@@ -6,6 +6,12 @@
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
     m_bEnableFaceCulling = true;
+
+    m_pfCurrFrameData = static_cast<float*>(_aligned_malloc(CHUNK_VOL * sizeof(float), 64));
+    m_pfNextFrameData = static_cast<float*>(_aligned_malloc(CHUNK_VOL * sizeof(float), 64));
+    std::fill_n(m_pfCurrFrameData, CHUNK_VOL, 0.0f);
+    std::fill_n(m_pfNextFrameData, CHUNK_VOL, 0.0f);
+
     updateHeightData();
 }
 
@@ -17,6 +23,9 @@ Chunk::~Chunk() {
         delete m_pVBO;
     if (m_pIBO)
         delete m_pIBO;
+
+    _aligned_free(m_pfCurrFrameData);
+    _aligned_free(m_pfNextFrameData);
 }
 //*********************************************************************
 Chunk::Chunk(Chunk&& other) noexcept
@@ -27,10 +36,14 @@ Chunk::Chunk(Chunk&& other) noexcept
       m_pIBO(other.m_pIBO),
       m_iChunkX(other.m_iChunkX),
       m_iChunkZ(other.m_iChunkZ),
+      m_pfCurrFrameData(other.m_pfCurrFrameData),
+      m_pfNextFrameData(other.m_pfNextFrameData),
       m_bEnableFaceCulling(other.m_bEnableFaceCulling) {
     other.m_pVAO = nullptr;
     other.m_pVBO = nullptr;
     other.m_pIBO = nullptr;
+    other.m_pfCurrFrameData = nullptr;
+    other.m_pfNextFrameData = nullptr;
 
     std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
     std::memcpy(m_iHeightData, other.m_iHeightData, sizeof(m_iHeightData));
@@ -59,6 +72,11 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
         other.m_pVBO = nullptr;
         other.m_pIBO = nullptr;
 
+        _aligned_free(m_pfCurrFrameData);
+        _aligned_free(m_pfNextFrameData);
+
+        m_pfCurrFrameData = other.m_pfCurrFrameData;
+        m_pfNextFrameData = other.m_pfNextFrameData;
         m_iChunkX = other.m_iChunkX;
         m_iChunkZ = other.m_iChunkZ;
         m_bEnableFaceCulling = other.m_bEnableFaceCulling;
@@ -338,3 +356,48 @@ void Chunk::Render() const {
     }
 }
 //*********************************************************************
+void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime)  {
+
+    float fCoefficient = fThermalDiffusivity * fDeltaTime;
+
+    for (int iY = 1; iY < CHUNK_HEIGHT - 1; ++iY) {
+        for (int iZ = 1; iZ < CHUNK_SIZE - 1; ++iZ) {
+            for (int iX = 1; iX < CHUNK_SIZE - 1; ++iX) {
+                int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+                
+                float fCurrentTemp = m_pfCurrFrameData[iIndex];
+                float fNeighborSum = 
+                    m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] +
+                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX - 1, iY, iZ)] +
+                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY + 1, iZ)] +
+                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY - 1, iZ)] +
+                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ + 1)] +
+                                     m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ - 1)];
+                m_pfNextFrameData[iIndex] =
+                    fCurrentTemp + fCoefficient * (fNeighborSum - 6.0f * fCurrentTemp);
+            }
+        }
+    }
+
+    SwapBuffers();
+}
+//*********************************************************************
+void Chunk::DebugPrintThermalSlice() {
+    int iY = CHUNK_HEIGHT / 2;
+    std::cout << "--- Thermal Slice (Y="<< iY << ") ---\n";
+    for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
+        for (int iX = 0; iX < CHUNK_SIZE; ++iX) {
+            float fTemp = m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ)];
+
+            if (fTemp > 50.0f)
+                std::cout << " # ";
+            else if (fTemp > 10.0f)
+                std::cout << " * ";
+            else if (fTemp > 1.0f)
+                std::cout << " . ";
+            else
+                std::cout << "   ";
+        }
+        std::cout << "\n";
+    }
+}

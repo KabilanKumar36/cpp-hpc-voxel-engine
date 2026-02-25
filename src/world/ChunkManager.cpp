@@ -175,6 +175,16 @@ void ChunkManager::enqueueLoadChunk(int iX, int iZ) {
         Chunk objChunk(iX, iZ);
         m_objRegionManager.LoadChunk(objChunk);
         m_objFinishedQueue.push(std::move(objChunk));
+        // 1. Create the chunk on the heap via unique_ptr
+        /*auto pChunk = std::make_unique<Chunk>(iX, iZ);
+
+        // 2. Load data
+        m_objRegionManager.LoadChunk(*pChunk);
+
+        // 3. Move the WHOLE OBJECT into the queue
+        // Update your FinishedQueue to take std::unique_ptr<Chunk> if possible,
+        // OR move the value out of the pointer:
+        m_objFinishedQueue.push(std::move(*pChunk)); */
     });
 }
 

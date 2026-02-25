@@ -60,6 +60,7 @@ public:
     static RayHit RayCast(const Core::Ray& objRay,
                           float fMaxDistance,
                           const ChunkManager& objChunkManager);
+    static void UpdateTemparature(float fDelta, int iFrameCount, ChunkManager& objChunkManager);
 
 private:
     // Helper: Box-to-Voxel collision

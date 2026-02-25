@@ -117,6 +117,17 @@ public:
     // --- Generation ---
     void ReconstructMesh();
     void UploadMesh();
+    void SwapBuffers() { std::swap(m_pfCurrFrameData, m_pfNextFrameData);
+    }
+    void InjectHeat(int iX, int iY, int iZ, float fTemp) {
+        int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+        if (iIndex != -1) {
+            m_pfCurrFrameData[iIndex] = fTemp;
+        }
+    }
+    void ThermalStep(float fThermalDiffusivity, float fDeltaTime);
+    void DebugPrintThermalSlice();
+    float* GetCurrData() const { return m_pfCurrFrameData; }
 
 private:
     std::vector<float> m_vec_fVertices;
@@ -130,6 +141,10 @@ private:
 
     // Per-chunk noise instance (Consider moving to a global generator for efficiency)
     FastNoiseLite noise{};
+
+    float* m_pfCurrFrameData = nullptr;
+    float* m_pfNextFrameData = nullptr;
+    
     int m_iHeightData[CHUNK_SIZE][CHUNK_SIZE];
     int m_iChunkX = 0, m_iChunkZ = 0;
     uint8_t m_iBlocks[CHUNK_VOL]{0};
