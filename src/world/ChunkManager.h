@@ -4,6 +4,7 @@
 #include <cmath>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <set>
@@ -48,13 +49,15 @@ public:
     const Chunk* GetChunk(int iX, int iZ) const;
 
     // Helper for Renderer
-    std::map<std::pair<int, int>, Chunk>& GetMutableChunks() { return m_mapChunks; }
+    std::map<std::pair<int, int>, std::unique_ptr<Chunk>>& GetMutableChunks() {
+        return m_mapChunks;
+    }
 
 private:
     void enqueueLoadChunk(int iX, int iZ);
     void updateChunkNeighbours(Chunk* pChunk);
 
-    std::map<std::pair<int, int>, Chunk> m_mapChunks;
+    std::map<std::pair<int, int>, std::unique_ptr<Chunk>> m_mapChunks;
 
     // Threading Synchronization
     std::set<std::pair<int, int>> m_setPendingCoords;

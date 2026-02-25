@@ -1,4 +1,4 @@
-#include <cstdlib> // required for aligned malloc and aligned free
+#include <cstdlib>  // required for aligned malloc and aligned free
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -9,10 +9,10 @@
 #define FREE_ALIGNED(ptr) std::free(ptr)
 #endif
 
-#include "Chunk.h"
 #include <algorithm>
 #include <cstring>
 #include <iostream>
+#include "Chunk.h"
 
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {

@@ -216,11 +216,11 @@ void PhysicsSystem::UpdateTemparature(float fDelta,
                                       int iFrameCount,
                                       ChunkManager& objChunkManager) {
     auto& mapChunks = objChunkManager.GetMutableChunks();
-    for (auto& [coords, objChunk] : mapChunks) {
-        objChunk.InjectHeat(8, 8, 8, 100.0f);
-        objChunk.ThermalStep(0.1f, fDelta);
+    for (auto& [coords, pChunk] : mapChunks) {
+        pChunk->InjectHeat(8, 8, 8, 100.0f);
+        pChunk->ThermalStep(0.1f, fDelta);
         if (iFrameCount == 0) {
-            // objChunk.DebugPrintThermalSlice();
+            // pChunk->DebugPrintThermalSlice();
         }
     }
 }

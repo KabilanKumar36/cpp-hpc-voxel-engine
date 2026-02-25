@@ -42,16 +42,16 @@ void WorldRenderer::DrawChunks(ChunkManager &objChunkManager,
     }
 
     // Iterate over chunks
-    for (const auto &[Coords, objChunk] : objChunkManager.GetMutableChunks()) {
+    for (const auto &[Coords, pChunk] : objChunkManager.GetMutableChunks()) {
         // Frustum Culling Check
         if (bEnableFrustumCulling) {
             // GetAABB() returns the world-space bounding box of the chunk
-            if (!objFrustum.IsBoxInVisibleFrustum(objChunk.GetAABB())) {
+            if (!objFrustum.IsBoxInVisibleFrustum(pChunk->GetAABB())) {
                 continue;  // Skip rendering this chunk
             }
         }
 
-        objChunk.Render();
+        pChunk->Render();
     }
 }
 

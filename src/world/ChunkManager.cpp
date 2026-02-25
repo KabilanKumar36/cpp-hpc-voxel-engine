@@ -6,20 +6,18 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
     // 1. Process Finished Chunks from ThreadPool
     std::optional<Chunk> optChunk;
     while ((optChunk = m_objFinishedQueue.try_pop()).has_value()) {
-        Chunk& objChunk = optChunk.value();
-        int iCX = objChunk.GetChunkX();
-        int iCZ = objChunk.GetChunkZ();
+        auto pNewChunk = std::make_unique<Chunk>(std::move(optChunk.value()));
+        int iCX = pNewChunk->GetChunkX();
+        int iCZ = pNewChunk->GetChunkZ();
 
         // Move into main map
-        auto inserted =
-            m_mapChunks.insert(std::make_pair(std::make_pair(iCX, iCZ), std::move(objChunk)));
-
-        Chunk* pNewChunk = &inserted.first->second;
-        updateChunkNeighbours(pNewChunk);
+        m_mapChunks[std::make_pair(iCX, iCZ)] = std::move(pNewChunk);
+        Chunk* pActiveChunk = m_mapChunks[{iCX, iCZ}].get();
+        updateChunkNeighbours(pActiveChunk);
 
         // Generate mesh on Main Thread (OpenGL requires this)
-        pNewChunk->ReconstructMesh();
-        pNewChunk->UploadMesh();
+        pActiveChunk->ReconstructMesh();
+        pActiveChunk->UploadMesh();
 
         // Remove from pending set
         {
@@ -48,7 +46,7 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
         if (std::abs(iChunkX - iCurrentChunkX) > m_iRenderDistance + 2 ||
             std::abs(iChunkZ - iCurrentChunkZ) > m_iRenderDistance + 2) {
             // Save before unloading (Optional, adds lag spike)
-            // m_objRegionManager.SaveChunk(itr->second);
+            // m_objRegionManager.SaveChunk(*itr->second);
             itr = m_mapChunks.erase(itr);
         } else {
             ++itr;
@@ -144,7 +142,7 @@ void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBloc
 void ChunkManager::SaveWorld() {
     std::cout << "Saving world..." << std::endl;
     for (auto& pair : m_mapChunks) {
-        m_objRegionManager.SaveChunk(pair.second);
+        m_objRegionManager.SaveChunk(*pair.second);
     }
 }
 
@@ -152,14 +150,15 @@ void ChunkManager::SaveWorld() {
 Chunk* ChunkManager::GetChunk(int iX, int iZ) {
     auto itr = m_mapChunks.find({iX, iZ});
     if (itr != m_mapChunks.end())
-        return &itr->second;
+        return itr->second.get();
     return nullptr;
 }
 
+//*********************************************************************
 const Chunk* ChunkManager::GetChunk(int iX, int iZ) const {
     auto itr = m_mapChunks.find({iX, iZ});
     if (itr != m_mapChunks.end())
-        return &itr->second;
+        return itr->second.get();
     return nullptr;
 }
 
