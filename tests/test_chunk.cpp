@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 #include "../src/world/Chunk.h"
 
+// --- Configuration & Layout Tests ---
+
 TEST(ChunkTest, ConstantsCheck) {
+    // Ensure chunk dimensions match the optimized 16^3 cubic volume
     EXPECT_EQ(CHUNK_SIZE, 16);
     EXPECT_EQ(CHUNK_HEIGHT, 16);
-    // 16 * 16 * 16 = 4096
     EXPECT_EQ(CHUNK_VOL, 4096);
 }
 
@@ -15,29 +17,26 @@ TEST(ChunkTest, InitialCoordinates) {
 }
 
 TEST(ChunkTest, BlockIndicesCalculation) {
-    // Verify the math matches: iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT)
-    // Note: In your Chunk.h logic, Y is the middle term, Z is the outer term.
+    // Verify Row-Major Cache Locality: X moves fastest, then Y, then Z.
+    // Index = iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT)
 
-    int iX = 1;
-    int iY = 0;
-    int iZ = 0;
-    // Index = 1 + 0 + 0 = 1
-    int iCalculatedIndex = iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT);
-    EXPECT_EQ(iCalculatedIndex, 1);
+    // Test X-Step (L1 Cache hit)
+    EXPECT_EQ(Chunk(0, 0).GetFlatIndexOf3DLayer(1, 0, 0), 1);
 
-    iX = 0;
-    iY = 1;
-    iZ = 0;
-    // Index = 0 + 16 + 0 = 16
-    iCalculatedIndex = iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT);
-    EXPECT_EQ(iCalculatedIndex, 16);
+    // Test Y-Step (Stride of 16)
+    EXPECT_EQ(Chunk(0, 0).GetFlatIndexOf3DLayer(0, 1, 0), 16);
+
+    // Test Z-Step (Stride of 256)
+    EXPECT_EQ(Chunk(0, 0).GetFlatIndexOf3DLayer(0, 0, 1), 256);
 }
 
-TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
+// --- Memory & Ownership Tests (The "HPC Core") ---
+
+TEST(ChunkTest, MoveConstructor_VAO_OwnershipTransfer) {
     // 1. Setup Source Chunk
     Chunk ObjSrcChunk(0, 0);
 
-    // Requires OpenGL Context (Provided by TestMain)
+    // Requires OpenGL Context (Provided by test_main.cpp)
     ObjSrcChunk.ReconstructMesh();
     ObjSrcChunk.UploadMesh();
 
@@ -52,6 +51,10 @@ TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
         << "Bug: Source Chunk still holds VAO pointer (Double Free risk)";
 
     EXPECT_EQ(ObjTgtChunk.GetChunkX(), 0);
+
+    // Requires OpenGL Context (Provided by test_main.cpp)
+    ObjTgtChunk.ReconstructMesh();
+    ObjTgtChunk.UploadMesh();
 }
 
 TEST(ChunkTest, MoveConstructor_ThermalBufferTransfer) {
@@ -63,11 +66,56 @@ TEST(ChunkTest, MoveConstructor_ThermalBufferTransfer) {
     // Perform the Move
     Chunk ObjTgtChunk(std::move(ObjSrcChunk));
 
-    // 1. Verify target has the data
-    // (You might need a public getter for testing, or just verify via DebugPrint)
-    // For now, let's just check the "validity" via a null check if you add one
-
     // 2. Verify source pointers are NULL
     EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
     EXPECT_NE(ObjTgtChunk.GetCurrData(), nullptr);
+}
+
+TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
+    // Setup: Source owns 64-byte aligned thermal buffers and OpenGL pointers
+    Chunk ObjSrcChunk(0, 0);
+
+    // Capture pointers for verification before move
+    float* pOriginalBuffer = ObjSrcChunk.GetCurrData();
+    ASSERT_NE(pOriginalBuffer, nullptr);
+
+    // Act: Transfer ownership to Target
+    Chunk ObjTgtChunk(std::move(ObjSrcChunk));
+
+    // Assert: Target now owns the original memory address
+    EXPECT_EQ(ObjTgtChunk.GetCurrData(), pOriginalBuffer);
+
+    // Assert: Source is nulled to prevent 'other' destructor from calling _aligned_free
+    EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
+    EXPECT_FALSE(ObjSrcChunk.IsValid());
+}
+
+TEST(ChunkTest, MoveConstructor_ThermalDataIntegrity) {
+    Chunk ObjSrcChunk(1, 1);
+
+    // Inject 99.0f into the center voxel (8,8,8)
+    ObjSrcChunk.InjectHeat(8, 8, 8, 99.0f);
+
+    Chunk ObjTgtChunk(std::move(ObjSrcChunk));
+
+    // Verify data survived the pointer transfer
+    // We expect the exact float value at the same index
+    int iIdx = ObjTgtChunk.GetFlatIndexOf3DLayer(8, 8, 8);
+    EXPECT_FLOAT_EQ(ObjTgtChunk.GetCurrData()[iIdx], 99.0f);
+}
+
+TEST(ChunkTest, MoveAssignment_CleanupAndReplace) {
+    Chunk ObjTgtChunk(0, 0);  // Allocate Buffer A
+    Chunk ObjSrcChunk(1, 1);  // Allocate Buffer B
+
+    // Capture Buffer B pointer
+    float* pSrcBuffer = ObjSrcChunk.GetCurrData();
+
+    // Act: Move Src into Tgt.
+    // This MUST trigger _aligned_free on Buffer A to avoid a memory leak.
+    ObjTgtChunk = std::move(ObjSrcChunk);
+
+    EXPECT_EQ(ObjTgtChunk.GetCurrData(), pSrcBuffer);
+    EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
+    EXPECT_EQ(ObjTgtChunk.GetChunkX(), 1);
 }

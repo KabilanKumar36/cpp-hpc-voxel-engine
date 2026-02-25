@@ -77,6 +77,8 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
 
         m_pfCurrFrameData = other.m_pfCurrFrameData;
         m_pfNextFrameData = other.m_pfNextFrameData;
+        other.m_pfCurrFrameData = nullptr;
+        other.m_pfNextFrameData = nullptr;
         m_iChunkX = other.m_iChunkX;
         m_iChunkZ = other.m_iChunkZ;
         m_bEnableFaceCulling = other.m_bEnableFaceCulling;
@@ -356,22 +358,20 @@ void Chunk::Render() const {
     }
 }
 //*********************************************************************
-void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime)  {
-
+void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime) {
     float fCoefficient = fThermalDiffusivity * fDeltaTime;
 
     for (int iY = 1; iY < CHUNK_HEIGHT - 1; ++iY) {
         for (int iZ = 1; iZ < CHUNK_SIZE - 1; ++iZ) {
             for (int iX = 1; iX < CHUNK_SIZE - 1; ++iX) {
                 int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-                
+
                 float fCurrentTemp = m_pfCurrFrameData[iIndex];
-                float fNeighborSum = 
-                    m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] +
-                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX - 1, iY, iZ)] +
-                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY + 1, iZ)] +
-                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY - 1, iZ)] +
-                                 m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ + 1)] +
+                float fNeighborSum = m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX + 1, iY, iZ)] +
+                                     m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX - 1, iY, iZ)] +
+                                     m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY + 1, iZ)] +
+                                     m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY - 1, iZ)] +
+                                     m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ + 1)] +
                                      m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ - 1)];
                 m_pfNextFrameData[iIndex] =
                     fCurrentTemp + fCoefficient * (fNeighborSum - 6.0f * fCurrentTemp);
@@ -384,7 +384,7 @@ void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime)  {
 //*********************************************************************
 void Chunk::DebugPrintThermalSlice() {
     int iY = CHUNK_HEIGHT / 2;
-    std::cout << "--- Thermal Slice (Y="<< iY << ") ---\n";
+    std::cout << "--- Thermal Slice (Y=" << iY << ") ---\n";
     for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
         for (int iX = 0; iX < CHUNK_SIZE; ++iX) {
             float fTemp = m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ)];
