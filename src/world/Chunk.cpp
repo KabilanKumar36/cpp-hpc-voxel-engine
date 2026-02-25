@@ -1,3 +1,14 @@
+#include <cstdlib> // required for aligned malloc and aligned free
+
+#ifdef _WIN32
+#include <malloc.h>
+#define ALLOCATE_ALIGNED(size, alignment) _aligned_malloc((size), (alignment))
+#define FREE_ALIGNED(ptr) _aligned_free(ptr)
+#else
+#define ALLOCATE_ALIGNED(size, alignment) std::aligned_alloc((alignment), (size))
+#define FREE_ALIGNED(ptr) std::free(ptr)
+#endif
+
 #include "Chunk.h"
 #include <algorithm>
 #include <cstring>
@@ -7,8 +18,8 @@
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
     m_bEnableFaceCulling = true;
 
-    m_pfCurrFrameData = static_cast<float*>(_aligned_malloc(CHUNK_VOL * sizeof(float), 64));
-    m_pfNextFrameData = static_cast<float*>(_aligned_malloc(CHUNK_VOL * sizeof(float), 64));
+    m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
+    m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
     std::fill_n(m_pfCurrFrameData, CHUNK_VOL, 0.0f);
     std::fill_n(m_pfNextFrameData, CHUNK_VOL, 0.0f);
 
@@ -24,8 +35,8 @@ Chunk::~Chunk() {
     if (m_pIBO)
         delete m_pIBO;
 
-    _aligned_free(m_pfCurrFrameData);
-    _aligned_free(m_pfNextFrameData);
+    FREE_ALIGNED(m_pfCurrFrameData);
+    FREE_ALIGNED(m_pfNextFrameData);
 }
 //*********************************************************************
 Chunk::Chunk(Chunk&& other) noexcept
@@ -34,10 +45,10 @@ Chunk::Chunk(Chunk&& other) noexcept
       m_pVAO(other.m_pVAO),
       m_pVBO(other.m_pVBO),
       m_pIBO(other.m_pIBO),
-      m_iChunkX(other.m_iChunkX),
-      m_iChunkZ(other.m_iChunkZ),
       m_pfCurrFrameData(other.m_pfCurrFrameData),
       m_pfNextFrameData(other.m_pfNextFrameData),
+      m_iChunkX(other.m_iChunkX),
+      m_iChunkZ(other.m_iChunkZ),
       m_bEnableFaceCulling(other.m_bEnableFaceCulling) {
     other.m_pVAO = nullptr;
     other.m_pVBO = nullptr;
@@ -72,8 +83,8 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
         other.m_pVBO = nullptr;
         other.m_pIBO = nullptr;
 
-        _aligned_free(m_pfCurrFrameData);
-        _aligned_free(m_pfNextFrameData);
+        FREE_ALIGNED(m_pfCurrFrameData);
+        FREE_ALIGNED(m_pfNextFrameData);
 
         m_pfCurrFrameData = other.m_pfCurrFrameData;
         m_pfNextFrameData = other.m_pfNextFrameData;
