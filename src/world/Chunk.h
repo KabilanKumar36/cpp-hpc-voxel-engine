@@ -113,6 +113,7 @@ public:
         if (iBlocks)
             std::memcpy(m_iBlocks, iBlocks, CHUNK_VOL * sizeof(uint8_t));
     }
+    inline float GetTemperatureAt(int iX, int iY, int iZ) const;
 
     // --- Generation ---
     void ReconstructMesh();

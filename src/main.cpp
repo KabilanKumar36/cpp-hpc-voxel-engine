@@ -39,7 +39,10 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    GLFWmonitor* pPrimaryMonitor = glfwGetPrimaryMonitor();
+    GLFWmonitor* pPrimaryMonitor = nullptr;
+    App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
+#ifdef NDEBUG
+    pPrimaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* pVideoMode = glfwGetVideoMode(pPrimaryMonitor);
     glfwWindowHint(GLFW_RED_BITS, pVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, pVideoMode->greenBits);
@@ -47,10 +50,9 @@ int main() {
     glfwWindowHint(GLFW_REFRESH_RATE, pVideoMode->refreshRate);
 
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-
-    App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
     inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
+#endif
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
                                            inputHandler.GetScreenHeight(),
                                            "HPC Voxel Engine",

@@ -58,26 +58,15 @@ TEST(ChunkTest, MoveConstructor_VAO_OwnershipTransfer) {
 }
 
 TEST(ChunkTest, MoveConstructor_ThermalBufferTransfer) {
-    Chunk ObjSrcChunk(1, 1);
-
-    // Inject test data
-    ObjSrcChunk.InjectHeat(8, 8, 8, 99.0f);
-
-    // Perform the Move
-    Chunk ObjTgtChunk(std::move(ObjSrcChunk));
-
-    // 2. Verify source pointers are NULL
-    EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
-    EXPECT_NE(ObjTgtChunk.GetCurrData(), nullptr);
-}
-
-TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
     // Setup: Source owns 64-byte aligned thermal buffers and OpenGL pointers
     Chunk ObjSrcChunk(0, 0);
 
     // Capture pointers for verification before move
     float* pOriginalBuffer = ObjSrcChunk.GetCurrData();
     ASSERT_NE(pOriginalBuffer, nullptr);
+
+    // Inject test data
+    ObjSrcChunk.InjectHeat(8, 8, 8, 99.0f);
 
     // Act: Transfer ownership to Target
     Chunk ObjTgtChunk(std::move(ObjSrcChunk));
@@ -87,7 +76,8 @@ TEST(ChunkTest, MoveConstructor_OwnershipTransfer) {
 
     // Assert: Source is nulled to prevent 'other' destructor from calling _aligned_free
     EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
-    EXPECT_FALSE(ObjSrcChunk.IsValid());
+    float fTemp = ObjTgtChunk.GetTemperatureAt(8, 8, 8);
+    EXPECT_EQ(fTemp, 99.0f);
 }
 
 TEST(ChunkTest, MoveConstructor_ThermalDataIntegrity) {
@@ -118,4 +108,40 @@ TEST(ChunkTest, MoveAssignment_CleanupAndReplace) {
     EXPECT_EQ(ObjTgtChunk.GetCurrData(), pSrcBuffer);
     EXPECT_EQ(ObjSrcChunk.GetCurrData(), nullptr);
     EXPECT_EQ(ObjTgtChunk.GetChunkX(), 1);
+}
+
+TEST(ChunkThermalTest, BoundaryDiffusionZAxis) {
+    // 1. Arrange: Create two adjacent chunks
+    Chunk chunkHot(0, 0);
+    Chunk chunkCold(0, 1);  // Z+1 is NORTH in our coordinate system
+
+    // 2. Mock the Manager's linkage logic
+    // chunkCold is NORTH of chunkHot. chunkHot is SOUTH of chunkCold.
+    chunkHot.SetNeighbours(Direction::NORTH, &chunkCold);
+    chunkCold.SetNeighbours(Direction::SOUTH, &chunkHot);
+
+    // 3. Inject a massive heat spike on the absolute North edge of chunkHot (Z = 15)
+    int testX = 8;
+    int testY = 8;
+    float startTemp = 5000.0f;
+    chunkHot.InjectHeat(testX, testY, CHUNK_SIZE - 1, startTemp);
+
+    // Verify initial state of Cold Chunk is 0.0f
+    EXPECT_FLOAT_EQ(chunkCold.GetTemperatureAt(testX, testY, 0), 0.0f);
+
+    // 4. Act: Step the physics engine once
+    float fDiffusivity = 1.0f;  // Stable diffusivity to satisy Von Neumann stability criterion ( C
+                                // (alpha * deltime) < 1/6)
+    float fDeltaTime = 0.1f;
+    chunkHot.ThermalStep(fDiffusivity, fDeltaTime);
+    chunkCold.ThermalStep(fDiffusivity, fDeltaTime);
+
+    // 5. Assert: Check if heat crossed the boundary into Z=0 of the Cold Chunk
+    float fColdTemp = chunkCold.GetTemperatureAt(testX, testY, 0);
+
+    // We expect the temperature to be strictly greater than 0
+    EXPECT_GT(fColdTemp, 0.0f) << "Heat failed to cross the Z-axis boundary!";
+
+    // Optional: Print the value to the test console for verification
+    std::cout << "[          ] Transferred Heat: " << fColdTemp << std::endl;
 }
