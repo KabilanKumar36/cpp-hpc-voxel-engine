@@ -410,26 +410,3 @@ void Chunk::DebugPrintThermalSlice() {
         std::cout << "\n";
     }
 }
-//*********************************************************************
-inline float Chunk::GetTemperatureAt(int iX, int iY, int iZ) const {
-    if (iX >= 0 && iX < CHUNK_SIZE && iY >= 0 && iY < CHUNK_HEIGHT && iZ >= 0 && iZ < CHUNK_SIZE) {
-        return m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ)];
-    }
-    // Boundary checks (Neighbor querying)
-    if (iX < 0 && m_pNeighbours[Direction::WEST])
-        return m_pNeighbours[Direction::WEST]->GetTemperatureAt(CHUNK_SIZE - 1, iY, iZ);
-    else if (iX >= CHUNK_SIZE && m_pNeighbours[Direction::EAST])
-        return m_pNeighbours[Direction::EAST]->GetTemperatureAt(0, iY, iZ);
-
-    if (iY < 0 && m_pNeighbours[Direction::BELOW])
-        return m_pNeighbours[Direction::BELOW]->GetTemperatureAt(iX, CHUNK_HEIGHT - 1, iZ);
-    else if (iY >= CHUNK_HEIGHT && m_pNeighbours[Direction::ABOVE])
-        return m_pNeighbours[Direction::ABOVE]->GetTemperatureAt(iX, 0, iZ);
-
-    if (iZ < 0 && m_pNeighbours[Direction::SOUTH])
-        return m_pNeighbours[Direction::SOUTH]->GetTemperatureAt(iX, iY, CHUNK_SIZE - 1);
-    else if (iZ >= CHUNK_SIZE && m_pNeighbours[Direction::NORTH])
-        return m_pNeighbours[Direction::NORTH]->GetTemperatureAt(iX, iY, 0);
-
-    return 0.0f;
-}
