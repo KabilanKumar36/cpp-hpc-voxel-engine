@@ -22,7 +22,6 @@ Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
     m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
     std::fill_n(m_pfCurrFrameData, CHUNK_VOL, 0.0f);
     std::fill_n(m_pfNextFrameData, CHUNK_VOL, 0.0f);
-
     updateHeightData();
 }
 
@@ -47,6 +46,7 @@ Chunk::Chunk(Chunk&& other) noexcept
       m_pIBO(other.m_pIBO),
       m_pfCurrFrameData(other.m_pfCurrFrameData),
       m_pfNextFrameData(other.m_pfNextFrameData),
+      m_pThermalTex(std::move(other.m_pThermalTex)),
       m_iChunkX(other.m_iChunkX),
       m_iChunkZ(other.m_iChunkZ),
       m_bEnableFaceCulling(other.m_bEnableFaceCulling) {
@@ -90,6 +90,7 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
         m_pfNextFrameData = other.m_pfNextFrameData;
         other.m_pfCurrFrameData = nullptr;
         other.m_pfNextFrameData = nullptr;
+        m_pThermalTex = std::move(other.m_pThermalTex);
         m_iChunkX = other.m_iChunkX;
         m_iChunkZ = other.m_iChunkZ;
         m_bEnableFaceCulling = other.m_bEnableFaceCulling;
@@ -408,5 +409,14 @@ void Chunk::DebugPrintThermalSlice() {
                 std::cout << "   ";
         }
         std::cout << "\n";
+    }
+}
+//*********************************************************************
+void Chunk::UpdateThermalTexture() {
+    if (!m_pThermalTex)
+        m_pThermalTex =
+            std::make_unique<Renderer::ThermalVolume>(CHUNK_SIZE, CHUNK_HEIGHT, CHUNK_SIZE);
+    if (m_pThermalTex && m_pfCurrFrameData) {
+        m_pThermalTex->Update(m_pfCurrFrameData);
     }
 }

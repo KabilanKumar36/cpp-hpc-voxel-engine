@@ -50,7 +50,13 @@ void WorldRenderer::DrawChunks(ChunkManager &objChunkManager,
                 continue;  // Skip rendering this chunk
             }
         }
+        float fChunkX = static_cast<float>(pChunk->GetChunkX() * CHUNK_SIZE);
+        float fChunkZ = static_cast<float>(pChunk->GetChunkZ() * CHUNK_SIZE);
+        Core::Vec3 vChunkOffset(fChunkX, fChunkZ, 0.0f);
+        shader.SetVec2("u_ChunkOffset", vChunkOffset);
 
+        pChunk->UpdateThermalTexture();
+        pChunk->Bind(1);
         pChunk->Render();
     }
 }

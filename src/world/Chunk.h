@@ -9,6 +9,7 @@
 #include "../physics/AABB.h"
 #include "../renderer/Buffer.h"
 #include "../renderer/IndexBuffer.h"
+#include "../renderer/ThermalVolume.h"
 #include "../renderer/VertexArray.h"
 
 // Constants
@@ -150,6 +151,11 @@ public:
     void ThermalStep(float fThermalDiffusivity, float fDeltaTime);
     void DebugPrintThermalSlice();
     float* GetCurrData() const { return m_pfCurrFrameData; }
+    void UpdateThermalTexture();
+    void Bind(int iVal) {
+        if (m_pThermalTex)
+            m_pThermalTex->Bind(iVal);
+    }
 
 private:
     std::vector<float> m_vec_fVertices;
@@ -163,6 +169,7 @@ private:
 
     float* m_pfCurrFrameData = nullptr;
     float* m_pfNextFrameData = nullptr;
+    std::unique_ptr<Renderer::ThermalVolume> m_pThermalTex;
 
     // Per-chunk noise instance (Consider moving to a global generator for efficiency)
     FastNoiseLite noise{};
