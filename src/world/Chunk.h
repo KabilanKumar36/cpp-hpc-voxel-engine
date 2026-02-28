@@ -3,6 +3,7 @@
 #include <FastNoiseLite.h>  // Ensure this library is in your include path
 #include <cstdint>
 #include <cstring>
+#include <memory>
 #include <vector>
 
 #include "../core/MathUtils.h"
