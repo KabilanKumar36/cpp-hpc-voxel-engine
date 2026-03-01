@@ -134,7 +134,9 @@ TEST(ChunkThermalTest, BoundaryDiffusionZAxis) {
                                 // (alpha * deltime) < 1/6)
     float fDeltaTime = 0.1f;
     chunkHot.ThermalStep(fDiffusivity, fDeltaTime);
+    chunkHot.SwapBuffers();
     chunkCold.ThermalStep(fDiffusivity, fDeltaTime);
+    chunkCold.SwapBuffers();
 
     // 5. Assert: Check if heat crossed the boundary into Z=0 of the Cold Chunk
     float fColdTemp = chunkCold.GetTemperatureAt(testX, testY, 0);
