@@ -136,16 +136,8 @@ int main() {
                 inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
             else
                 inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
-            int iCurrentChunkX = static_cast<int>(std::floor(objCameraPos.x / CHUNK_SIZE));
-            int iCurrentChunkZ = static_cast<int>(std::floor(objCameraPos.z / CHUNK_SIZE));
-            Chunk* pChunk = objChunkManager.GetChunk(iCurrentChunkX, iCurrentChunkZ);
-            if (pChunk) {
-                for (int k = 0; k < CHUNK_HEIGHT; k++) {
-                    pChunk->InjectHeat(8, k, 8, 5000.0f);
-                }
-            }
-            // PhysicsSystem::UpdateTemparature(
-            // fDeltaTime, inputHandler.GetFrameCount(), objChunkManager);
+
+            PhysicsSystem::UpdateTemparature(fDeltaTime, objChunkManager);
 
             // Rendering
             Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();

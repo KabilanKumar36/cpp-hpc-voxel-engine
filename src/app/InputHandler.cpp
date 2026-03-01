@@ -169,6 +169,35 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
             } else {
                 m_bRMBClickedFirstTime = true;
             }
+            if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_MIDDLE)) {
+                if (m_bMMBClickedFirstTime) {
+                    int iWorldX = objRayHit.m_iBlocKX + static_cast<int>(objRayHit.m_objNormal.x);
+                    int iWorldY = objRayHit.m_iBlocKY + static_cast<int>(objRayHit.m_objNormal.y);
+                    int iWorldZ = objRayHit.m_iBlocKZ + static_cast<int>(objRayHit.m_objNormal.z);
+                    int iChunkX =
+                        static_cast<int>(std::floor(static_cast<float>(iWorldX) / CHUNK_SIZE));
+                    int iChunkZ =
+                        static_cast<int>(std::floor(static_cast<float>(iWorldZ) / CHUNK_SIZE));
+
+                    Chunk* pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
+                    // Convert to local coords
+                    int iLocalX = iWorldX % CHUNK_SIZE;
+                    int iLocalZ = iWorldZ % CHUNK_SIZE;
+                    if (iLocalX < 0)
+                        iLocalX += CHUNK_SIZE;
+                    if (iLocalZ < 0)
+                        iLocalZ += CHUNK_SIZE;
+                    if (iWorldY == CHUNK_HEIGHT)
+                        iWorldY--;
+
+                    if (pChunk) {
+                        pChunk->InjectHeat(iLocalX, iWorldY, iLocalZ, 5000.0f);
+                    }
+                    m_bMMBClickedFirstTime = false;
+                }
+            } else {
+                m_bMMBClickedFirstTime = true;
+            }
         }
         glEnable(GL_DEPTH_TEST);
     }

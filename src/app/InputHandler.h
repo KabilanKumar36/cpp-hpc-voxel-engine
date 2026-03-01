@@ -72,6 +72,7 @@ private:
     bool m_bEscClickedFirstTime = false;
     bool m_bLMBClickedFirstTime = false;
     bool m_bRMBClickedFirstTime = false;
+    bool m_bMMBClickedFirstTime = false;
     bool m_bFlyMode = false;
 };
 }  // namespace App

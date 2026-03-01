@@ -5,8 +5,6 @@
 #include "../core/Ray.h"
 #include "AABB.h"
 
-// Forward declaration: We don't need the full file here, just the name.
-// This speeds up compilation significantly.
 class ChunkManager;
 
 /**
@@ -56,14 +54,24 @@ public:
 
     /**
      * @brief Performs a DDA Raycast to find the first block hit.
+     * * @param objRay The properties of the Ray (Input:Direction & Output: Found a hit or not, Hit
+     * point, Distance & Block Pos(X, Y & Z)).
+     * * @param fMaxDistance Maximum distance that the ray can travel in space.
+     * * @param objChunkManager World data for collision checks.
      */
     static RayHit RayCast(const Core::Ray& objRay,
                           float fMaxDistance,
                           const ChunkManager& objChunkManager);
-    static void UpdateTemparature(float fDelta, int iFrameCount, ChunkManager& objChunkManager);
+
+    /**
+     * @brief Performs a Temparature update to find next frame temperature of each blocks.
+     * @param fDeltaTime Time since last frame.
+     * * @param objChunkManager World data for updating temperature.
+     */
+    static void UpdateTemparature(float fDelta, ChunkManager& objChunkManager);
 
 private:
-    // Helper: Box-to-Voxel collision
+    // Helper: AABBox-to-Voxel world collision
     static bool checkCollision(const AABB& objAABB, const ChunkManager& objChunkManager);
 
     // Helper: Linear Interpolation

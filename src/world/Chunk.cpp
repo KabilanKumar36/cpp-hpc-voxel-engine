@@ -388,8 +388,6 @@ void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime) {
             }
         }
     }
-
-    SwapBuffers();
 }
 //*********************************************************************
 void Chunk::DebugPrintThermalSlice() {
