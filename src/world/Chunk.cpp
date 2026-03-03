@@ -16,8 +16,6 @@
 
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
-    m_bEnableFaceCulling = true;
-
     m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
     m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
     std::fill_n(m_pfCurrFrameData, CHUNK_VOL, 0.0f);
@@ -48,8 +46,7 @@ Chunk::Chunk(Chunk&& other) noexcept
       m_pfNextFrameData(other.m_pfNextFrameData),
       m_pThermalTex(std::move(other.m_pThermalTex)),
       m_iChunkX(other.m_iChunkX),
-      m_iChunkZ(other.m_iChunkZ),
-      m_bEnableFaceCulling(other.m_bEnableFaceCulling) {
+      m_iChunkZ(other.m_iChunkZ) {
     other.m_pVAO = nullptr;
     other.m_pVBO = nullptr;
     other.m_pIBO = nullptr;
@@ -93,7 +90,6 @@ Chunk& Chunk::operator=(Chunk&& other) noexcept {
         m_pThermalTex = std::move(other.m_pThermalTex);
         m_iChunkX = other.m_iChunkX;
         m_iChunkZ = other.m_iChunkZ;
-        m_bEnableFaceCulling = other.m_bEnableFaceCulling;
 
         std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
         std::memcpy(m_iHeightData, other.m_iHeightData, sizeof(m_iHeightData));
@@ -180,12 +176,14 @@ void Chunk::updateBuffers() {
     }
 
     if (!m_vec_fVertices.empty()) {
+        m_uiVertexCount = m_vec_fVertices.size() / 5;
         m_pVBO = new Renderer::VertexBuffer(
             m_vec_fVertices.data(),
             static_cast<unsigned int>(m_vec_fVertices.size()) * sizeof(float));
     }
 
     if (!m_vec_uiIndices.empty()) {
+        m_uiTriangleCount = m_vec_uiIndices.size() / 3;
         m_pIBO = new Renderer::IndexBuffer(m_vec_uiIndices.data(),
                                            static_cast<unsigned int>(m_vec_uiIndices.size()));
     }
@@ -202,7 +200,7 @@ void Chunk::updateBuffers() {
 }
 
 //*********************************************************************
-void Chunk::ReconstructMesh() {
+void Chunk::ReconstructMesh(bool bEnableNeighborCulling) {
     m_vec_fVertices.clear();
     m_vec_uiIndices.clear();
     for (int iX = 0; iX < CHUNK_SIZE; iX++) {
@@ -220,27 +218,28 @@ void Chunk::ReconstructMesh() {
                 // We only draw a face if the neighbor is Air (0)
 
                 // UP
-                if (iY == CHUNK_HEIGHT - 1 || GetBlockAt(iX, iY + 1, iZ) == 0)
+                if (!bEnableNeighborCulling ||
+                    (iY == CHUNK_HEIGHT - 1 || GetBlockAt(iX, iY + 1, iZ) == 0))
                     addBlockFace(iX, iY, iZ, FaceDirection::UP, iBlockType);
 
                 // DOWN
-                if (iY == 0 || GetBlockAt(iX, iY - 1, iZ) == 0)
+                if (!bEnableNeighborCulling || (iY == 0 || GetBlockAt(iX, iY - 1, iZ) == 0))
                     addBlockFace(iX, iY, iZ, FaceDirection::DOWN, iBlockType);
 
                 // RIGHT (X+)
-                if (GetBlockAt(iX + 1, iY, iZ) == 0)
+                if (!bEnableNeighborCulling || GetBlockAt(iX + 1, iY, iZ) == 0)
                     addBlockFace(iX, iY, iZ, FaceDirection::RIGHT, iBlockType);
 
                 // LEFT (X-)
-                if (GetBlockAt(iX - 1, iY, iZ) == 0)
+                if (!bEnableNeighborCulling || GetBlockAt(iX - 1, iY, iZ) == 0)
                     addBlockFace(iX, iY, iZ, FaceDirection::LEFT, iBlockType);
 
                 // FRONT (Z+)
-                if (GetBlockAt(iX, iY, iZ + 1) == 0)
+                if (!bEnableNeighborCulling || GetBlockAt(iX, iY, iZ + 1) == 0)
                     addBlockFace(iX, iY, iZ, FaceDirection::FRONT, iBlockType);
 
                 // BACK (Z-)
-                if (GetBlockAt(iX, iY, iZ - 1) == 0)
+                if (!bEnableNeighborCulling || GetBlockAt(iX, iY, iZ - 1) == 0)
                     addBlockFace(iX, iY, iZ, FaceDirection::BACK, iBlockType);
             }
         }

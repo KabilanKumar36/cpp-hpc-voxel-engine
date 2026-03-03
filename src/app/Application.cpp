@@ -1,8 +1,12 @@
 #include "Application.h"
+
 // clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 // clang-format on
+
+#include "physics/PhysicsSystem.h"
+#include "world/ChunkManager.h"
 
 //*********************************************************************
 Application::Application(GLFWwindow* pWindow) : m_pWindow(pWindow) {}
@@ -21,6 +25,11 @@ void Application::InitImGUI() {
 
     ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
     ImGui_ImplOpenGL3_Init("#version 450");
+
+    m_iMaxHardwareThreads = std::thread::hardware_concurrency();
+    if (m_iMaxHardwareThreads == 0)
+        m_iMaxHardwareThreads = 4;
+    m_iActiveThreads = m_iMaxHardwareThreads;
 }
 //*********************************************************************
 void Application::ShutDownImGUI() {
@@ -35,6 +44,129 @@ void Application::BeginImGUIFrame() {
     ImGui::NewFrame();
 }
 //*********************************************************************
+void Application::RenderMetricsUI(App::InputHandler& inputHandler,
+                                  const ChunkManager& objChunkManager,
+                                  const RayHit& objRayHit) {
+    if (!m_bShowMetricsPanel)
+        return;
+
+    ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(450, 650), ImGuiCond_FirstUseEver);
+    ImGui::Begin("System Monitor", &m_bShowMetricsPanel);
+
+    ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Dev. Tools");
+    ImGui::Separator();
+
+    if (ImGui::Checkbox("Wireframe", &m_bWireframeMode)) {
+        glPolygonMode(GL_FRONT_AND_BACK, m_bWireframeMode ? GL_LINE : GL_FILL);
+    }
+
+    if (ImGui::Checkbox("Fly Mode", &m_bFlyMode)) {
+        inputHandler.SetFlyMode(m_bFlyMode);
+        if (!m_bFlyMode)
+            m_fFlySpeed = 5.0f;
+        inputHandler.SetMovementSpeed(m_fFlySpeed);
+    }
+
+    ImGui::BeginDisabled(!m_bFlyMode);
+    if (ImGui::SliderFloat("Fly Speed", &m_fFlySpeed, 1.0f, 200.0f)) {
+        inputHandler.SetMovementSpeed(m_fFlySpeed);
+    }
+    ImGui::EndDisabled();
+    ImGui::Separator();
+    ImGui::TextColored(ImVec4(0, 0, 1, 1), "Optimizations");
+    if (ImGui::Checkbox("GPU Back Face Culling", &m_bHardwareCulling)) {
+        if (m_bHardwareCulling) {
+            glEnable(GL_CULL_FACE);
+        } else {
+            glDisable(GL_CULL_FACE);
+        }
+    }
+
+    if (ImGui::Checkbox("Frustrum Culling", &m_bFrustumCulling)) {
+        inputHandler.SetFrustumCullingEnable(m_bFrustumCulling);
+    }
+
+    if (ImGui::Checkbox("Neighbor Face Culling", &m_bEnableNeighborCulling)) {
+        inputHandler.SetNeighborCullingEnable(m_bEnableNeighborCulling);
+    }
+    ImGui::Separator();
+    ImGui::TextColored(ImVec4(0, 1, 1, 1), "Concurrency Limit");
+    if (ImGui::SliderInt("Worker Thread", &m_iActiveThreads, 0, m_iMaxHardwareThreads)) {
+        inputHandler.SetActiveThreads(m_iActiveThreads);
+    }
+    if (m_iActiveThreads == 0) {
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), "WARNING: Running on Main Thread (Sync Mode)");
+    }
+    ImGui::Separator();
+    ImGui::TextColored(ImVec4(0, 1, 0, 1), "Performance");
+    ImGui::Text("FPS: %0.1f", ImGui::GetIO().Framerate);
+    ImGui::Text("Frame Time: %0.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Separator();
+
+    size_t iTotalVertices = 0, iTotalTriangles = 0;
+
+    for (const auto& [coords, pChunk] : objChunkManager.GetChunks()) {
+        if (!pChunk)
+            continue;
+        size_t iNbVertices = 0, iNbTriangles = 0;
+        pChunk->GetMeshStats(iNbVertices, iNbTriangles);
+        iTotalVertices += iNbVertices;
+        iTotalTriangles += iNbTriangles;
+    }
+
+    ImGui::TextColored(ImVec4(0.8f, 0.2f, 1.0f, 1), "Mesh Stats");
+    ImGui::Text("Vertices: %zu", iTotalVertices);
+    ImGui::Text("Triangles: %zu", iTotalTriangles);
+
+    Core::Vec3 objCurrCameraPos = inputHandler.GetCamera().GetCameraPosition();
+    ImGui::TextColored(ImVec4(0, 1, 1, 1), "Position");
+    ImGui::Text(
+        "X: %0.3f, Y: %0.3f, Z: %0.3f", objCurrCameraPos.x, objCurrCameraPos.y, objCurrCameraPos.z);
+
+    ImGui::Separator();
+
+    ImGui::TextColored(ImVec4(1, 1, 0, 1), "World State");
+    ImGui::Text("Chunks Loaded: %zu", objChunkManager.GetChunks().size());
+    ImGui::Separator();
+
+    ImGui::TextColored(ImVec4(1, 0, 1, 1), "Interaction");
+    if (objRayHit.m_bHit) {
+        ImGui::Text("Target: Block (%d, %d, %d)",
+                    objRayHit.m_iBlocKX,
+                    objRayHit.m_iBlocKY,
+                    objRayHit.m_iBlocKZ);
+        ImGui::Text("Distance: %.2f", objRayHit.m_fDistance);
+    }
+    ImGui::End();
+}
+//*********************************************************************
+void Application::RenderHelpUI() {
+    if (!m_bShowHelpWindow)
+        return;
+    ImGui::SetNextWindowPos(ImVec2(550, 40), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(450, 350), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Engine Controls & Help", &m_bShowHelpWindow);
+
+    ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "Navigation");
+    ImGui::BulletText("W A S D: Move Camera/Player");
+    ImGui::BulletText("Mouse: Look Around");
+    ImGui::Separator();
+
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "System Shortcuts");
+    ImGui::BulletText("F1: Toogle this Help Menu");
+    ImGui::BulletText("Tilde(~): Toggle Developer System Monitor");
+    ImGui::Separator();
+
+    ImGui::TextColored(ImVec4(0.0f, 0.8f, 1.0f, 1.0f), "Demonstration Guide");
+    ImGui::TextWrapped(
+        "Open the Developer System Monitor (~)"
+        "Try dropping the 'Worker Threads' to 0 to force synchronous main-thread execution"
+        "or disable culling to see raw geometry load.");
+    ImGui::Separator();
+    ImGui::End();
+}
+//*********************************************************************
 void Application::EndImGUIFrame() {
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -42,15 +174,14 @@ void Application::EndImGUIFrame() {
 //*********************************************************************
 void Application::HandleUIToggle() {
     static bool bKeyWasPressed = false;
-
     // Toggle UI state on Grave Accent (`~`) press
     if (glfwGetKey(m_pWindow, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
         if (!bKeyWasPressed) {
             bKeyWasPressed = true;
-            m_bIsUIActive = !m_bIsUIActive;
+            m_bShowMetricsPanel = !m_bShowMetricsPanel;
 
             // Switch cursor mode based on UI state
-            if (m_bIsUIActive) {
+            if (m_bShowMetricsPanel) {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } else {
 #ifdef _WIN32
@@ -62,6 +193,25 @@ void Application::HandleUIToggle() {
         }
     } else {
         bKeyWasPressed = false;
+    }
+
+    static bool bF1WasPressed = false;
+    if (glfwGetKey(m_pWindow, GLFW_KEY_F1) == GLFW_PRESS) {
+        if (!bF1WasPressed) {
+            bF1WasPressed = true;
+            m_bShowHelpWindow = !m_bShowHelpWindow;
+            if (m_bShowHelpWindow) {
+                glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            } else {
+#ifdef _WIN32
+                glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+#else
+                glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+#endif
+            }
+        }
+    } else {
+        bF1WasPressed = false;
     }
 }
 //*********************************************************************

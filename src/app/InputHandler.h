@@ -18,7 +18,6 @@ public:
     InputHandler(const Core::Vec3& ObjStartPos);
     void ProcessInput(GLFWwindow* pWindow, ChunkManager& objChunkManager, float fDeltaTime);
     void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
-    void UpdateTitleInfo(GLFWwindow* pWindow) const;
 
     // Raycasts into the world to preview/edit blocks. Returns hit result for logic processing.
     RayHit ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
@@ -27,8 +26,15 @@ public:
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 
-    bool IsCullingEnabled() const { return m_bCullingEnabled; }
-    void SetCullingEnable(bool bValue) { m_bCullingEnabled = bValue; }
+    bool IsNeighborCullingEnabled() const { return m_bNeighborCullingEnabled; }
+    void SetNeighborCullingEnable(bool bValue) { m_bNeighborCullingEnabled = bValue; }
+
+    bool IsFrustumCullingEnabled() const { return m_bFrustumCullingEnabled; }
+    void SetFrustumCullingEnable(bool bValue) { m_bFrustumCullingEnabled = bValue; }
+
+    int GetActiveThreads() const { return m_iActiveThreads; }
+    void SetActiveThreads(int iCt) { m_iActiveThreads = iCt; }
+
     bool IsPerspective() const { return m_bPerspective; }
     void SetPerspective(bool bValue) { m_bPerspective = bValue; }
     bool IsLMBClickedFirstTime() const { return m_bLMBClickedFirstTime; }
@@ -64,10 +70,12 @@ private:
     float m_fDeltaTime = 0.0f;
 
     int m_iFrameCount = 0;
+    int m_iActiveThreads = 0;
     int m_iScreenWidth = 1920;
     int m_iScreenHeight = 1080;
 
-    bool m_bCullingEnabled = false;
+    bool m_bNeighborCullingEnabled = true;
+    bool m_bFrustumCullingEnabled = true;
     bool m_bPerspective = true;
     bool m_bEscClickedFirstTime = false;
     bool m_bLMBClickedFirstTime = false;

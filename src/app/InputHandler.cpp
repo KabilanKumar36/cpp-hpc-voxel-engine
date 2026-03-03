@@ -36,12 +36,9 @@ void InputHandler::ProcessInput(GLFWwindow* pWindow,
             glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         else
             glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-
-        UpdateTitleInfo(pWindow);
     }
     if (inputs.IsKeyJustPressed(GLFW_KEY_F)) {
-        m_bCullingEnabled = !m_bCullingEnabled;
-        UpdateTitleInfo(pWindow);
+        m_bFrustumCullingEnabled = !m_bFrustumCullingEnabled;
     }
 
     if (inputs.IsKeyJustPressed(GLFW_KEY_R)) {
@@ -216,20 +213,6 @@ Core::Mat4 InputHandler::GetViewProjectionMatrix() {
     }
     Core::Mat4 view = GetCamera().GetViewMatrix();
     return projection * view;
-}
-//*********************************************************************
-void InputHandler::UpdateTitleInfo(GLFWwindow* pWindow) const {
-    if (!pWindow)
-        return;
-
-    int iFPS =
-        (m_fTimer > 0.0f) ? static_cast<int>(static_cast<float>(m_iFrameCount) / m_fTimer) : 0;
-
-    std::string strTitle = "HPC Voxel Engine FPS:" + std::to_string(iFPS);
-    strTitle += (m_bCullingEnabled ? "\tCulling: ON (F)" : "\tCulling: OFF (F)");
-    strTitle += (m_bPerspective ? "\tMode: Perspective (P)" : "\tMode: Orthographic (P)");
-
-    glfwSetWindowTitle(pWindow, strTitle.c_str());
 }
 //*********************************************************************
 void InputHandler::SetDeltaTime(float fDeltaTime) {

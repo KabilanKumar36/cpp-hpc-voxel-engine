@@ -16,7 +16,7 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
         updateChunkNeighbours(pActiveChunk);
 
         // Generate mesh on Main Thread (OpenGL requires this)
-        pActiveChunk->ReconstructMesh();
+        pActiveChunk->ReconstructMesh(m_bEnableNeighborCulling);
         pActiveChunk->UploadMesh();
 
         // Remove from pending set
@@ -73,12 +73,34 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
             }
             if (bPending)
                 continue;
+            if (m_iActiveThreads == 0) {  // Synchronous injection mode
+                auto pNewChunk = std::make_unique<Chunk>(iX, iZ);
+                m_objRegionManager.LoadChunk(*pNewChunk);
 
-            enqueueLoadChunk(iX, iZ);
+                m_mapChunks[ChunkCoord] = std::move(pNewChunk);
+                Chunk* pActiveChunk = m_mapChunks[ChunkCoord].get();
+                updateChunkNeighbours(pActiveChunk);
+                if (pActiveChunk) {
+                    pActiveChunk->ReconstructMesh(m_bEnableNeighborCulling);
+                    pActiveChunk->UploadMesh();
+                }
+
+            } else {  // ASynchronous Mode
+                enqueueLoadChunk(iX, iZ);
+            }
         }
     }
 }
 
+//*********************************************************************
+void ChunkManager::ReloadAllChunks() {
+    for (auto& [coords, pChunk] : m_mapChunks) {
+        if (pChunk) {
+            pChunk->ReconstructMesh(m_bEnableNeighborCulling);
+            pChunk->UploadMesh();
+        }
+    }
+}
 //*********************************************************************
 void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBlockType) {
     if (iWorldY < 0 || iWorldY >= CHUNK_HEIGHT)
@@ -100,7 +122,7 @@ void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBloc
         iLocalZ += CHUNK_SIZE;
 
     pChunk->SetBlockAt(iLocalX, iWorldY, iLocalZ, iBlockType);
-    pChunk->ReconstructMesh();
+    pChunk->ReconstructMesh(m_bEnableNeighborCulling);
     pChunk->UploadMesh();
 
     // Logic: If placing a block, convert grass below to dirt
@@ -114,25 +136,25 @@ void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBloc
     // Update Neighbors if on boundary
     if (iLocalX == 0) {
         if (Chunk* pWest = GetChunk(iChunkX - 1, iChunkZ)) {
-            pWest->ReconstructMesh();
+            pWest->ReconstructMesh(m_bEnableNeighborCulling);
             pWest->UploadMesh();
         }
     }
     if (iLocalX == CHUNK_SIZE - 1) {
         if (Chunk* pEast = GetChunk(iChunkX + 1, iChunkZ)) {
-            pEast->ReconstructMesh();
+            pEast->ReconstructMesh(m_bEnableNeighborCulling);
             pEast->UploadMesh();
         }
     }
     if (iLocalZ == 0) {
         if (Chunk* pSouth = GetChunk(iChunkX, iChunkZ - 1)) {
-            pSouth->ReconstructMesh();
+            pSouth->ReconstructMesh(m_bEnableNeighborCulling);
             pSouth->UploadMesh();
         }
     }
     if (iLocalZ == CHUNK_SIZE - 1) {
         if (Chunk* pNorth = GetChunk(iChunkX, iChunkZ + 1)) {
-            pNorth->ReconstructMesh();
+            pNorth->ReconstructMesh(m_bEnableNeighborCulling);
             pNorth->UploadMesh();
         }
     }
@@ -174,16 +196,6 @@ void ChunkManager::enqueueLoadChunk(int iX, int iZ) {
         Chunk objChunk(iX, iZ);
         m_objRegionManager.LoadChunk(objChunk);
         m_objFinishedQueue.push(std::move(objChunk));
-        // 1. Create the chunk on the heap via unique_ptr
-        /*auto pChunk = std::make_unique<Chunk>(iX, iZ);
-
-        // 2. Load data
-        m_objRegionManager.LoadChunk(*pChunk);
-
-        // 3. Move the WHOLE OBJECT into the queue
-        // Update your FinishedQueue to take std::unique_ptr<Chunk> if possible,
-        // OR move the value out of the pointer:
-        m_objFinishedQueue.push(std::move(*pChunk)); */
     });
 }
 
@@ -209,9 +221,9 @@ void ChunkManager::updateChunkNeighbours(Chunk* pChunk) {
 
             pNeighbor->SetNeighbours(iOppDir, pChunk);
 
-            // Trigger neighbor update if needed (optional optimization)
-            // pNeighbor->ReconstructMesh();
-            // pNeighbor->UploadMesh();
+            // Trigger neighbor update
+            pNeighbor->ReconstructMesh(m_bEnableNeighborCulling);
+            pNeighbor->UploadMesh();
         }
     };
 

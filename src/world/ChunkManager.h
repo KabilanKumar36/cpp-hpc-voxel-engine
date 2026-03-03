@@ -32,6 +32,8 @@ public:
      */
     void Update(float fPlayerX, float fPlayerZ);
 
+    void ReloadAllChunks();
+
     /**
      * @brief Modifies a block in the world. Handles mesh updates for the chunk and neighbors.
      */
@@ -52,6 +54,15 @@ public:
     std::map<std::pair<int, int>, std::unique_ptr<Chunk>>& GetMutableChunks() {
         return m_mapChunks;
     }
+    // Helper for UI
+    const std::map<std::pair<int, int>, std::unique_ptr<Chunk>>& GetChunks() const {
+        return m_mapChunks;
+    }
+    void SetActiveThreads(int iCt) { m_iActiveThreads = iCt; }
+    int GetActiveThreads() { return m_iActiveThreads; }
+
+    void SetNeighborCulling(bool bNeighborCulling) { m_bEnableNeighborCulling = bNeighborCulling; }
+    bool GetNeighborCulling() const { return m_bEnableNeighborCulling; }
 
 private:
     void enqueueLoadChunk(int iX, int iZ);
@@ -72,4 +83,7 @@ private:
     int m_iRenderDistance = 6;
     int m_iLastPlayerChunkX = -999999;
     int m_iLastPlayerChunkZ = -999999;
+    int m_iActiveThreads = 4;
+
+    bool m_bEnableNeighborCulling = true;
 };

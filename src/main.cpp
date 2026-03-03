@@ -28,7 +28,6 @@ constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green colo
 
 static void SetOpenGLState() {
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 }
@@ -39,10 +38,9 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_DEPTH_BITS, 24);
-    GLFWmonitor* pPrimaryMonitor = nullptr;
     App::InputHandler inputHandler(Core::Vec3(100.0f, 40.0f, 100.0f));
 #ifdef NDEBUG
-    pPrimaryMonitor = glfwGetPrimaryMonitor();
+    GLFWmonitor* pPrimaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* pVideoMode = glfwGetVideoMode(pPrimaryMonitor);
     glfwWindowHint(GLFW_RED_BITS, pVideoMode->redBits);
     glfwWindowHint(GLFW_GREEN_BITS, pVideoMode->greenBits);
@@ -56,7 +54,7 @@ int main() {
     GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
                                            inputHandler.GetScreenHeight(),
                                            "HPC Voxel Engine",
-                                           pPrimaryMonitor,
+                                           /*pPrimaryMonitor*/ nullptr,
                                            nullptr);
     if (pWindow == nullptr) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -64,6 +62,7 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(pWindow);
+    glfwSetWindowTitle(pWindow, "HPC Voxel Engine");
 
     // Unlock FPS (VSync OFF) to demonstrate high performance
     glfwSwapInterval(0);
@@ -120,14 +119,13 @@ int main() {
             inputHandler.AddFrameCount();
             inputHandler.SetDeltaTime(fDeltaTime);
             if (inputHandler.GetTime() >= 1.0f) {
-                inputHandler.UpdateTitleInfo(pWindow);
                 inputHandler.ResetCounters();
             }
 
             InputManager::GetInstance().Update();
             glfwPollEvents();
             App.HandleUIToggle();
-            if (!App.m_bIsUIActive) {
+            if (!App.m_bShowHelpWindow) {
                 inputHandler.ProcessInput(pWindow, objChunkManager, fDeltaTime);
             }
 
@@ -142,62 +140,25 @@ int main() {
             // Rendering
             Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
             Renderer::WorldRenderer::DrawChunks(
-                objChunkManager, shader, viewProjection, inputHandler.IsCullingEnabled());
+                objChunkManager, shader, viewProjection, inputHandler.IsFrustumCullingEnabled());
             Renderer::WorldRenderer::DrawAxes(viewProjection);
+
             RayHit objRayHit =
                 inputHandler.ProcessFirePreviewAndFire(objChunkManager, viewProjection);
-
             // UI Rendering
             App.BeginImGUIFrame();
-            if (App.m_bShowDebugPanel) {
-                ImGui::SetNextWindowSize(ImVec2(420, 540), ImGuiCond_FirstUseEver);
-                ImGui::Begin("System Monitor", &App.m_bShowDebugPanel);
-
-                ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Dev. Tools");
-                ImGui::Separator();
-                static bool bWireframeMode = false;
-                if (ImGui::Checkbox("Wireframe", &bWireframeMode)) {
-                    glPolygonMode(GL_FRONT_AND_BACK, bWireframeMode ? GL_LINE : GL_FILL);
-                }
-                if (ImGui::Checkbox("Fly Mode", &bFlyMode)) {
-                    inputHandler.SetFlyMode(bFlyMode);
-                }
-
-                static float fFlySpeed = 20.0f;
-                if (ImGui::SliderFloat("Fly Speed", &fFlySpeed, 1.0f, 200.0f)) {
-                    inputHandler.SetMovementSpeed(fFlySpeed);
-                }
-                ImGui::Separator();
-
-                ImGui::TextColored(ImVec4(0, 1, 0, 1), "Performance");
-                ImGui::Text("FPS: %0.1f", ImGui::GetIO().Framerate);
-                ImGui::Text("Frame Time: %0.3f ms", 1000.0f / ImGui::GetIO().Framerate);
-                ImGui::Separator();
-
-                Core::Vec3 objCurrCameraPos = inputHandler.GetCamera().GetCameraPosition();
-                ImGui::TextColored(ImVec4(0, 1, 1, 1), "Position");
-                ImGui::Text("X: %0.3f, Y: %0.3f, Z: %0.3f",
-                            objCurrCameraPos.x,
-                            objCurrCameraPos.y,
-                            objCurrCameraPos.z);
-
-                ImGui::Separator();
-
-                ImGui::TextColored(ImVec4(1, 1, 0, 1), "World State");
-                ImGui::Text("Chunks Loaded: %zu", objChunkManager.GetMutableChunks().size());
-                ImGui::Separator();
-
-                ImGui::TextColored(ImVec4(1, 0, 1, 1), "Interaction");
-                if (objRayHit.m_bHit) {
-                    ImGui::Text("Target: Block (%d, %d, %d)",
-                                objRayHit.m_iBlocKX,
-                                objRayHit.m_iBlocKY,
-                                objRayHit.m_iBlocKZ);
-                    ImGui::Text("Distance: %.2f", objRayHit.m_fDistance);
-                }
-                ImGui::End();
-            }
+            App.RenderMetricsUI(inputHandler, objChunkManager, objRayHit);
+            App.RenderHelpUI();
             App.EndImGUIFrame();
+
+            if (inputHandler.IsNeighborCullingEnabled() != objChunkManager.GetNeighborCulling()) {
+                objChunkManager.SetNeighborCulling(inputHandler.IsNeighborCullingEnabled());
+                objChunkManager.ReloadAllChunks();
+            }
+            if (inputHandler.GetActiveThreads() != objChunkManager.GetActiveThreads()) {
+                objChunkManager.SetActiveThreads(inputHandler.GetActiveThreads());
+            }
+
             glfwSwapBuffers(pWindow);
         }
     }

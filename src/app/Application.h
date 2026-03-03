@@ -4,8 +4,12 @@
 #include "backends/imgui_impl_opengl3.h"
 #include "imgui.h"
 
-// Forward declaration
+#include "InputHandler.h"
+// ********************************************************************
 struct GLFWwindow;
+struct RayHit;
+class ChunkManager;
+// ********************************************************************
 
 /**
  * @class Application
@@ -46,8 +50,29 @@ public:
      */
     void ShutDownImGUI();
 
-    bool m_bIsUIActive = false;     ///< True if the UI overlay is currently interactive.
-    bool m_bShowDebugPanel = true;  ///< True if the debug panel should be drawn.
+    /**
+     * @brief Handles the UI Rendering.
+     */
+    void RenderMetricsUI(App::InputHandler& inputHandler,
+                         const ChunkManager& objChunkManager,
+                         const RayHit& objRayHit);
+
+    /**
+     * @brief Handles the Help Rendering.
+     */
+    void RenderHelpUI();
+
+    bool m_bShowMetricsPanel = true;
+    bool m_bShowHelpWindow = true;
+
+    bool m_bWireframeMode = false;
+    bool m_bHardwareCulling = true;
+    bool m_bEnableNeighborCulling = true;
+    bool m_bFrustumCulling = true;
+    bool m_bFlyMode = false;
+    int m_iActiveThreads = 4;
+    int m_iMaxHardwareThreads = 8;
+    float m_fFlySpeed = 20.0f;
 
 private:
     GLFWwindow* m_pWindow;

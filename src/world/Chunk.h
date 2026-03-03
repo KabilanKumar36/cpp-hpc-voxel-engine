@@ -40,7 +40,6 @@ public:
     // --- Getters ---
     [[nodiscard]] int GetChunkX() const { return m_iChunkX; }
     [[nodiscard]] int GetChunkZ() const { return m_iChunkZ; }
-    [[nodiscard]] bool GetFaceCulling() const { return m_bEnableFaceCulling; }
 
     [[nodiscard]] bool IsValid() const { return m_pVAO != nullptr; }
     const uint8_t* GetBlockData() const { return m_iBlocks; }
@@ -53,7 +52,6 @@ public:
     AABB GetAABB() const;
 
     void Render() const;
-    void SetFaceCulling(bool bOpt) { m_bEnableFaceCulling = bOpt; }
 
     void SetNeighbours(Direction iDir, Chunk* pChunk) { m_pNeighbours[iDir] = pChunk; }
 
@@ -140,7 +138,7 @@ public:
         return 0.0f;
     }
     // --- Generation ---
-    void ReconstructMesh();
+    void ReconstructMesh(bool bEnableNeighborCulling = false);
     void UploadMesh();
     void SwapBuffers() { std::swap(m_pfCurrFrameData, m_pfNextFrameData); }
     void InjectHeat(int iX, int iY, int iZ, float fTemp) {
@@ -158,10 +156,16 @@ public:
             m_pThermalTex->Bind(iVal);
     }
 
+    void GetMeshStats(size_t& uiOutVertCount, size_t& uiOutTriCount) const {
+        uiOutVertCount = m_uiVertexCount;
+        uiOutTriCount = m_uiTriangleCount;
+    }
+
 private:
     std::vector<float> m_vec_fVertices;
     std::vector<unsigned int> m_vec_uiIndices;
-
+    size_t m_uiVertexCount = 0;
+    size_t m_uiTriangleCount = 0;
     Renderer::VertexArray* m_pVAO = nullptr;
     Renderer::VertexBuffer* m_pVBO = nullptr;
     Renderer::IndexBuffer* m_pIBO = nullptr;
@@ -177,8 +181,6 @@ private:
     int m_iHeightData[CHUNK_SIZE][CHUNK_SIZE];
     int m_iChunkX = 0, m_iChunkZ = 0;
     uint8_t m_iBlocks[CHUNK_VOL]{0};
-
-    bool m_bEnableFaceCulling = false;
 
     // Helpers
     void updateHeightData();
