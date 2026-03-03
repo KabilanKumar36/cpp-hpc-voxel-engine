@@ -98,7 +98,6 @@ int main() {
         std::string strRegnFilePath = "ChunkData";
         ChunkManager objChunkManager(strRegnFilePath);
         float fLastFrame = static_cast<float>(glfwGetTime());
-        static bool bFlyMode = false;
 
         // Main Render Loop
         while (!glfwWindowShouldClose(pWindow)) {
