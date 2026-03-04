@@ -211,23 +211,3 @@ RayHit PhysicsSystem::RayCast(const Core::Ray& objRay,
 
     return hitResult;
 }
-//*********************************************************************
-void PhysicsSystem::UpdateTemparature(float fDelta, ChunkManager& objChunkManager) {
-    const float fAlpha = 0.2f;  // Thermal Diffusion Rate
-    const float fDelX = 1.0f;   // Voxel size in world units
-
-    // I am using the CFL(Courant-Friedrichs-Lewy) stability condition
-    // For 3D explicit diffusion it is: fDeltaTime <= (fDelX^2) / (6 * fAlpha)
-    const float fMaxDeltaTime = (fDelX * fDelX) / (6.0f * fAlpha);
-    float fRemainingtime = fDelta;
-    while (fRemainingtime > 0.0f) {
-        float fStep = std::min(fRemainingtime, fMaxDeltaTime);
-        for (auto& [coords, pChunk] : objChunkManager.GetMutableChunks()) {
-            pChunk->ThermalStep(fAlpha, fStep);
-        }
-        for (auto& [coords, pChunk] : objChunkManager.GetMutableChunks()) {
-            pChunk->SwapBuffers();
-        }
-        fRemainingtime -= fStep;
-    }
-}

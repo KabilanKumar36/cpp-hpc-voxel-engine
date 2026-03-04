@@ -24,6 +24,7 @@ constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green colo
 #include "app/Application.h"
 #include "app/InputHandler.h"
 #include "app/InputManager.h"
+#include "physics/ThermalSystem.h"
 #include "renderer/WorldRenderer.h"
 
 static void SetOpenGLState() {
@@ -98,7 +99,7 @@ int main() {
         std::string strRegnFilePath = "ChunkData";
         ChunkManager objChunkManager(strRegnFilePath);
         float fLastFrame = static_cast<float>(glfwGetTime());
-
+        ThermalSystem objThermalSystem{4};
         // Main Render Loop
         while (!glfwWindowShouldClose(pWindow)) {
             glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
@@ -133,8 +134,7 @@ int main() {
                 inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
             else
                 inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
-
-            PhysicsSystem::UpdateTemparature(fDeltaTime, objChunkManager);
+            objThermalSystem.UpdateTemperature(fDeltaTime, objChunkManager);
 
             // Rendering
             Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();

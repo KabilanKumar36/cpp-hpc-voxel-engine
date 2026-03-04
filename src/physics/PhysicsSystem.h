@@ -63,13 +63,6 @@ public:
                           float fMaxDistance,
                           const ChunkManager& objChunkManager);
 
-    /**
-     * @brief Performs a Temparature update to find next frame temperature of each blocks.
-     * @param fDeltaTime Time since last frame.
-     * * @param objChunkManager World data for updating temperature.
-     */
-    static void UpdateTemparature(float fDelta, ChunkManager& objChunkManager);
-
 private:
     // Helper: AABBox-to-Voxel world collision
     static bool checkCollision(const AABB& objAABB, const ChunkManager& objChunkManager);
