@@ -5,7 +5,10 @@
 
 // ********************************************************************
 ThermalSystem::ThermalSystem(int iNumThreads)
-    : m_iNumThreads(iNumThreads), m_bIsRunning(true), m_pCurrChunkManager(nullptr) {
+    : m_iNumThreads(iNumThreads),
+      m_bIsRunning(true),
+      m_fCurrDeltaTime(0.0f),
+      m_pCurrChunkManager(nullptr) {
     int iTotalParticipants = m_iNumThreads + 1;  // +1 for main thread
     m_pStartBarrier = std::make_unique<std::barrier<>>(iTotalParticipants);
 

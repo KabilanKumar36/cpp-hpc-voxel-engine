@@ -62,17 +62,23 @@ public:
      */
     void RenderHelpUI();
 
+    float m_fFlySpeed = 200.0f;
+    float m_fAccumulator = 20.0f;
+
+    int m_iPhysicsSteps = 0;
+    int m_iMainThreads = 1;
+    int m_iThermalThreads = 4;
+    int m_iActiveThreads = 4;
+    int m_iMaxRenderingThreads = 8;
+
     bool m_bShowMetricsPanel = true;
     bool m_bShowHelpWindow = true;
-
     bool m_bWireframeMode = false;
     bool m_bHardwareCulling = true;
     bool m_bEnableNeighborCulling = true;
     bool m_bFrustumCulling = true;
     bool m_bFlyMode = false;
-    int m_iActiveThreads = 4;
-    int m_iMaxHardwareThreads = 8;
-    float m_fFlySpeed = 20.0f;
+    bool m_bEnableVsycn = false;
 
 private:
     GLFWwindow* m_pWindow;

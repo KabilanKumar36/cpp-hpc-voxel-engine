@@ -26,10 +26,7 @@ void Application::InitImGUI() {
     ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
     ImGui_ImplOpenGL3_Init("#version 450");
 
-    m_iMaxHardwareThreads = std::thread::hardware_concurrency();
-    if (m_iMaxHardwareThreads == 0)
-        m_iMaxHardwareThreads = 4;
-    m_iActiveThreads = m_iMaxHardwareThreads;
+    m_iActiveThreads = m_iMaxRenderingThreads;
 }
 //*********************************************************************
 void Application::ShutDownImGUI() {
@@ -51,8 +48,8 @@ void Application::RenderMetricsUI(App::InputHandler& inputHandler,
         return;
 
     ImGui::SetNextWindowPos(ImVec2(40, 40), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(450, 650), ImGuiCond_FirstUseEver);
-    ImGui::Begin("System Monitor", &m_bShowMetricsPanel);
+    ImGui::SetNextWindowSize(ImVec2(450, 850), ImGuiCond_FirstUseEver);
+    ImGui::Begin("System Monitor (~)", &m_bShowMetricsPanel);
 
     ImGui::TextColored(ImVec4(1, 0.5f, 0, 1), "Dev. Tools");
     ImGui::Separator();
@@ -91,10 +88,14 @@ void Application::RenderMetricsUI(App::InputHandler& inputHandler,
         inputHandler.SetNeighborCullingEnable(m_bEnableNeighborCulling);
     }
     ImGui::Separator();
-    ImGui::TextColored(ImVec4(0, 1, 1, 1), "Concurrency Limit");
-    if (ImGui::SliderInt("Worker Thread", &m_iActiveThreads, 0, m_iMaxHardwareThreads)) {
+    ImGui::Text("Main Thread Count: %d", m_iMainThreads);
+    ImGui::Text("Thermal Threads: %d", m_iThermalThreads);
+    ImGui::TextColored(ImVec4(0, 1, 1, 1), "Rendering Threads");
+    ImGui::Text("Max. Avl. Render Threads: %d", m_iMaxRenderingThreads);
+    if (ImGui::SliderInt("Count", &m_iActiveThreads, 0, m_iMaxRenderingThreads)) {
         inputHandler.SetActiveThreads(m_iActiveThreads);
     }
+
     if (m_iActiveThreads == 0) {
         ImGui::TextColored(ImVec4(1, 0, 0, 1), "WARNING: Running on Main Thread (Sync Mode)");
     }
@@ -102,6 +103,16 @@ void Application::RenderMetricsUI(App::InputHandler& inputHandler,
     ImGui::TextColored(ImVec4(0, 1, 0, 1), "Performance");
     ImGui::Text("FPS: %0.1f", ImGui::GetIO().Framerate);
     ImGui::Text("Frame Time: %0.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+    ImGui::Separator();
+    if (ImGui::Checkbox("Enable V Sync", &m_bEnableVsycn)) {
+        if (m_bEnableVsycn)
+            glfwSwapInterval(1);
+        else
+            glfwSwapInterval(0);
+    }
+    ImGui::TextColored(ImVec4(0, 1, 0, 1), "Decouple Render and Physics");
+    ImGui::Text("Physics Steps/Frame: %d", m_iPhysicsSteps);
+    ImGui::Text("Accumulator Remainder: %0.2f", m_fAccumulator * 1000.0f);
     ImGui::Separator();
 
     size_t iTotalVertices = 0, iTotalTriangles = 0;
@@ -145,17 +156,13 @@ void Application::RenderHelpUI() {
     if (!m_bShowHelpWindow)
         return;
     ImGui::SetNextWindowPos(ImVec2(550, 40), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(450, 350), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Engine Controls & Help", &m_bShowHelpWindow);
+    ImGui::SetNextWindowSize(ImVec2(450, 650), ImGuiCond_FirstUseEver);
+    ImGui::Begin("Engine Controls & Help (F1)", &m_bShowHelpWindow);
 
     ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.0f, 1.0f), "Navigation");
     ImGui::BulletText("W A S D: Move Camera/Player");
+    ImGui::BulletText("Space Bar: Jump Camera/Player");
     ImGui::BulletText("Mouse: Look Around");
-    ImGui::Separator();
-
-    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "System Shortcuts");
-    ImGui::BulletText("F1: Toogle this Help Menu");
-    ImGui::BulletText("Tilde(~): Toggle Developer System Monitor");
     ImGui::Separator();
 
     ImGui::TextColored(ImVec4(0.0f, 0.8f, 1.0f, 1.0f), "Demonstration Guide");
@@ -164,6 +171,17 @@ void Application::RenderHelpUI() {
         "Try dropping the 'Worker Threads' to 0 to force synchronous main-thread execution"
         "or disable culling to see raw geometry load.");
     ImGui::Separator();
+    ImGui::Separator();
+
+    ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "System Shortcuts");
+    ImGui::BulletText("F1: Toogle this Help Menu");
+    ImGui::BulletText("Tilde(~): Toggle System Monitor");
+    ImGui::BulletText("F: Toggle Frustrum Culling");
+    ImGui::BulletText("P: Toggle Ortho/Perspective");
+    ImGui::BulletText("Ctrl: Cast Ray on Target and use:");
+    ImGui::Text("   LMB: Breaks Target Block");
+    ImGui::Text("   RMB: Inserts Block before Target");
+    ImGui::Text("   MMB: Injects Heat on Target Block");
     ImGui::End();
 }
 //*********************************************************************

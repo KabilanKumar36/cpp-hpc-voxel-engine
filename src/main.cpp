@@ -6,7 +6,7 @@
 #include <vector>
 
 constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
-
+constexpr float FIXED_THERMAL_TIME_STEP = 1.0f / 60.0f;     // 60 FPS fixed timestep
 // clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -99,7 +99,18 @@ int main() {
         std::string strRegnFilePath = "ChunkData";
         ChunkManager objChunkManager(strRegnFilePath);
         float fLastFrame = static_cast<float>(glfwGetTime());
-        ThermalSystem objThermalSystem{4};
+        float fAccumulator = 0.0f;
+        int iMaxThreads = std::thread::hardware_concurrency();
+        if (iMaxThreads == 0)
+            iMaxThreads = 4;
+        int iMainThread = 1;
+        int iThermalThreads = (iMaxThreads >= 16) ? 4 : (iMaxThreads >= 8) ? 2 : 1;
+        int iRenderingThreads = std::max(1, iMaxThreads - iMainThread - iThermalThreads);
+        App.m_iMainThreads = iMainThread;
+        App.m_iThermalThreads = iThermalThreads;
+        App.m_iMaxRenderingThreads = iRenderingThreads;
+        ThermalSystem objThermalSystem{iThermalThreads};
+
         // Main Render Loop
         while (!glfwWindowShouldClose(pWindow)) {
             glClearColor(CLEAR_COLOR[0], CLEAR_COLOR[1], CLEAR_COLOR[2], CLEAR_COLOR[3]);
@@ -112,6 +123,8 @@ int main() {
             if (fDeltaTime > 0.1f)
                 fDeltaTime = 0.1f;
             fLastFrame = fCurrentFrame;
+            fAccumulator += fDeltaTime;
+
             Core::Vec3 objCameraPos = inputHandler.GetCamera().GetCameraPosition();
             objChunkManager.Update(objCameraPos.x, objCameraPos.z);
 
@@ -127,15 +140,23 @@ int main() {
             App.HandleUIToggle();
             if (!App.m_bShowHelpWindow) {
                 inputHandler.ProcessInput(pWindow, objChunkManager, fDeltaTime);
+                App.m_bFrustumCulling = inputHandler.IsFrustumCullingEnabled();
             }
+            int iPhysicsSteps = 0;
+            // Fixed timestep loop for thermal simulation to ensure stability
+            while (fAccumulator >= FIXED_THERMAL_TIME_STEP) {
+                // Logic & Physics
+                if (objChunkManager.GetMutableChunks().empty())
+                    inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
+                else
+                    inputHandler.UpdatePlayerPhysics(FIXED_THERMAL_TIME_STEP, objChunkManager);
+                objThermalSystem.UpdateTemperature(FIXED_THERMAL_TIME_STEP, objChunkManager);
 
-            // Logic & Physics
-            if (objChunkManager.GetMutableChunks().empty())
-                inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
-            else
-                inputHandler.UpdatePlayerPhysics(fDeltaTime, objChunkManager);
-            objThermalSystem.UpdateTemperature(fDeltaTime, objChunkManager);
-
+                fAccumulator -= FIXED_THERMAL_TIME_STEP;
+                iPhysicsSteps++;
+            }
+            App.m_iPhysicsSteps = iPhysicsSteps;
+            App.m_fAccumulator = fAccumulator;
             // Rendering
             Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
             Renderer::WorldRenderer::DrawChunks(
