@@ -14,6 +14,9 @@
             // To suppress libEGL warnings and ZINK failure
             "environment": [
                 {
+                    "name": "DEBUGINFOD_URLS",
+                    "value": ""
+                } ,{
                     "name": "WAYLAND_DISPLAY",
                     "value": ""
                 } ,
@@ -34,6 +37,11 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Disable debuginfod downloading",
+                    "text": "-gdb-set debuginfod enabled off",
+                    "ignoreFailures": false
                 }
             ]
         }
