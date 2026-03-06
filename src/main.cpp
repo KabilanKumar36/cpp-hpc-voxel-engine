@@ -142,6 +142,7 @@ int main() {
                 inputHandler.ProcessInput(pWindow, objChunkManager, fDeltaTime);
                 App.m_bFrustumCulling = inputHandler.IsFrustumCullingEnabled();
             }
+            objThermalSystem.SetEnableSIMD(inputHandler.IsSIMDEnabled());
             int iPhysicsSteps = 0;
             // Fixed timestep loop for thermal simulation to ensure stability
             while (fAccumulator >= FIXED_THERMAL_TIME_STEP) {

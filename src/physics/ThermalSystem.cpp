@@ -7,6 +7,7 @@
 ThermalSystem::ThermalSystem(int iNumThreads)
     : m_iNumThreads(iNumThreads),
       m_bIsRunning(true),
+      m_bIsSIMDEnabled(true),
       m_fCurrDeltaTime(0.0f),
       m_pCurrChunkManager(nullptr) {
     int iTotalParticipants = m_iNumThreads + 1;  // +1 for main thread
@@ -64,7 +65,10 @@ void ThermalSystem::workerThreadLoop(int iThreadID) {
             int iChunkIndex = 0;
             for (auto& [coords, pChunk] : chunks) {
                 if (iChunkIndex % m_iNumThreads == iThreadID) {
-                    pChunk->ThermalStep(fStepTime, fAlpha);
+                    if (m_bIsSIMDEnabled)
+                        pChunk->ThermalStep_AVX2(fStepTime, fAlpha);
+                    else
+                        pChunk->ThermalStep(fStepTime, fAlpha);
                 }
                 ++iChunkIndex;
             }

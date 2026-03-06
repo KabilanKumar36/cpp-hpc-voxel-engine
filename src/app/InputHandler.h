@@ -26,6 +26,9 @@ public:
     float GetOrthoSize() const { return m_fOrthoSize; }
     void SetOrthoSize(float fValue) { m_fOrthoSize = fValue; }
 
+    bool IsSIMDEnabled() const { return m_bEnableSIMD; }
+    void SetEnableSIMD(bool bValue) { m_bEnableSIMD = bValue; }
+
     bool IsNeighborCullingEnabled() const { return m_bNeighborCullingEnabled; }
     void SetNeighborCullingEnable(bool bValue) { m_bNeighborCullingEnabled = bValue; }
 
@@ -74,6 +77,7 @@ private:
     int m_iScreenWidth = 1920;
     int m_iScreenHeight = 1080;
 
+    bool m_bEnableSIMD = true;
     bool m_bNeighborCullingEnabled = true;
     bool m_bFrustumCullingEnabled = true;
     bool m_bPerspective = true;

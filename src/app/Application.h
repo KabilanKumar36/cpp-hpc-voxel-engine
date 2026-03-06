@@ -79,6 +79,7 @@ public:
     bool m_bFrustumCulling = true;
     bool m_bFlyMode = false;
     bool m_bEnableVsycn = false;
+    bool m_bEnableSIMD = true;
 
 private:
     GLFWwindow* m_pWindow;

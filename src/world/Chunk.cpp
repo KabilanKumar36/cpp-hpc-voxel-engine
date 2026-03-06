@@ -389,23 +389,70 @@ void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime) {
     }
 }
 //*********************************************************************
-void Chunk::DebugPrintThermalSlice() {
-    int iY = CHUNK_HEIGHT / 2;
-    std::cout << "--- Thermal Slice (Y=" << iY << ") ---\n";
-    for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
-        for (int iX = 0; iX < CHUNK_SIZE; ++iX) {
-            float fTemp = m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ)];
+void Chunk::ThermalStep_AVX2(float fThermalDiffusivity, float fDeltaTime) {
+    float fCoefficient = fThermalDiffusivity * fDeltaTime;
+    const int iOffsetY = CHUNK_SIZE;
+    const int iOffsetZ = CHUNK_SIZE * CHUNK_HEIGHT;
 
-            if (fTemp > 50.0f)
-                std::cout << " # ";
-            else if (fTemp > 10.0f)
-                std::cout << " * ";
-            else if (fTemp > 1.0f)
-                std::cout << " . ";
-            else
-                std::cout << "   ";
+    __m256 vecCoeff = _mm256_set1_ps(fCoefficient);
+    __m256 vecSix = _mm256_set1_ps(6.0f);
+
+    // Phase 1 : The Core (Pure AVX2 SIMD Speed)
+    for (int iZ = 1; iZ < CHUNK_SIZE - 1; ++iZ) {
+        for (int iY = 1; iY < CHUNK_HEIGHT - 1; ++iY) {
+            int iX = 1;
+            int iIndex = iX + iY * iOffsetY + iZ * iOffsetZ;
+
+            for (; iX <= CHUNK_SIZE - 1 - 8; iX += 8, iIndex += 8) {
+                __m256 curr = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex]);
+
+                __m256 x1 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex - 1]);
+                __m256 x2 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex + 1]);
+                __m256 y1 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex - iOffsetY]);
+                __m256 y2 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex + iOffsetY]);
+                __m256 z1 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex - iOffsetZ]);
+                __m256 z2 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex + iOffsetZ]);
+
+                __m256 neighborSum =
+                    _mm256_add_ps(_mm256_add_ps(_mm256_add_ps(x1, x2), _mm256_add_ps(y1, y2)),
+                                  _mm256_add_ps(z1, z2));
+
+                __m256 next = _mm256_fmadd_ps(
+                    vecCoeff, _mm256_sub_ps(neighborSum, _mm256_mul_ps(vecSix, curr)), curr);
+
+                _mm256_storeu_ps(&m_pfNextFrameData[iIndex], next);
+            }
+
+            for (; iX < CHUNK_SIZE - 1; ++iX, ++iIndex) {
+                float fCurrentTemp = m_pfCurrFrameData[iIndex];
+                float fNeighborSum =
+                    m_pfCurrFrameData[iIndex - 1] + m_pfCurrFrameData[iIndex + 1] +
+                    m_pfCurrFrameData[iIndex - iOffsetY] + m_pfCurrFrameData[iIndex + iOffsetY] +
+                    m_pfCurrFrameData[iIndex - iOffsetZ] + m_pfCurrFrameData[iIndex + iOffsetZ];
+                m_pfNextFrameData[iIndex] =
+                    fCurrentTemp + fCoefficient * (fNeighborSum - 6.0f * fCurrentTemp);
+            }
         }
-        std::cout << "\n";
+    }
+
+    // Phase 2 : The Borders (Non-SIMD, Boundary Checks)
+    for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
+        for (int iY = 0; iY < CHUNK_HEIGHT; ++iY) {
+            for (int iX = 0; iX < CHUNK_SIZE; ++iX) {
+                if (iX > 0 && iX < CHUNK_SIZE - 1 && iY > 0 && iY < CHUNK_HEIGHT - 1 && iZ > 0 &&
+                    iZ < CHUNK_SIZE - 1)
+                    continue;
+                int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+
+                float fCurrentTemp = m_pfCurrFrameData[iIndex];
+                float fNeighborSum =
+                    GetTemperatureAt(iX + 1, iY, iZ) + GetTemperatureAt(iX - 1, iY, iZ) +
+                    GetTemperatureAt(iX, iY + 1, iZ) + GetTemperatureAt(iX, iY - 1, iZ) +
+                    GetTemperatureAt(iX, iY, iZ + 1) + GetTemperatureAt(iX, iY, iZ - 1);
+                m_pfNextFrameData[iIndex] =
+                    fCurrentTemp + fCoefficient * (fNeighborSum - 6.0f * fCurrentTemp);
+            }
+        }
     }
 }
 //*********************************************************************

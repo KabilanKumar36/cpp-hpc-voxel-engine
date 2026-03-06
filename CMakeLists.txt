@@ -113,6 +113,7 @@ function(set_strict_warnings target_name)
             /permissive- # Enforce strict standards conformance
             /D_CRT_SECURE_NO_WARNINGS # Optional: Silence C-style safety warnings if needed
             /MP # Multi processor compilation
+            /arch:AVX2 # For SIMD, Advanced Vector Extensions 2 (AVX2) instructions
         )
     else()
         # Linux / macOS (GCC / Clang)
@@ -123,6 +124,8 @@ function(set_strict_warnings target_name)
             -Werror   # The specific flag that fails build on warning
             -Wshadow
             -Wconversion
+            -mavx2 # For SIMD, Advanced Vector Extensions 2 (AVX2) instructions
+            -mfma # For SIMD, Fused Multiply-Add (FMA) instructions
         )
     endif()
 endfunction()

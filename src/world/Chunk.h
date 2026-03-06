@@ -1,6 +1,7 @@
 #pragma once
 
 #include <FastNoiseLite.h>  // Ensure this library is in your include path
+#include <immintrin.h>
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -64,6 +65,21 @@ public:
         }
 
         return iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT);
+    }
+
+    // --- Block Manipulation for SIMD ---
+
+    [[nodiscard]] inline __m256i GetFlatIndexOf3DLayer_AVX2(__m256i vecX,
+                                                            __m256i vecY,
+                                                            __m256i vecZ) const {
+        __m256i vecChunkSize = _mm256_set1_epi32(CHUNK_SIZE);
+        __m256i vecChunkSizeHeight = _mm256_set1_epi32(CHUNK_SIZE * CHUNK_HEIGHT);
+
+        __m256i vecIndex =
+            _mm256_add_epi32(_mm256_add_epi32(vecX, _mm256_mullo_epi32(vecY, vecChunkSize)),
+                             _mm256_mullo_epi32(vecZ, vecChunkSizeHeight));
+
+        return vecIndex;
     }
 
     /**
@@ -148,7 +164,8 @@ public:
         }
     }
     void ThermalStep(float fThermalDiffusivity, float fDeltaTime);
-    void DebugPrintThermalSlice();
+    void ThermalStep_AVX2(float fThermalDiffusivity, float fDeltaTime);
+
     float* GetCurrData() const { return m_pfCurrFrameData; }
     void UpdateThermalTexture();
     void Bind(int iVal) {

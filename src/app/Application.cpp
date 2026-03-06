@@ -87,6 +87,11 @@ void Application::RenderMetricsUI(App::InputHandler& inputHandler,
     if (ImGui::Checkbox("Neighbor Face Culling", &m_bEnableNeighborCulling)) {
         inputHandler.SetNeighborCullingEnable(m_bEnableNeighborCulling);
     }
+
+    if (ImGui::Checkbox("Enable SIMD", &m_bEnableSIMD)) {
+        inputHandler.SetEnableSIMD(m_bEnableSIMD);
+    }
+
     ImGui::Separator();
     ImGui::Text("Main Thread Count: %d", m_iMainThreads);
     ImGui::Text("Thermal Threads: %d", m_iThermalThreads);

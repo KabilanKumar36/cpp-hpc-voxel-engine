@@ -14,12 +14,14 @@ public:
     ~ThermalSystem();
 
     void UpdateTemperature(float fDeltaTime, ChunkManager& objChunkManager);
+    void SetEnableSIMD(bool bEnable) { m_bIsSIMDEnabled = bEnable; }
 
 private:
     void workerThreadLoop(int iThreadID);
 
     int m_iNumThreads;
     std::atomic<bool> m_bIsRunning;
+    std::atomic<bool> m_bIsSIMDEnabled;
 
     float m_fCurrDeltaTime;
     ChunkManager* m_pCurrChunkManager;
