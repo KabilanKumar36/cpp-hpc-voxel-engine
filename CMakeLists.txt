@@ -138,13 +138,16 @@ endfunction()
 file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 list(FILTER ENGINE_SOURCES EXCLUDE REGEX ".*main\\.cpp$")
 
-set(VENDOR_SOURCES "vendor/stb_image.cpp")
-add_library(VoxelCore STATIC ${ENGINE_SOURCES} ${VENDOR_SOURCES})
+add_library(stb_image_obj OBJECT "vendor/stb_image.cpp")
+
 if(MSVC)
-    set_source_files_properties(${VENDOR_SOURCES} PROPERTIES COMPILE_OPTIONS /w)
+    target_compile_options(stb_image_obj PRIVATE /W0)
 else()
-    set_source_files_properties(${VENDOR_SOURCES} PROPERTIES COMPILE_OPTIONS -w)
+    target_compile_options(stb_image_obj PRIVATE -w)
 endif()
+
+target_include_directories(stb_image_obj PRIVATE "${CMAKE_SOURCE_DIR}/vendor")
+add_library(VoxelCore STATIC ${ENGINE_SOURCES} $<TARGET_OBJECTS:stb_image_obj>)
 
 target_include_directories(VoxelCore PUBLIC src )
 # To exclude vendor library for strict check of Warnings
