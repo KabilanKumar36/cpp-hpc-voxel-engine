@@ -61,12 +61,24 @@ public:
     void SetActiveThreads(int iCt) { m_iActiveThreads = iCt; }
     int GetActiveThreads() { return m_iActiveThreads; }
 
+    size_t GetGeneratedVertCount() const { return m_iGeneratedVertexCount; }
+    size_t GetGeneratedTriaCount() const { return m_iGeneratedTriangleCount; }
+
+    void AddToUploadedVertCount(size_t iCt) { m_iUploadedVertexCount += iCt; }
+    void ResetUploadedVertCount() { m_iUploadedVertexCount = 0; }
+    size_t GetUploadedVertCount() const { return m_iUploadedVertexCount; }
+
+    void AddToUploadedTriaCount(size_t iCt) { m_iUploadedTriangleCount += iCt; }
+    void ResetUploadedTriaCount() { m_iUploadedTriangleCount = 0; }
+    size_t GetUploadedTriaCount() const { return m_iUploadedTriangleCount; }
+
     void SetNeighborCulling(bool bNeighborCulling) { m_bEnableNeighborCulling = bNeighborCulling; }
     bool GetNeighborCulling() const { return m_bEnableNeighborCulling; }
 
 private:
     void enqueueLoadChunk(int iX, int iZ);
     void updateChunkNeighbours(Chunk* pChunk);
+    void updateGeneratedMeshStats();
 
     std::map<std::pair<int, int>, std::unique_ptr<Chunk>> m_mapChunks;
 
@@ -84,6 +96,9 @@ private:
     int m_iLastPlayerChunkX = -999999;
     int m_iLastPlayerChunkZ = -999999;
     int m_iActiveThreads = 4;
-
+    size_t m_iGeneratedVertexCount = 0;
+    size_t m_iGeneratedTriangleCount = 0;
+    size_t m_iUploadedVertexCount = 0;
+    size_t m_iUploadedTriangleCount = 0;
     bool m_bEnableNeighborCulling = true;
 };

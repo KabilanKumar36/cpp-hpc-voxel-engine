@@ -34,6 +34,24 @@ Chunk::~Chunk() {
 
     FREE_ALIGNED(m_pfCurrFrameData);
     FREE_ALIGNED(m_pfNextFrameData);
+
+    for (int i = 0; i < 6; i++) {
+        if (m_pNeighbours[i]) {
+            Direction iOppDir = Direction::NORTH;
+            if (i == Direction::NORTH)
+                iOppDir = Direction::SOUTH;
+            else if (i == Direction::EAST)
+                iOppDir = Direction::WEST;
+            else if (i == Direction::WEST)
+                iOppDir = Direction::EAST;
+            else if (i == Direction::ABOVE)
+                iOppDir = Direction::BELOW;
+            else if (i == Direction::BELOW)
+                iOppDir = Direction::ABOVE;
+            m_pNeighbours[i]->SetNeighbours(iOppDir, nullptr);
+            m_pNeighbours[i] = nullptr;
+        }
+    }
 }
 //*********************************************************************
 Chunk::Chunk(Chunk&& other) noexcept

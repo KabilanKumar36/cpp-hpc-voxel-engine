@@ -32,6 +32,7 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
 
     // Optimization: Only update loading logic if player moved to a new chunk
     if (iCurrentChunkX == m_iLastPlayerChunkX && iCurrentChunkZ == m_iLastPlayerChunkZ) {
+        updateGeneratedMeshStats();
         return;
     }
 
@@ -90,8 +91,22 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
             }
         }
     }
+    updateGeneratedMeshStats();
 }
 
+//*********************************************************************
+void ChunkManager::updateGeneratedMeshStats() {
+    m_iGeneratedVertexCount = 0;
+    m_iGeneratedTriangleCount = 0;
+    for (const auto& [coords, pChunk] : m_mapChunks) {
+        if (!pChunk)
+            continue;
+        size_t iNbVertices = 0, iNbTriangles = 0;
+        pChunk->GetMeshStats(iNbVertices, iNbTriangles);
+        m_iGeneratedVertexCount += iNbVertices;
+        m_iGeneratedTriangleCount += iNbTriangles;
+    }
+}
 //*********************************************************************
 void ChunkManager::ReloadAllChunks() {
     for (auto& [coords, pChunk] : m_mapChunks) {
@@ -100,6 +115,7 @@ void ChunkManager::ReloadAllChunks() {
             pChunk->UploadMesh();
         }
     }
+    updateGeneratedMeshStats();
 }
 //*********************************************************************
 void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBlockType) {
@@ -158,6 +174,7 @@ void ChunkManager::SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBloc
             pNorth->UploadMesh();
         }
     }
+    updateGeneratedMeshStats();
 }
 
 //*********************************************************************

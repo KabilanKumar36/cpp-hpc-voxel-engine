@@ -40,7 +40,8 @@ void WorldRenderer::DrawChunks(ChunkManager &objChunkManager,
     if (bEnableFrustumCulling) {
         objFrustum.Update(objViewProjection);
     }
-
+    objChunkManager.ResetUploadedVertCount();
+    objChunkManager.ResetUploadedTriaCount();
     // Iterate over chunks
     for (const auto &[Coords, pChunk] : objChunkManager.GetMutableChunks()) {
         // Frustum Culling Check
@@ -58,6 +59,11 @@ void WorldRenderer::DrawChunks(ChunkManager &objChunkManager,
         pChunk->UpdateThermalTexture();
         pChunk->Bind(1);
         pChunk->Render();
+
+        size_t iNbVertices = 0, iNbTriangles = 0;
+        pChunk->GetMeshStats(iNbVertices, iNbTriangles);
+        objChunkManager.AddToUploadedVertCount(iNbVertices);
+        objChunkManager.AddToUploadedTriaCount(iNbTriangles);
     }
 }
 
