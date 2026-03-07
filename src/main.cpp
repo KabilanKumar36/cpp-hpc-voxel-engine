@@ -109,6 +109,7 @@ int main() {
         App.m_iMainThreads = iMainThread;
         App.m_iThermalThreads = iThermalThreads;
         App.m_iMaxRenderingThreads = iRenderingThreads;
+        App.m_iActiveThreads = iRenderingThreads;
         ThermalSystem objThermalSystem{iThermalThreads};
 
         // Main Render Loop
