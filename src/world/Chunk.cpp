@@ -16,8 +16,10 @@
 
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
-    m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(PADDED_CHUNK_VOL * sizeof(float), 64));
-    m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(PADDED_CHUNK_VOL * sizeof(float), 64));
+    size_t iRawBytes = PADDED_CHUNK_VOL * sizeof(float);
+    size_t iAlignedBytes = (iRawBytes + 63) & ~63;
+    m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(iAlignedBytes, 64));
+    m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(iAlignedBytes, 64));
     std::fill_n(m_pfCurrFrameData, PADDED_CHUNK_VOL, 0.0f);
     std::fill_n(m_pfNextFrameData, PADDED_CHUNK_VOL, 0.0f);
     updateHeightData();
@@ -409,11 +411,12 @@ float Chunk::GetTemperatureAt(int iX, int iY, int iZ) const {
             return m_pNeighbours[Direction::BELOW]->GetTemperatureAt(iX, CHUNK_HEIGHT - 1, iZ);
         else if (m_bVonNeumannBC)
             return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, 0, iZ)];
-    } else if (iY >= CHUNK_HEIGHT)
+    } else if (iY >= CHUNK_HEIGHT) {
         if (m_pNeighbours[Direction::ABOVE])
             return m_pNeighbours[Direction::ABOVE]->GetTemperatureAt(iX, 0, iZ);
         else if (m_bVonNeumannBC)
             return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, CHUNK_SIZE - 1, iZ)];
+    }
 
     if (iZ < 0) {
         if (m_pNeighbours[Direction::SOUTH])
