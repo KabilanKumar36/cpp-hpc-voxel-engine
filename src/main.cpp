@@ -52,11 +52,12 @@ int main() {
     inputHandler.SetScreenWidth(pVideoMode->width, pVideoMode->height);
 #endif
     glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
-    GLFWwindow* pWindow = glfwCreateWindow(inputHandler.GetScreenWidth(),
-                                           inputHandler.GetScreenHeight(),
-                                           "HPC Voxel Engine",
-                                           /*pPrimaryMonitor*/ nullptr,
-                                           nullptr);
+    GLFWwindow* pWindow =
+        glfwCreateWindow(inputHandler.GetScreenWidth(),
+                         inputHandler.GetScreenHeight(),
+                         "HPC Voxel Engine ( Esc - Close & F1 - Help & Mouse Control)",
+                         /*pPrimaryMonitor*/ nullptr,
+                         nullptr);
     if (pWindow == nullptr) {
         std::cerr << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
@@ -78,7 +79,6 @@ int main() {
 #ifdef _WIN32
     // Enable High-DPI support on Windows
     glfwWindowHint(GLFW_SCALE_TO_MONITOR, GLFW_TRUE);
-    glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 #else
     glfwSetInputMode(pWindow, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 #endif
