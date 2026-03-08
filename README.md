@@ -3,7 +3,7 @@
 ![Language](https://img.shields.io/badge/language-C%2B%2B20-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-![OpenGL](https://img.shields.io/badge/OpenGL-4.6-red.svg)
+![OpenGL](https://img.shields.io/badge/OpenGL-4.5-red.svg)
 ![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/build_and_test.yml/badge.svg)
 
 > **🚀 v1.0 Tech Demo Available!**
@@ -12,7 +12,8 @@
 A high-performance CPU/GPU voxel engine built from scratch in C++20.
 Designed as a foundational framework for Computational Engineering (CAE) simulations, focusing on cache coherency, hardware-accelerated rendering, custom memory allocators, and low-level memory management.
 
-![Day 05 Demo](docs/screenshots/demo_help_window.png)
+![Solver Engine - UI](docs/screenshots/solver_version_0_2_0_ui.png)
+![Solver Engine - Heat Injection](docs/screenshots/solver_version_0_2_0_heat_injection.png)
 
 ## 🚀 Overview
 
@@ -23,7 +24,7 @@ This project is a technical playground for implementing high-performance graphic
 * **Data-Oriented Design:** Struct-of-Arrays (SoA) layout for voxel data to maximize CPU cache hits.
 * **Custom Math Library:** SIMD-ready vectors and matrices implementation.
 * **Systems Hardening:** Zero-warning codebase enforced by CI/CD (`/WX` (MSVC) and `-Werror` GCC/Clang).
-* **Modern OpenGL (4.6):** Direct State Access (DSA) and optimized buffer streaming for voxel generation.
+* **Modern OpenGL (4.5):** Direct State Access (DSA) and optimized buffer streaming for voxel generation.
 * **Memory Management:** Leveraging C++20 features and RAII/Move Semantics for deterministic resource lifecycles.
 * **Zero-Dependency:** Managing memory, windowing context, and resources manually without heavy frameworks.
 
@@ -32,7 +33,7 @@ This project is a technical playground for implementing high-performance graphic
 | Component | Technology | Reasoning |
 | :--- | :--- | :--- |
 | **Language** | C++20 | Concepts, Modules, `constexpr` math optimizations. |
-| **Graphics** | OpenGL 4.6 | Core Profile for compute-shader readiness and DSA. |
+| **Graphics** | OpenGL 4.5 | Core Profile for compute-shader readiness and DSA. |
 | **Build System** | CMake 3.23+ | `FetchContent` for dependency-free setup. |
 | **Windowing** | GLFW 3.4 | Robust cross-platform context management. |
 | **Loader** | GLAD | Dynamic loader for OpenGL function pointers. |
@@ -40,6 +41,7 @@ This project is a technical playground for implementing high-performance graphic
 | **Procedural** | FastNoiseLite | OpenSimplex2 noise for infinite terrain generation. |
 | **Asset** | stb_image | Lightweight image loading for texture atlases. |
 | **Testing** | GoogleTest | Automated verification for Physics and Math logic. |
+| **Documentation** | Doxygen & Graphviz | Automated API reference and class dependency graph generation. |
 
 ## 📐 System Architecture
 
@@ -50,6 +52,14 @@ The engine follows a strict separation of concerns between the Simulation Loop (
 ## ✨ Key Features (Current & Planned)
 
 ### ✅ Completed
+
+- [x] **Thermodynamics & SIMD Physics:**
+    - **AVX2 Vectorization:** The core 3D finite difference equation is heavily vectorized using bare-metal AVX2 Intrinsics, processing 8 contiguous voxels per CPU cycle (achieving a ~23% reduction in frame time).
+    - **Domain Decomposition (Ghost Cells):** Utilizes an 18x18x18 padded memory architecture (Halo Exchange) for lock-free heat transfer across parallel chunk boundaries.
+    - **Zero-Copy GPU Visualization:** Thermal data is asynchronously packed and uploaded to a `GL_TEXTURE_3D` volume via OpenGL DSA with `GL_LINEAR` interpolation.
+    - **Von Neumann Boundaries:** Enforces reflective boundary conditions to strictly conserve thermal energy within the loaded simulation bounds.
+    - **Memory Hardened:** Strictly validated with Linux/GCC AddressSanitizer (ASAN) and LeakSanitizer (LSAN) to guarantee zero memory leaks or Use-After-Free (UAF) errors.
+
 - [x] **High-Performance Rendering:**
     - **Frustum Culling:** CPU-side optimization checking Chunk AABBs against camera planes.
     - **Hidden Face Removal:** Internal and Inter-Chunk occlusion culling (reducing vertex count by ~85%).
@@ -89,6 +99,7 @@ The engine follows a strict separation of concerns between the Simulation Loop (
 - [ ] **Grid-Based Fluid Dynamics:** Implementing volumetric fluid flow using Cellular Automata / Lattice Boltzmann Method (LBM) for real-time simulation.
 
 ### 🧊 Roadmap (Icebox)
+- [ ] **Persistent Mapped Buffers:** Transitioning to OpenGL 4.5 DSA persistent mapped VBOs for zero-copy PCIe geometry transfers during active block editing.
 - [ ] **Morton Encoding (Z-Order Curve):** Reordering chunk memory layout to drastically improve spatial CPU cache locality. 
 - [ ] **Compute Shaders:** Moving voxel procedural generation from the CPU Thread Pool to the GPU via OpenGL 4.5 SSBOs.
 - [ ] **Sparse Voxel Octrees (SVO):** Transitioning from a dense grid to an SVO to support massive render distances and memory compression.
@@ -99,7 +110,7 @@ The engine follows a strict separation of concerns between the Simulation Loop (
 ### Prerequisites
 * **C++ Compiler:** MSVC (Visual Studio 2022) or GCC 11+
 * **CMake:** Version 3.23 or higher
-* **GPU Drivers:** Must support OpenGL 4.6
+* **GPU Drivers:** Must support OpenGL 4.5
 
 ### Steps
 1.  **Clone the repository:**
@@ -153,12 +164,11 @@ assets/             # Graphics resources (Shaders, Texture Atlas)
 docs/               # Documentation
 external/           # Heavy dependencies managed via CMake FetchContent (GLFW, GLAD)
 src/
-├── app/            # Input Manager and Input Handler
+├── app/            # ImGui UI, Input Manager and Input Handler
 ├── core/           # Math (Vec3, Matrix), Camera, Threading, Memory Management, and Base Types
-├── physics/        # Physics Engine (AABB, PhysicsSystem, RigidBody)
-├── renderer/       # OpenGL 4.6 Wrappers (Shader, Buffer, Texture, VAO and World & Primitive Renderers)
+├── physics/        # Physics Engine (AABB, PhysicsSystem, RigidBody) & Thermal Engine
+├── renderer/       # OpenGL 4.5 Wrappers (Shader, Buffer, Texture, VAO and World, Primitive Renderers & Thermal Volume Texture)
 ├── world/          # Voxel Logic (Chunk, Mesh Generation, Biome System and Player)
-├── vendor/         # Third-party single-header libraries (stb_image, etc.)
 └── main.cpp        # Entry point and Application Loop
 tests/              # GoogleTest suite (Physics, Math, and Render verification)
 vendor/             # Lighter Third-party dependencies (stb_image, etc.)
