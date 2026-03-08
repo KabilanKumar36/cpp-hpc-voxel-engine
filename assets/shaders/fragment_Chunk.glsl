@@ -16,11 +16,6 @@ void main()
     // Alpha discard for transparency (leaves, glass, etc.)
     if(texColor.a < 0.1)
         discard;
-
-    /* // 2. Apply Fog
-    // Mix between the Texture Color and the Sky Color (e.g., Light Blue)
-    vec3 skyColor = vec3(0.2, 0.3, 0.2); // Matches a typical clear sky
-    vec3 finalColor = mix(skyColor, texColor.rgb, Visibility);*/
     
     // Read raw temperature value
     float temp = texture(u_ThermalTexture, VoxelUVW).r;

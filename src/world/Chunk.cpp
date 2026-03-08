@@ -16,10 +16,10 @@
 
 //*********************************************************************
 Chunk::Chunk(int iX, int iZ) : m_iChunkX(iX), m_iChunkZ(iZ) {
-    m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
-    m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(CHUNK_VOL * sizeof(float), 64));
-    std::fill_n(m_pfCurrFrameData, CHUNK_VOL, 0.0f);
-    std::fill_n(m_pfNextFrameData, CHUNK_VOL, 0.0f);
+    m_pfCurrFrameData = static_cast<float*>(ALLOCATE_ALIGNED(PADDED_CHUNK_VOL * sizeof(float), 64));
+    m_pfNextFrameData = static_cast<float*>(ALLOCATE_ALIGNED(PADDED_CHUNK_VOL * sizeof(float), 64));
+    std::fill_n(m_pfCurrFrameData, PADDED_CHUNK_VOL, 0.0f);
+    std::fill_n(m_pfNextFrameData, PADDED_CHUNK_VOL, 0.0f);
     updateHeightData();
 }
 
@@ -387,20 +387,62 @@ void Chunk::Render() const {
     }
 }
 //*********************************************************************
+float Chunk::GetTemperatureAt(int iX, int iY, int iZ) const {
+    if (iX >= 0 && iX < CHUNK_SIZE && iY >= 0 && iY < CHUNK_HEIGHT && iZ >= 0 && iZ < CHUNK_SIZE) {
+        return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, iY, iZ)];
+    }
+    // Boundary checks (Neighbor querying)
+    if (iX < 0) {
+        if (m_pNeighbours[Direction::WEST])
+            return m_pNeighbours[Direction::WEST]->GetTemperatureAt(CHUNK_SIZE - 1, iY, iZ);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(0, iY, iZ)];
+    } else if (iX >= CHUNK_SIZE) {
+        if (m_pNeighbours[Direction::EAST])
+            return m_pNeighbours[Direction::EAST]->GetTemperatureAt(0, iY, iZ);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(CHUNK_SIZE - 1, iY, iZ)];
+    }
+
+    if (iY < 0) {
+        if (m_pNeighbours[Direction::BELOW])
+            return m_pNeighbours[Direction::BELOW]->GetTemperatureAt(iX, CHUNK_HEIGHT - 1, iZ);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, 0, iZ)];
+    } else if (iY >= CHUNK_HEIGHT)
+        if (m_pNeighbours[Direction::ABOVE])
+            return m_pNeighbours[Direction::ABOVE]->GetTemperatureAt(iX, 0, iZ);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, CHUNK_SIZE - 1, iZ)];
+
+    if (iZ < 0) {
+        if (m_pNeighbours[Direction::SOUTH])
+            return m_pNeighbours[Direction::SOUTH]->GetTemperatureAt(iX, iY, CHUNK_SIZE - 1);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, iY, 0)];
+    } else if (iZ >= CHUNK_SIZE) {
+        if (m_pNeighbours[Direction::NORTH])
+            return m_pNeighbours[Direction::NORTH]->GetTemperatureAt(iX, iY, 0);
+        else if (m_bVonNeumannBC)
+            return m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, iY, CHUNK_SIZE - 1)];
+    }
+
+    return 0.0f;
+}
+//*********************************************************************
 void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime) {
     float fCoefficient = fThermalDiffusivity * fDeltaTime;
 
     for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
         for (int iY = 0; iY < CHUNK_HEIGHT; ++iY) {
             for (int iX = 0; iX < CHUNK_SIZE; ++iX) {
-                int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
-
-                float fCurrentTemp = m_pfCurrFrameData[iIndex];
+                int iPaddedIndex = GetPaddedIndexOf3DLayer(iX, iY, iZ);
+                float fCurrentTemp = m_pfCurrFrameData[iPaddedIndex];
                 float fNeighborSum =
                     GetTemperatureAt(iX + 1, iY, iZ) + GetTemperatureAt(iX - 1, iY, iZ) +
                     GetTemperatureAt(iX, iY + 1, iZ) + GetTemperatureAt(iX, iY - 1, iZ) +
                     GetTemperatureAt(iX, iY, iZ + 1) + GetTemperatureAt(iX, iY, iZ - 1);
-                m_pfNextFrameData[iIndex] =
+                m_pfNextFrameData[iPaddedIndex] =
                     fCurrentTemp + fCoefficient * (fNeighborSum - 6.0f * fCurrentTemp);
             }
         }
@@ -409,19 +451,19 @@ void Chunk::ThermalStep(float fThermalDiffusivity, float fDeltaTime) {
 //*********************************************************************
 void Chunk::ThermalStep_AVX2(float fThermalDiffusivity, float fDeltaTime) {
     float fCoefficient = fThermalDiffusivity * fDeltaTime;
-    const int iOffsetY = CHUNK_SIZE;
-    const int iOffsetZ = CHUNK_SIZE * CHUNK_HEIGHT;
+    const int iOffsetY = PADDED_CHUNK_SIZE;
+    const int iOffsetZ = PADDED_CHUNK_SIZE * PADDED_CHUNK_HEIGHT;
 
     __m256 vecCoeff = _mm256_set1_ps(fCoefficient);
     __m256 vecSix = _mm256_set1_ps(6.0f);
 
     // Phase 1 : The Core (Pure AVX2 SIMD Speed)
-    for (int iZ = 1; iZ < CHUNK_SIZE - 1; ++iZ) {
-        for (int iY = 1; iY < CHUNK_HEIGHT - 1; ++iY) {
-            int iX = 1;
-            int iIndex = iX + iY * iOffsetY + iZ * iOffsetZ;
+    for (int iZ = 0; iZ < CHUNK_SIZE; ++iZ) {
+        for (int iY = 0; iY < CHUNK_HEIGHT; ++iY) {
+            int iX = 0;
+            int iIndex = (iX + 1) + (iY + 1) * iOffsetY + (iZ + 1) * iOffsetZ;
 
-            for (; iX <= CHUNK_SIZE - 1 - 8; iX += 8, iIndex += 8) {
+            for (; iX < CHUNK_SIZE - 8; iX += 8, iIndex += 8) {
                 __m256 curr = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex]);
 
                 __m256 x1 = _mm256_loadu_ps(&m_pfCurrFrameData[iIndex - 1]);
@@ -441,7 +483,7 @@ void Chunk::ThermalStep_AVX2(float fThermalDiffusivity, float fDeltaTime) {
                 _mm256_storeu_ps(&m_pfNextFrameData[iIndex], next);
             }
 
-            for (; iX < CHUNK_SIZE - 1; ++iX, ++iIndex) {
+            for (; iX < CHUNK_SIZE; ++iX, ++iIndex) {
                 float fCurrentTemp = m_pfCurrFrameData[iIndex];
                 float fNeighborSum =
                     m_pfCurrFrameData[iIndex - 1] + m_pfCurrFrameData[iIndex + 1] +
@@ -475,9 +517,21 @@ void Chunk::ThermalStep_AVX2(float fThermalDiffusivity, float fDeltaTime) {
 }
 //*********************************************************************
 void Chunk::UpdateThermalTexture() {
+    for (int iZ = -1; iZ <= CHUNK_SIZE; ++iZ) {
+        for (int iY = -1; iY <= CHUNK_HEIGHT; ++iY) {
+            for (int iX = -1; iX <= CHUNK_SIZE; ++iX) {
+                if (iX >= 0 && iX < CHUNK_SIZE && iY >= 0 && iY < CHUNK_HEIGHT && iZ >= 0 &&
+                    iZ < CHUNK_SIZE)
+                    continue;
+
+                m_pfCurrFrameData[GetPaddedIndexOf3DLayer(iX, iY, iZ)] =
+                    GetTemperatureAt(iX, iY, iZ);
+            }
+        }
+    }
     if (!m_pThermalTex)
-        m_pThermalTex =
-            std::make_unique<Renderer::ThermalVolume>(CHUNK_SIZE, CHUNK_HEIGHT, CHUNK_SIZE);
+        m_pThermalTex = std::make_unique<Renderer::ThermalVolume>(
+            PADDED_CHUNK_SIZE, PADDED_CHUNK_HEIGHT, PADDED_CHUNK_SIZE);
     if (m_pThermalTex && m_pfCurrFrameData) {
         m_pThermalTex->Update(m_pfCurrFrameData);
     }

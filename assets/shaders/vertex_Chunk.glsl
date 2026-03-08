@@ -17,9 +17,8 @@ uniform vec2 u_ChunkOffset;
 const float density = 0.015;
 const float gradient = 1.5;
 
-const float CHUNK_SIZE = 16;
-const float CHUNK_HEIGHT = 16;
-
+// The texture is now padded by 1 on all sides
+const float PADDED_TEX_SIZE = 18.0; 
 void main()
 {
     // 1. Calculate Clip Space Position
@@ -29,10 +28,10 @@ void main()
 	TexCoord = aTexCoord;
 	
 	// Calculate normalized 3D coordinate (0.0 to 1.0) mapping the 16x16x16 chunk
-    float fLocalX = (aPos.x - u_ChunkOffset.x) / CHUNK_SIZE;
-    float fLocalY = aPos.y / CHUNK_HEIGHT;
-    float fLocalZ = (aPos.z - u_ChunkOffset.y) / CHUNK_SIZE;
-    VoxelUVW = vec3(fLocalX, fLocalY, fLocalZ);
+    float fLocalX = aPos.x - u_ChunkOffset.x;
+    float fLocalY = aPos.y;
+    float fLocalZ = aPos.z - u_ChunkOffset.y;
+    VoxelUVW = (vec3(fLocalX, fLocalY, fLocalZ) + 1.0) / PADDED_TEX_SIZE;
     
     // 3. Calculate Fog Visibility based on distance from camera
     // gl_Position.z is the depth/distance relative to the camera

@@ -90,8 +90,7 @@ TEST(ChunkTest, MoveConstructor_ThermalDataIntegrity) {
 
     // Verify data survived the pointer transfer
     // We expect the exact float value at the same index
-    int iIdx = ObjTgtChunk.GetFlatIndexOf3DLayer(8, 8, 8);
-    EXPECT_FLOAT_EQ(ObjTgtChunk.GetCurrData()[iIdx], 99.0f);
+    EXPECT_FLOAT_EQ(ObjTgtChunk.GetTemperatureAt(8, 8, 8), 99.0f);
 }
 
 TEST(ChunkTest, MoveAssignment_CleanupAndReplace) {
@@ -134,8 +133,8 @@ TEST(ChunkThermalTest, BoundaryDiffusionZAxis) {
                                 // (alpha * deltime) < 1/6)
     float fDeltaTime = 0.1f;
     chunkHot.ThermalStep(fDiffusivity, fDeltaTime);
-    chunkHot.SwapBuffers();
     chunkCold.ThermalStep(fDiffusivity, fDeltaTime);
+    chunkHot.SwapBuffers();
     chunkCold.SwapBuffers();
 
     // 5. Assert: Check if heat crossed the boundary into Z=0 of the Cold Chunk

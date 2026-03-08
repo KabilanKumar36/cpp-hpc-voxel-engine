@@ -17,7 +17,11 @@
 // Constants
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 16;
-constexpr int CHUNK_VOL = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+constexpr int CHUNK_VOL = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE;
+
+constexpr int PADDED_CHUNK_SIZE = CHUNK_SIZE + 2;
+constexpr int PADDED_CHUNK_HEIGHT = CHUNK_HEIGHT + 2;
+constexpr int PADDED_CHUNK_VOL = PADDED_CHUNK_SIZE * PADDED_CHUNK_HEIGHT * PADDED_CHUNK_SIZE;
 
 // Enums
 enum FaceDirection { FRONT, BACK, LEFT, RIGHT, UP, DOWN };
@@ -65,6 +69,16 @@ public:
         }
 
         return iX + (iY * CHUNK_SIZE) + (iZ * CHUNK_SIZE * CHUNK_HEIGHT);
+    }
+
+    [[nodiscard]] inline int GetPaddedIndexOf3DLayer(int iX, int iY, int iZ) const {
+        if (iX < -1 || iX >= CHUNK_SIZE + 1 || iY < -1 || iY >= CHUNK_HEIGHT + 1 || iZ < -1 ||
+            iZ >= CHUNK_SIZE + 1) {
+            return -1;
+        }
+        // +1 for padding buffer of neighbour data
+        return (iX + 1) + ((iY + 1) * PADDED_CHUNK_SIZE) +
+               ((iZ + 1) * PADDED_CHUNK_SIZE * PADDED_CHUNK_HEIGHT);
     }
 
     // --- Block Manipulation for SIMD ---
@@ -130,35 +144,14 @@ public:
             std::memcpy(m_iBlocks, iBlocks, CHUNK_VOL * sizeof(uint8_t));
     }
 
-    inline float GetTemperatureAt(int iX, int iY, int iZ) const {
-        if (iX >= 0 && iX < CHUNK_SIZE && iY >= 0 && iY < CHUNK_HEIGHT && iZ >= 0 &&
-            iZ < CHUNK_SIZE) {
-            return m_pfCurrFrameData[GetFlatIndexOf3DLayer(iX, iY, iZ)];
-        }
-        // Boundary checks (Neighbor querying)
-        if (iX < 0 && m_pNeighbours[Direction::WEST])
-            return m_pNeighbours[Direction::WEST]->GetTemperatureAt(CHUNK_SIZE - 1, iY, iZ);
-        else if (iX >= CHUNK_SIZE && m_pNeighbours[Direction::EAST])
-            return m_pNeighbours[Direction::EAST]->GetTemperatureAt(0, iY, iZ);
+    float GetTemperatureAt(int iX, int iY, int iZ) const;
 
-        if (iY < 0 && m_pNeighbours[Direction::BELOW])
-            return m_pNeighbours[Direction::BELOW]->GetTemperatureAt(iX, CHUNK_HEIGHT - 1, iZ);
-        else if (iY >= CHUNK_HEIGHT && m_pNeighbours[Direction::ABOVE])
-            return m_pNeighbours[Direction::ABOVE]->GetTemperatureAt(iX, 0, iZ);
-
-        if (iZ < 0 && m_pNeighbours[Direction::SOUTH])
-            return m_pNeighbours[Direction::SOUTH]->GetTemperatureAt(iX, iY, CHUNK_SIZE - 1);
-        else if (iZ >= CHUNK_SIZE && m_pNeighbours[Direction::NORTH])
-            return m_pNeighbours[Direction::NORTH]->GetTemperatureAt(iX, iY, 0);
-
-        return 0.0f;
-    }
     // --- Generation ---
     void ReconstructMesh(bool bEnableNeighborCulling = false);
     void UploadMesh();
     void SwapBuffers() { std::swap(m_pfCurrFrameData, m_pfNextFrameData); }
     void InjectHeat(int iX, int iY, int iZ, float fTemp) {
-        int iIndex = GetFlatIndexOf3DLayer(iX, iY, iZ);
+        int iIndex = GetPaddedIndexOf3DLayer(iX, iY, iZ);
         if (iIndex != -1) {
             m_pfCurrFrameData[iIndex] = fTemp;
         }
@@ -198,6 +191,7 @@ private:
     int m_iHeightData[CHUNK_SIZE][CHUNK_SIZE];
     int m_iChunkX = 0, m_iChunkZ = 0;
     uint8_t m_iBlocks[CHUNK_VOL]{0};
+    bool m_bVonNeumannBC = true;
 
     // Helpers
     void updateHeightData();
