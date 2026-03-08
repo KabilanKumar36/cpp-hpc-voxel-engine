@@ -222,8 +222,8 @@ void Application::RenderHelpUI() {
     ImGui::Text("   MMB: Injects Heat on Target Block");
 
     ImGui::Separator();
-    ImGui::Text("");
-    ImGui::Text("");
+    ImGui::NewLine();
+    ImGui::NewLine();
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.6f, 0.1f, 0.1f, 1.0f));
@@ -231,7 +231,7 @@ void Application::RenderHelpUI() {
         glfwSetWindowShouldClose(m_pWindow, true);
     }
     ImGui::PopStyleColor(3);
-    ImGui::Text("");
+    ImGui::NewLine();
 
     ImGui::End();
 }
