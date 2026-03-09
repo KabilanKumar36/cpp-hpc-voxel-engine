@@ -111,6 +111,8 @@ int main() {
         App.m_iMaxRenderingThreads = iRenderingThreads;
         App.m_iActiveThreads = iRenderingThreads;
         ThermalSystem objThermalSystem{iThermalThreads};
+        inputHandler.SetActiveThreads(iRenderingThreads);
+        objChunkManager.SetActiveThreads(iRenderingThreads);
 
         // Main Render Loop
         while (!glfwWindowShouldClose(pWindow)) {
