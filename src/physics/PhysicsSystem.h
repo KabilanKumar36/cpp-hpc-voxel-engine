@@ -1,3 +1,9 @@
+/**
+ * @file PhysicsSystem.h
+ * @brief Defines structures and static utilities for rigid body kinematics, collisions, and
+ * raycasting.
+ */
+
 #pragma once
 
 #include <vector>
@@ -9,7 +15,7 @@ class ChunkManager;
 
 /**
  * @struct RigidBody
- * @brief Represents a physical object (Player) in the world.
+ * @brief Represents a physical object subject to gravity and collision in the voxel world.
  */
 struct RigidBody {
     Core::Vec3 m_ObjPos;
@@ -24,7 +30,7 @@ struct RigidBody {
 
 /**
  * @struct RayHit
- * @brief Result of a raycast query.
+ * @brief Encapsulates the result of a raycast query against the voxel world.
  */
 struct RayHit {
     Core::Vec3 m_objHitPoint{};
@@ -36,7 +42,7 @@ struct RayHit {
 
 /**
  * @class PhysicsSystem
- * @brief Static system for managing collisions and raycasting.
+ * @brief Static utility class handling AABB collisions, velocity integration, and DDA raycasting.
  */
 class PhysicsSystem {
 public:

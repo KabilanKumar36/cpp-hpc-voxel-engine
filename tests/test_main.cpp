@@ -1,3 +1,8 @@
+/**
+ * @file test_main.cpp
+ * @brief Google Test execution runner configuring a global headless OpenGL context for unit tests.
+ */
+
 // clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -17,12 +22,15 @@ extern "C" const char* __lsan_default_suppressions() {
 }
 #endif
 
-// Error callback for GLFW
 static void error_callback(int iError, const char* pcMsg) {
     std::cerr << "GLFW Error [" << iError << "]: " << pcMsg << std::endl;
 }
 
-// Global Test Environment
+/**
+ * @class OpenGLEnv
+ * @brief Global Google Test environment guaranteeing a valid OpenGL context exists before test
+ * execution.
+ */
 class OpenGLEnv : public ::testing::Environment {
 public:
     GLFWwindow* pWindow = nullptr;
@@ -35,7 +43,6 @@ public:
             exit(EXIT_FAILURE);
         }
 
-        // Create a hidden window for context
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
@@ -66,10 +73,9 @@ public:
     }
 };
 
+//*********************************************************************
 int main(int argc, char** argv) {
     ::testing::InitGoogleTest(&argc, argv);
-
-    // Register the OpenGL environment
     ::testing::AddGlobalTestEnvironment(new OpenGLEnv);
 
     return RUN_ALL_TESTS();

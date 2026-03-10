@@ -1,4 +1,9 @@
-#include <cstdlib>  // required for aligned malloc and aligned free
+/**
+ * @file Chunk.cpp
+ * @brief Implementation of Chunk meshing, physics colliders, and thermal diffusion integration.
+ */
+
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <malloc.h>
@@ -76,7 +81,6 @@ Chunk::Chunk(Chunk&& other) noexcept
     std::memcpy(m_iBlocks, other.m_iBlocks, sizeof(m_iBlocks));
     std::memcpy(m_iHeightData, other.m_iHeightData, sizeof(m_iHeightData));
 
-    // Copy neighbours pointers
     for (int i = 0; i < 6; ++i) m_pNeighbours[i] = other.m_pNeighbours[i];
 }
 //*********************************************************************
@@ -160,10 +164,7 @@ void Chunk::updateHeightData() {
             float fNoiseVal =
                 noise.GetNoise(static_cast<float>(iWorldX), static_cast<float>(iWorldZ));
 
-            // Map -1..1 to Height
             int iHeight = static_cast<int>((fNoiseVal + 1.0f) * 10.0f);
-
-            // Clamp height
             iHeight = std::clamp(iHeight, 0, CHUNK_HEIGHT - 1);
             m_iHeightData[iX][iZ] = iHeight;
 
@@ -234,15 +235,12 @@ void Chunk::ReconstructMesh(bool bEnableNeighborCulling) {
                 if (iBlockType == AIR)
                     continue;
 
-                // Greedy meshing / Face culling checks
-                // We only draw a face if the neighbor is Air (0)
-
-                // UP
+                // UP (Y+)
                 if (!bEnableNeighborCulling ||
                     (iY == CHUNK_HEIGHT - 1 || GetBlockAt(iX, iY + 1, iZ) == 0))
                     addBlockFace(iX, iY, iZ, FaceDirection::UP, iBlockType);
 
-                // DOWN
+                // DOWN (Y-)
                 if (!bEnableNeighborCulling || (iY == 0 || GetBlockAt(iX, iY - 1, iZ) == 0))
                     addBlockFace(iX, iY, iZ, FaceDirection::DOWN, iBlockType);
 
@@ -299,7 +297,7 @@ void Chunk::addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockT
         iAtlasRow = 0;  // Stone
     }
 
-    float fSlotSize = 1.0f / 16.0f;  // Assuming 16x16 Texture Atlas
+    float fSlotSize = 1.0f / 16.0f;
     float u0 = static_cast<float>(iAtlasCol) * fSlotSize;
     float v1 = static_cast<float>(iAtlasRow) * fSlotSize;
     float u1 = u0 + fSlotSize;

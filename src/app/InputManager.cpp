@@ -1,3 +1,8 @@
+/**
+ * @file InputManager.cpp
+ * @brief Implementation of the InputManager singleton.
+ */
+
 #include "InputManager.h"
 #include <cstring>
 
@@ -24,15 +29,9 @@ void InputManager::FrameBufferSizeCallback([[maybe_unused]] GLFWwindow *window,
 }
 //*********************************************************************
 void InputManager::Update() {
-    // Reset per-frame data
     m_dScrollY = 0.0;
-
-    // Copy current key state to previous state (for JustPressed logic)
     std::memcpy(m_bPrevKeys, m_bKeys, 1024 * sizeof(bool));
 
-    // Calculate Mouse Delta
-    // Note: This delta calculation assumes Update() is called *before* PollEvents
-    // if we want delta from the *previous* frame's movement.
     m_objMouseDelta.x = m_objMousePosition.x - m_objMousePrevPosition.x;
     m_objMouseDelta.y =
         m_objMousePrevPosition.y - m_objMousePosition.y;  // Inverted Y for OpenGL camera

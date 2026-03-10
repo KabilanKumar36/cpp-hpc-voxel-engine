@@ -4,6 +4,7 @@ PROJECT_NUMBER         = @PROJECT_VERSION@
 PROJECT_BRIEF          = "High-Performance C++ Voxel Engine"
 
 # Inputs
+IMAGE_PATH			   = "@CMAKE_SOURCE_DIR@/docs/screenshots"
 OUTPUT_DIRECTORY       = "@CMAKE_SOURCE_DIR@/docs"
 INPUT                  = "@CMAKE_SOURCE_DIR@/src" "@CMAKE_SOURCE_DIR@/README.md"
 RECURSIVE              = YES

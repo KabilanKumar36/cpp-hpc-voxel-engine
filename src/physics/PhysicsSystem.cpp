@@ -1,9 +1,14 @@
+/**
+ * @file PhysicsSystem.cpp
+ * @brief Implementation of the PhysicsSystem handling discrete collision detection and DDA
+ * raycasting.
+ */
+
 #include "PhysicsSystem.h"
 #include <algorithm>
 #include <cmath>
 #include <limits>
 
-// We only include the heavy headers here, in the implementation.
 #include "../world/Chunk.h"
 #include "../world/ChunkManager.h"
 

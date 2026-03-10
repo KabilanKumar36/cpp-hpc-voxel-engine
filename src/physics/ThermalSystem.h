@@ -1,3 +1,8 @@
+/**
+ * @file ThermalSystem.h
+ * @brief Defines the ThermalSystem class for multi-threaded, SIMD-accelerated heat diffusion.
+ */
+
 #pragma once
 
 #include <atomic>
@@ -8,15 +13,27 @@
 
 class ChunkManager;
 // ********************************************************************
+
+/**
+ * @class ThermalSystem
+ * @brief Manages a thread pool to compute 3D explicit thermal diffusion across voxel chunks.
+ */
 class ThermalSystem {
 public:
     ThermalSystem(int iNumThreads);
     ~ThermalSystem();
 
+    /**
+     * @brief Wakes worker threads to compute the next thermal integration step based on elapsed
+     * time.
+     */
     void UpdateTemperature(float fDeltaTime, ChunkManager& objChunkManager);
     void SetEnableSIMD(bool bEnable) { m_bIsSIMDEnabled = bEnable; }
 
 private:
+    /**
+     * @brief Main execution loop for each worker thread, regulated by barrier synchronization.
+     */
     void workerThreadLoop(int iThreadID);
 
     int m_iNumThreads;

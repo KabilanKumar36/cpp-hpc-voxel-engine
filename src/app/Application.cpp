@@ -1,3 +1,8 @@
+/**
+ * @file Application.cpp
+ * @brief Implementation of the Application class for ImGui UI rendering and state management.
+ */
+
 #include "Application.h"
 
 // clang-format off
@@ -205,13 +210,13 @@ void Application::RenderHelpUI() {
 
     ImGui::TextColored(ImVec4(0.0f, 0.8f, 1.0f, 1.0f), "Demonstration Guide");
     ImGui::TextWrapped(
-        "Open the Developer System Monitor (~)"
-        "Try dropping the 'Worker Threads' to 0 to force synchronous main-thread execution"
+        "Open the Developer System Monitor (~)\n"
+        "Try dropping the 'Worker Threads' to 0 to force synchronous main-thread execution\n"
         "or disable culling to see raw geometry load.");
     ImGui::Separator();
 
     ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "System Shortcuts");
-    ImGui::BulletText("F1: Toogle this Help Menu");
+    ImGui::BulletText("F1: Toggle this Help Menu");
     ImGui::BulletText("Tilde(~): Toggle System Monitor");
     ImGui::BulletText("F: Toggle Frustrum Culling");
     ImGui::BulletText("P: Toggle Ortho/Perspective");
@@ -243,13 +248,11 @@ void Application::EndImGUIFrame() {
 //*********************************************************************
 void Application::HandleUIToggle() {
     static bool bKeyWasPressed = false;
-    // Toggle UI state on Grave Accent (`~`) press
     if (glfwGetKey(m_pWindow, GLFW_KEY_GRAVE_ACCENT) == GLFW_PRESS) {
         if (!bKeyWasPressed) {
             bKeyWasPressed = true;
             m_bShowMetricsPanel = !m_bShowMetricsPanel;
 
-            // Switch cursor mode based on UI state
             if (m_bShowMetricsPanel) {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } else {
@@ -269,6 +272,7 @@ void Application::HandleUIToggle() {
         if (!bF1WasPressed) {
             bF1WasPressed = true;
             m_bShowHelpWindow = !m_bShowHelpWindow;
+
             if (m_bShowHelpWindow) {
                 glfwSetInputMode(m_pWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             } else {

@@ -47,7 +47,7 @@ This project is a technical playground for implementing high-performance graphic
 
 The engine follows a strict separation of concerns between the Simulation Loop (Fixed Timestep) and Rendering Loop (Variable Timestep).
 
-![System Architecture](docs/screenshots/system_architecture.png)
+![System Architecture](docs/screenshots/system_architecture_v_0_2_0.png)
 
 ## ✨ Key Features (Current & Planned)
 

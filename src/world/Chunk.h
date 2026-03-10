@@ -1,6 +1,11 @@
+/**
+ * @file Chunk.h
+ * @brief Defines the Chunk class representing a localized 3D grid of voxels and its thermal data.
+ */
+
 #pragma once
 
-#include <FastNoiseLite.h>  // Ensure this library is in your include path
+#include <FastNoiseLite.h>
 #include <immintrin.h>
 #include <cstdint>
 #include <cstring>
@@ -14,7 +19,6 @@
 #include "../renderer/ThermalVolume.h"
 #include "../renderer/VertexArray.h"
 
-// Constants
 constexpr int CHUNK_SIZE = 16;
 constexpr int CHUNK_HEIGHT = 16;
 constexpr int CHUNK_VOL = CHUNK_SIZE * CHUNK_HEIGHT * CHUNK_SIZE;
@@ -23,26 +27,27 @@ constexpr int PADDED_CHUNK_SIZE = CHUNK_SIZE + 2;
 constexpr int PADDED_CHUNK_HEIGHT = CHUNK_HEIGHT + 2;
 constexpr int PADDED_CHUNK_VOL = PADDED_CHUNK_SIZE * PADDED_CHUNK_HEIGHT * PADDED_CHUNK_SIZE;
 
-// Enums
 enum FaceDirection { FRONT, BACK, LEFT, RIGHT, UP, DOWN };
 enum Direction { NORTH = 0, SOUTH, EAST, WEST, ABOVE, BELOW };  // Z+, Z-, X+, X-, Y+, Y-
 enum BlockType { AIR = 0, GRASS = 1, DIRT = 2, STONE = 3 };
 
+/**
+ * @class Chunk
+ * @brief Manages voxel block data, procedural mesh generation, and memory-aligned thermal diffusion
+ * buffers.
+ */
 class Chunk {
 public:
     Chunk() = delete;
     Chunk(int iX, int iZ);
     ~Chunk();
 
-    // Delete Copy (Chunks are heavy)
     Chunk(const Chunk&) = delete;
     Chunk& operator=(const Chunk&) = delete;
 
-    // Move Semantics
     Chunk(Chunk&& other) noexcept;
     Chunk& operator=(Chunk&& other) noexcept;
 
-    // --- Getters ---
     [[nodiscard]] int GetChunkX() const { return m_iChunkX; }
     [[nodiscard]] int GetChunkZ() const { return m_iChunkZ; }
 
@@ -146,7 +151,6 @@ public:
 
     float GetTemperatureAt(int iX, int iY, int iZ) const;
 
-    // --- Generation ---
     void ReconstructMesh(bool bEnableNeighborCulling = false);
     void UploadMesh();
     void SwapBuffers() { std::swap(m_pfCurrFrameData, m_pfNextFrameData); }
@@ -193,7 +197,6 @@ private:
     uint8_t m_iBlocks[CHUNK_VOL]{0};
     bool m_bVonNeumannBC = true;
 
-    // Helpers
     void updateHeightData();
     void updateBuffers();
     void addBlockFace(int iX, int iY, int iZ, FaceDirection iDir, int iBlockType);

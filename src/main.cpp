@@ -1,12 +1,21 @@
-﻿#if defined(_WIN32) && defined(NDEBUG)
+﻿/**
+ * @file main.cpp
+ * @brief Entry point for the HPC Voxel Engine. Initializes subsystems and executes the main game
+ * loop.
+ */
+
+#if defined(_WIN32) && defined(NDEBUG)
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #endif
 
 #include <iostream>
 #include <vector>
 
-constexpr float CLEAR_COLOR[4] = {0.2f, 0.3f, 0.2f, 1.0f};  // Forest Green color
-constexpr float FIXED_THERMAL_TIME_STEP = 1.0f / 60.0f;     // 60 FPS fixed timestep
+constexpr float CLEAR_COLOR[4] = {
+    0.2f, 0.3f, 0.2f, 1.0f};  ///< Background clear color (Forest Green)
+constexpr float FIXED_THERMAL_TIME_STEP =
+    1.0f / 60.0f;  ///< Fixed physics and thermal simulation timestep (60 FPS)
+
 // clang-format off
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -27,6 +36,9 @@ constexpr float FIXED_THERMAL_TIME_STEP = 1.0f / 60.0f;     // 60 FPS fixed time
 #include "physics/ThermalSystem.h"
 #include "renderer/WorldRenderer.h"
 
+/**
+ * @brief Configures the initial global OpenGL state parameters for 3D rendering.
+ */
 static void SetOpenGLState() {
     glEnable(GL_DEPTH_TEST);
     glCullFace(GL_BACK);
@@ -56,7 +68,7 @@ int main() {
         glfwCreateWindow(inputHandler.GetScreenWidth(),
                          inputHandler.GetScreenHeight(),
                          "HPC Voxel Engine ( Esc - Close & F1 - Help & Mouse Control)",
-                         /*pPrimaryMonitor*/ nullptr,
+                         nullptr,
                          nullptr);
     if (pWindow == nullptr) {
         std::cerr << "Failed to create GLFW window" << std::endl;
@@ -66,7 +78,6 @@ int main() {
     glfwMakeContextCurrent(pWindow);
     glfwSetWindowTitle(pWindow, "HPC Voxel Engine");
 
-    // Unlock FPS (VSync OFF) to demonstrate high performance
     glfwSwapInterval(0);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -95,7 +106,6 @@ int main() {
         Renderer::Texture texture("assets/textures/texture_atlas.png");
         texture.Bind(0);
 
-        // World & Chunk Initialization
         std::string strRegnFilePath = "ChunkData";
         ChunkManager objChunkManager(strRegnFilePath);
         float fLastFrame = static_cast<float>(glfwGetTime());
@@ -149,7 +159,6 @@ int main() {
             int iPhysicsSteps = 0;
             // Fixed timestep loop for thermal simulation to ensure stability
             while (fAccumulator >= FIXED_THERMAL_TIME_STEP) {
-                // Logic & Physics
                 if (objChunkManager.GetMutableChunks().empty())
                     inputHandler.GetCamera().SetCameraPosition(Core::Vec3(100.0f, 40.0f, 100.0f));
                 else
@@ -161,7 +170,7 @@ int main() {
             }
             App.m_iPhysicsSteps = iPhysicsSteps;
             App.m_fAccumulator = fAccumulator;
-            // Rendering
+            // World Rendering
             Core::Mat4 viewProjection = inputHandler.GetViewProjectionMatrix();
             Renderer::WorldRenderer::DrawChunks(
                 objChunkManager, shader, viewProjection, inputHandler.IsFrustumCullingEnabled());

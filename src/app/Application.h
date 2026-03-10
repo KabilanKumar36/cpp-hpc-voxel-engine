@@ -1,3 +1,8 @@
+/**
+ * @file Application.h
+ * @brief Defines the Application class handling the main application state and ImGui UI rendering.
+ */
+
 #pragma once
 
 #include "backends/imgui_impl_glfw.h"
@@ -13,54 +18,65 @@ class ChunkManager;
 
 /**
  * @class Application
- * @brief Manages the application lifecycle and UI integration (ImGui).
+ * @brief Manages the application lifecycle, configuration state, and UI integration (ImGui).
+ * * This class acts as the central hub for user interface rendering and global
+ * application settings such as threading limits, rendering modes, and physics steps.
  */
 class Application {
 public:
     /**
-     * @brief Constructs the application with a window handle.
-     * @param pWindow Pointer to the GLFW window.
+     * @brief Constructs the application and associates it with a window.
+     * @param pWindow Pointer to the active GLFW window context.
      */
     Application(GLFWwindow* pWindow);
     ~Application() = default;
 
     /**
-     * @brief Handles the UI toggle input (Grave Accent / Tilde key).
-     * Switches between FPS mode (cursor disabled) and UI mode (cursor enabled).
+     * @brief Handles the UI toggle input (typically the Grave Accent / Tilde key).
+     * * Switches the application between FPS mode (cursor captured and disabled)
+     * and UI mode (cursor freed for ImGui interaction).
      */
     void HandleUIToggle();
 
     /**
-     * @brief Starts a new ImGui frame. Must be called before any UI rendering.
+     * @brief Starts a new ImGui frame context.
+     * @note Must be called before issuing any ImGui rendering commands in the main loop.
      */
     void BeginImGUIFrame();
 
     /**
-     * @brief Ends the ImGui frame and renders draw data.
+     * @brief Ends the current ImGui frame and dispatches draw data to OpenGL.
      */
     void EndImGUIFrame();
 
     /**
-     * @brief Initializes ImGui context and backends.
+     * @brief Initializes the ImGui context and configures the GLFW/OpenGL3 backends.
      */
     void InitImGUI();
 
     /**
-     * @brief Shuts down ImGui and releases resources.
+     * @brief Shuts down ImGui, releasing all allocated backend and context resources.
      */
     void ShutDownImGUI();
 
     /**
-     * @brief Handles the UI Rendering.
+     * @brief Renders the primary metrics and debugging UI panel.
+     * @param inputHandler Reference to the system input handler for displaying control states.
+     * @param objChunkManager Reference to the ChunkManager for displaying chunk/threading stats.
+     * @param objRayHit Reference to the current RayHit data for block targeting information.
      */
     void RenderMetricsUI(App::InputHandler& inputHandler,
                          const ChunkManager& objChunkManager,
                          const RayHit& objRayHit);
 
     /**
-     * @brief Handles the Help Rendering.
+     * @brief Renders the Help/Controls overlay window.
      */
     void RenderHelpUI();
+
+    // ------------------------------------------------------------------------
+    // Public Application State & Configuration Variables
+    // ------------------------------------------------------------------------
 
     float m_fFlySpeed = 200.0f;
     float m_fAccumulator = 20.0f;

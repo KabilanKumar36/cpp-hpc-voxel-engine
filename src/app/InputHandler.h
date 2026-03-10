@@ -1,3 +1,8 @@
+/**
+ * @file InputHandler.h
+ * @brief Defines the InputHandler class for processing user input and player interaction.
+ */
+
 #pragma once
 #include <memory>
 
@@ -13,13 +18,30 @@
 #include "../world/Player.h"
 
 namespace App {
+
+/**
+ * @class InputHandler
+ * @brief Processes keyboard and mouse input, managing player movement, camera state, and world
+ * interaction.
+ */
 class InputHandler {
 public:
     InputHandler(const Core::Vec3& ObjStartPos);
+
+    /**
+     * @brief Polls and processes raw input events to update global application state.
+     */
     void ProcessInput(GLFWwindow* pWindow, ChunkManager& objChunkManager, float fDeltaTime);
+
+    /**
+     * @brief Updates player movement and collision based on elapsed time.
+     */
     void UpdatePlayerPhysics(float fDeltaTime, const ChunkManager& objChunkManager);
 
-    // Raycasts into the world to preview/edit blocks. Returns hit result for logic processing.
+    /**
+     * @brief Raycasts into the world to preview, place, destroy, or inject heat into blocks.
+     * @return RayHit Result of the raycast collision for UI/logic processing.
+     */
     RayHit ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                                      const Core::Mat4& viewProjection);
 

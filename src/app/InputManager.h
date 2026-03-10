@@ -1,3 +1,8 @@
+/**
+ * @file InputManager.h
+ * @brief Defines the InputManager singleton for global keyboard and mouse state polling.
+ */
+
 #pragma once
 
 // clang-format off
@@ -9,10 +14,7 @@
 
 /**
  * @class InputManager
- * @brief Singleton class that handles global input state (Keyboard, Mouse, Scroll).
- *
- * It captures GLFW callbacks and provides query methods for polling input state
- * (IsKeyPressed, IsKeyJustPressed, GetMouseDelta, etc.).
+ * @brief Singleton class that handles global input state.
  */
 class InputManager {
 public:
@@ -36,20 +38,13 @@ public:
      */
     void Update();
 
-    // --- Keyboard Queries ---
-
     bool IsKeyPressed(int iKey) const;
     bool IsKeyJustPressed(int iKey) const;
-
-    // --- Mouse Queries ---
-
     bool IsMouseButtonPressed(int iButton) const;
 
     Core::Vec3 GetMousePosition() const { return m_objMousePosition; }
     Core::Vec3 GetMouseDelta() const { return m_objMouseDelta; }
     double GetScroll() const { return m_dScrollY; }
-
-    // --- Callbacks (Internal use by GLFW) ---
 
     static void FrameBufferSizeCallback(GLFWwindow *window, int width, int height);
 
@@ -61,13 +56,11 @@ private:
     static void mousePosCallback(GLFWwindow *pWindow, double dXPos, double dYPos);
     static void scrollCallback(GLFWwindow *pWindow, double dXOffset, double dYOffset);
 
-    // State Buffers
     bool m_bKeys[1024] = {false};
     bool m_bPrevKeys[1024] = {false};
 
     bool m_bButtons[8] = {false};
 
-    // Mouse State
     Core::Vec3 m_objMousePosition;
     Core::Vec3 m_objMousePrevPosition;
     Core::Vec3 m_objMouseDelta;

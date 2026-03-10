@@ -1,3 +1,8 @@
+/**
+ * @file ChunkManager.cpp
+ * @brief Implementation of ChunkManager utilizing ThreadPool for asynchronous region loading.
+ */
+
 #include "ChunkManager.h"
 #include <iostream>
 
@@ -30,7 +35,6 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
     int iCurrentChunkX = static_cast<int>(std::floor(fPlayerX / CHUNK_SIZE));
     int iCurrentChunkZ = static_cast<int>(std::floor(fPlayerZ / CHUNK_SIZE));
 
-    // Optimization: Only update loading logic if player moved to a new chunk
     if (iCurrentChunkX == m_iLastPlayerChunkX && iCurrentChunkZ == m_iLastPlayerChunkZ) {
         updateGeneratedMeshStats();
         return;
@@ -61,11 +65,9 @@ void ChunkManager::Update(float fPlayerX, float fPlayerZ) {
              iZ++) {
             std::pair<int, int> ChunkCoord = {iX, iZ};
 
-            // Skip if already loaded
             if (m_mapChunks.count(ChunkCoord))
                 continue;
 
-            // Skip if already pending
             bool bPending = false;
             {
                 std::lock_guard<std::mutex> lock(m_mutexPending);

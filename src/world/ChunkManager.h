@@ -1,3 +1,9 @@
+/**
+ * @file ChunkManager.h
+ * @brief Defines the ChunkManager class for managing the lifecycle, loading, and unloading of world
+ * chunks.
+ */
+
 #pragma once
 
 #include <algorithm>
@@ -15,18 +21,23 @@
 #include "Chunk.h"
 #include "RegionManager.h"
 
-// Forward Declaration
 namespace Renderer {
 class Shader;
 }
 
+/**
+ * @class ChunkManager
+ * @brief Orchestrates infinite world generation, active chunk tracking, and multi-threaded data
+ * loading.
+ */
 class ChunkManager {
 public:
     ChunkManager() = delete;
     ChunkManager(std::string& strFolderPath) : m_objRegionManager(strFolderPath) {}
 
     /**
-     * @brief Main update loop. Handles chunk loading/unloading based on player position.
+     * @brief Core lifecycle loop. Synchronizes asynchronous chunks and manages the active render
+     * radius.
      * @param fPlayerX Player world X.
      * @param fPlayerZ Player world Z.
      */
@@ -35,7 +46,7 @@ public:
     void ReloadAllChunks();
 
     /**
-     * @brief Modifies a block in the world. Handles mesh updates for the chunk and neighbors.
+     * @brief Modifies a voxel block and invalidates necessary chunk meshes (including boundaries).
      */
     void SetBlock(int iWorldX, int iWorldY, int iWorldZ, uint8_t iBlockType);
 
@@ -50,11 +61,10 @@ public:
     Chunk* GetChunk(int iX, int iZ);
     const Chunk* GetChunk(int iX, int iZ) const;
 
-    // Helper for Renderer
     std::map<std::pair<int, int>, std::unique_ptr<Chunk>>& GetMutableChunks() {
         return m_mapChunks;
     }
-    // Helper for UI
+
     const std::map<std::pair<int, int>, std::unique_ptr<Chunk>>& GetChunks() const {
         return m_mapChunks;
     }
@@ -82,7 +92,6 @@ private:
 
     std::map<std::pair<int, int>, std::unique_ptr<Chunk>> m_mapChunks;
 
-    // Threading Synchronization
     std::set<std::pair<int, int>> m_setPendingCoords;
     std::mutex m_mutexPending;
 

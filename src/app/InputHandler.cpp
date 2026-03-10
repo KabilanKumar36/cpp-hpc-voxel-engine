@@ -1,3 +1,8 @@
+/**
+ * @file InputHandler.cpp
+ * @brief Implementation of the InputHandler class.
+ */
+
 #include "InputHandler.h"
 #include <cmath>
 #include <iostream>
@@ -117,13 +122,11 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
     RayHit objRayHit;
     InputManager& inputs = InputManager::GetInstance();
 
-    // Ctrl Key enables "Debug/Building" mode
     if (inputs.IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || inputs.IsKeyPressed(GLFW_KEY_RIGHT_CONTROL)) {
         glDisable(GL_DEPTH_TEST);
         float fMaxDistance = 60.0f;
         Core::Ray objRay(GetCamera().GetCameraPosition(), GetCamera().GetFront());
 
-        // Draw Debug Ray
         Core::Vec3 objUp = GetCamera().GetUp();
         Core::Vec3 objRight = GetCamera().GetFront().cross(objUp).normalize();
         Core::Vec3 objRayStart = objRay.m_objPtOrigin - objUp * 0.1f + objRight * 0.2f;
@@ -137,13 +140,11 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                                    static_cast<float>(objRayHit.m_iBlocKY),
                                    static_cast<float>(objRayHit.m_iBlocKZ));
 
-            // Draw Block Highlight
             Renderer::PrimitiveRenderer::DrawCube(objBlockPos,
                                                   Core::Vec3(1.005f, 1.005f, 1.005f),
                                                   Core::Vec3(1.0f, 0.0f, 1.0f),
                                                   viewProjection);
 
-            // Destroy Block
             if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
                 if (m_bLMBClickedFirstTime) {
                     objChunkManager.SetBlock(
@@ -154,7 +155,6 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                 m_bLMBClickedFirstTime = true;
             }
 
-            // Place Block
             if (inputs.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
                 if (m_bRMBClickedFirstTime) {
                     int iBlockX = objRayHit.m_iBlocKX + static_cast<int>(objRayHit.m_objNormal.x);
@@ -177,7 +177,7 @@ RayHit InputHandler::ProcessFirePreviewAndFire(ChunkManager& objChunkManager,
                         static_cast<int>(std::floor(static_cast<float>(iWorldZ) / CHUNK_SIZE));
 
                     Chunk* pChunk = objChunkManager.GetChunk(iChunkX, iChunkZ);
-                    // Convert to local coords
+
                     int iLocalX = iWorldX % CHUNK_SIZE;
                     int iLocalZ = iWorldZ % CHUNK_SIZE;
                     if (iLocalX < 0)
