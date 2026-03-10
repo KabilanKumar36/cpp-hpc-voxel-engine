@@ -6,7 +6,7 @@ This document outlines the high-level architecture of the Voxel Engine and recor
 
 The engine uses a Data-Oriented architecture, strictly separating the Simulation Loop (Physics/Logic) from the Rendering Loop. This ensures deterministic physics regardless of frame rate.
 
-###High-Level Data Flow
+### High-Level Data Flow
 ```mermaid
 flowchart TD
     %% Subgraph: The Main Application Loop
