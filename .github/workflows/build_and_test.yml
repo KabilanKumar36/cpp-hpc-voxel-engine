@@ -32,7 +32,7 @@ jobs:
         run: |
            sudo apt-get install -y libwayland-dev libgl1-mesa-dev libxkbcommon-dev xorg-dev xvfb doxygen graphviz
 
-      # 3. Configure Cmake, Build Engine, Run Tests and Generate Docs
+      # 4. Configure Cmake, Build Engine, Run Tests and Generate Docs
       - name: Configure CMake
         run: cmake -B build -DCMAKE_BUILD_TYPE=Release
 
@@ -48,8 +48,27 @@ jobs:
            cmake --build build --target docs
            
       # Upload docs as an artifact so we can download and view them
-      - name: Upload Documentation
-        uses: actions/upload-artifact@v4
+      - name: Upload GitHub pages Artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          name: HTML-Docs
           path: docs/api
+          
+  deploy:
+    needs: build
+    
+    permissions:
+      pages: write
+      id-token: write
+
+    # Only deploy from main branch
+    if: github.ref == 'refs/heads/main' 
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
