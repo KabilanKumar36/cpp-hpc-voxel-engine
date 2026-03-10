@@ -81,6 +81,7 @@ docs/html/
 docs/latex/
 docs/*.db
 docs/*.log
+docs/.nojekyll
 
 # But KEEP the screenshots
 !docs/screenshots/
