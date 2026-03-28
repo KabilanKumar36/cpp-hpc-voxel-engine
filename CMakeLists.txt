@@ -167,16 +167,18 @@ set_strict_warnings(VoxelEngine)
 # --------------------------------------------------------
 # 5. Hide console for Windows Release builds
 # --------------------------------------------------------
-if(MSVC)
-    target_link_options(VoxelEngine PRIVATE 
-        $<$<CONFIG:Release>:/SUBSYSTEM:WINDOWS>
-        $<$<CONFIG:Release>:/ENTRY:mainCRTStartup>
-    )
-else(WIN32)
-    # For Linux/macOS, we can use a linker flag to hide the console in release builds
-    target_link_options(VoxelEngine PRIVATE 
-        $<$<CONFIG:Release>:-mwindows>
-    )
+if(WIN32)
+    if(MSVC)
+        target_link_options(VoxelEngine PRIVATE 
+            $<$<CONFIG:Release>:/SUBSYSTEM:WINDOWS>
+            $<$<CONFIG:Release>:/ENTRY:mainCRTStartup>
+        )
+    elseif(MINGW)
+        # For Linux/macOS, we can use a linker flag to hide the console in release builds
+        target_link_options(VoxelEngine PRIVATE 
+            $<$<CONFIG:Release>:-mwindows>
+        )
+    endif()
 endif()
 # --------------------------------------------------------
 # 5. Unit Tests
