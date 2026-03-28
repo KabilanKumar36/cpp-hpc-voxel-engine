@@ -4,9 +4,6 @@
  * loop.
  */
 
-#if defined(_WIN32) && defined(NDEBUG)
-#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
-#endif
 
 #include <iostream>
 #include <vector>
