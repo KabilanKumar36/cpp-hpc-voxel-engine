@@ -4,6 +4,7 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![OpenGL](https://img.shields.io/badge/OpenGL-4.5-red.svg)
+![Testing](https://img.shields.io/badge/testing-GTest-orange.svg)
 ![Build Status](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine/actions/workflows/build_and_test.yml/badge.svg)
 
 > **🚀 v1.0 Tech Demo Available!**
@@ -115,7 +116,7 @@ The engine follows a strict separation of concerns between the Simulation Loop (
 ### Steps
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/KabilanKumar36/cpp-hpc-voxel-engine.git](https://github.com/KabilanKumar36/cpp-hpc-voxel-engine.git)
+    git clone https://github.com/KabilanKumar36/cpp-hpc-voxel-engine.git
     cd cpp-hpc-voxel-engine
     ```
 
